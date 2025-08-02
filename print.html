@@ -1,0 +1,1364 @@
+<!DOCTYPE HTML>
+<html lang="ko" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>SICP 여정</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="SICP 여정">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="theme/css/custom.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">SICP 여정</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/netpyoung/sicp-journey" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="들어가며"><a class="header" href="#들어가며">들어가며</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="1장-함수로-추상화-쌓기"><a class="header" href="#1장-함수로-추상화-쌓기">1장. 함수로 추상화 쌓기</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="2장-데이터로-추상화-쌓기"><a class="header" href="#2장-데이터로-추상화-쌓기">2장. 데이터로 추상화 쌓기</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="3장-모듈-객체-상태"><a class="header" href="#3장-모듈-객체-상태">3장. 모듈, 객체, 상태</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="4장-메타언어적-추상화"><a class="header" href="#4장-메타언어적-추상화">4장. 메타언어적 추상화</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="5장-레지스터-머신으로-계산"><a class="header" href="#5장-레지스터-머신으로-계산">5장. 레지스터 머신으로 계산</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-01"><a class="header" href="#연습문제-풀이-01">연습문제 풀이 01</a></h1>
+<h2 id="1_01"><a class="header" href="#1_01">1_01</a></h2>
+<pre><code class="language-lisp">;; file: 1_01.rkt
+
+10
+;;=&gt;  10
+ 
+(+ 5 3 4)
+;;=&gt;  12
+ 
+(- 9 1)
+;;=&gt;  8
+ 
+(/ 6 2)
+;;=&gt; 3
+ 
+(+ (* 2 4) (- 4 6))
+;;=&gt; 6
+
+
+;; ===========================================
+
+(define a 3)
+(define b (+ a 1))
+
+(+ a b (* a b))
+;;=&gt; 19
+ 
+(= a b)
+;;=&gt; #f
+ 
+(if (and (&gt; b a) (&lt; b (* a b)))
+    b
+    a)
+;;=&gt; 4
+ 
+
+(cond ((= a 4) 6)
+      ((= b 4) (+ 6 7 a))
+      (else 25))
+;;=&gt; 16
+
+(+ 2 (if (&gt; b a)
+         b
+         a))
+;;=&gt; 6
+
+(* (cond ((&gt; a b) a)
+         ((&lt; a b) b)
+         (else -1))
+   (+ a 1))
+;;=&gt; 16
+</code></pre>
+<h2 id="1_02"><a class="header" href="#1_02">1_02</a></h2>
+<pre><code class="language-lisp">;; file: 1_02.rkt
+
+(/ (+ 5 4 (- 2 (- 3 (+ 6 (/ 4 5)))))
+   (* 3 (- 6 2) (- 2 7)))
+;;=&gt; -37/150
+</code></pre>
+<h2 id="1_03"><a class="header" href="#1_03">1_03</a></h2>
+<pre><code class="language-lisp">;; file: 1_03.rkt
+</code></pre>
+<h2 id="1_04"><a class="header" href="#1_04">1_04</a></h2>
+<pre><code class="language-lisp">;; file: 1_04.rkt
+</code></pre>
+<h2 id="1_05"><a class="header" href="#1_05">1_05</a></h2>
+<pre><code class="language-lisp">;; file: 1_05.rkt
+</code></pre>
+<h2 id="1_06"><a class="header" href="#1_06">1_06</a></h2>
+<pre><code class="language-lisp">;; file: 1_06.rkt
+</code></pre>
+<h2 id="1_07"><a class="header" href="#1_07">1_07</a></h2>
+<pre><code class="language-lisp">;; file: 1_07.rkt
+</code></pre>
+<h2 id="1_08"><a class="header" href="#1_08">1_08</a></h2>
+<pre><code class="language-lisp">;; file: 1_08.rkt
+</code></pre>
+<h2 id="1_09"><a class="header" href="#1_09">1_09</a></h2>
+<pre><code class="language-lisp">;; file: 1_09.rkt
+</code></pre>
+<h2 id="1_10"><a class="header" href="#1_10">1_10</a></h2>
+<pre><code class="language-lisp">;; file: 1_10.rkt
+</code></pre>
+<h2 id="1_11"><a class="header" href="#1_11">1_11</a></h2>
+<pre><code class="language-lisp">;; file: 1_11.rkt
+</code></pre>
+<h2 id="1_12"><a class="header" href="#1_12">1_12</a></h2>
+<pre><code class="language-lisp">;; file: 1_12.rkt
+</code></pre>
+<h2 id="1_13"><a class="header" href="#1_13">1_13</a></h2>
+<pre><code class="language-lisp">;; file: 1_13.rkt
+</code></pre>
+<h2 id="1_14"><a class="header" href="#1_14">1_14</a></h2>
+<pre><code class="language-lisp">;; file: 1_14.rkt
+</code></pre>
+<h2 id="1_15"><a class="header" href="#1_15">1_15</a></h2>
+<pre><code class="language-lisp">;; file: 1_15.rkt
+</code></pre>
+<h2 id="1_16"><a class="header" href="#1_16">1_16</a></h2>
+<pre><code class="language-lisp">;; file: 1_16.rkt
+</code></pre>
+<h2 id="1_17"><a class="header" href="#1_17">1_17</a></h2>
+<pre><code class="language-lisp">;; file: 1_17.rkt
+</code></pre>
+<h2 id="1_18"><a class="header" href="#1_18">1_18</a></h2>
+<pre><code class="language-lisp">;; file: 1_18.rkt
+</code></pre>
+<h2 id="1_19"><a class="header" href="#1_19">1_19</a></h2>
+<pre><code class="language-lisp">;; file: 1_19.rkt
+</code></pre>
+<h2 id="1_20"><a class="header" href="#1_20">1_20</a></h2>
+<pre><code class="language-lisp">;; file: 1_20.rkt
+</code></pre>
+<h2 id="1_21"><a class="header" href="#1_21">1_21</a></h2>
+<pre><code class="language-lisp">;; file: 1_21.rkt
+</code></pre>
+<h2 id="1_22"><a class="header" href="#1_22">1_22</a></h2>
+<pre><code class="language-lisp">;; file: 1_22.rkt
+</code></pre>
+<h2 id="1_23"><a class="header" href="#1_23">1_23</a></h2>
+<pre><code class="language-lisp">;; file: 1_23.rkt
+</code></pre>
+<h2 id="1_24"><a class="header" href="#1_24">1_24</a></h2>
+<pre><code class="language-lisp">;; file: 1_24.rkt
+</code></pre>
+<h2 id="1_25"><a class="header" href="#1_25">1_25</a></h2>
+<pre><code class="language-lisp">;; file: 1_25.rkt
+</code></pre>
+<h2 id="1_26"><a class="header" href="#1_26">1_26</a></h2>
+<pre><code class="language-lisp">;; file: 1_26.rkt
+</code></pre>
+<h2 id="1_27"><a class="header" href="#1_27">1_27</a></h2>
+<pre><code class="language-lisp">;; file: 1_27.rkt
+</code></pre>
+<h2 id="1_28"><a class="header" href="#1_28">1_28</a></h2>
+<pre><code class="language-lisp">;; file: 1_28.rkt
+</code></pre>
+<h2 id="1_29"><a class="header" href="#1_29">1_29</a></h2>
+<pre><code class="language-lisp">;; file: 1_29.rkt
+</code></pre>
+<h2 id="1_30"><a class="header" href="#1_30">1_30</a></h2>
+<pre><code class="language-lisp">;; file: 1_30.rkt
+</code></pre>
+<h2 id="1_31"><a class="header" href="#1_31">1_31</a></h2>
+<pre><code class="language-lisp">;; file: 1_31.rkt
+</code></pre>
+<h2 id="1_32"><a class="header" href="#1_32">1_32</a></h2>
+<pre><code class="language-lisp">;; file: 1_32.rkt
+</code></pre>
+<h2 id="1_33"><a class="header" href="#1_33">1_33</a></h2>
+<pre><code class="language-lisp">;; file: 1_33.rkt
+</code></pre>
+<h2 id="1_34"><a class="header" href="#1_34">1_34</a></h2>
+<pre><code class="language-lisp">;; file: 1_34.rkt
+</code></pre>
+<h2 id="1_35"><a class="header" href="#1_35">1_35</a></h2>
+<pre><code class="language-lisp">;; file: 1_35.rkt
+</code></pre>
+<h2 id="1_36"><a class="header" href="#1_36">1_36</a></h2>
+<pre><code class="language-lisp">;; file: 1_36.rkt
+</code></pre>
+<h2 id="1_37"><a class="header" href="#1_37">1_37</a></h2>
+<pre><code class="language-lisp">;; file: 1_37.rkt
+</code></pre>
+<h2 id="1_38"><a class="header" href="#1_38">1_38</a></h2>
+<pre><code class="language-lisp">;; file: 1_38.rkt
+</code></pre>
+<h2 id="1_39"><a class="header" href="#1_39">1_39</a></h2>
+<pre><code class="language-lisp">;; file: 1_39.rkt
+</code></pre>
+<h2 id="1_40"><a class="header" href="#1_40">1_40</a></h2>
+<pre><code class="language-lisp">;; file: 1_40.rkt
+</code></pre>
+<h2 id="1_41"><a class="header" href="#1_41">1_41</a></h2>
+<pre><code class="language-lisp">;; file: 1_41.rkt
+</code></pre>
+<h2 id="1_42"><a class="header" href="#1_42">1_42</a></h2>
+<pre><code class="language-lisp">;; file: 1_42.rkt
+</code></pre>
+<h2 id="1_43"><a class="header" href="#1_43">1_43</a></h2>
+<pre><code class="language-lisp">;; file: 1_43.rkt
+</code></pre>
+<h2 id="1_44"><a class="header" href="#1_44">1_44</a></h2>
+<pre><code class="language-lisp">;; file: 1_44.rkt
+</code></pre>
+<h2 id="1_45"><a class="header" href="#1_45">1_45</a></h2>
+<pre><code class="language-lisp">;; file: 1_45.rkt
+</code></pre>
+<h2 id="1_46"><a class="header" href="#1_46">1_46</a></h2>
+<pre><code class="language-lisp">;; file: 1_46.rkt
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-02"><a class="header" href="#연습문제-풀이-02">연습문제 풀이 02</a></h1>
+<h2 id="2_01"><a class="header" href="#2_01">2_01</a></h2>
+<pre><code class="language-lisp">;; file: 2_01.rkt
+</code></pre>
+<h2 id="2_02"><a class="header" href="#2_02">2_02</a></h2>
+<pre><code class="language-lisp">;; file: 2_02.rkt
+</code></pre>
+<h2 id="2_03"><a class="header" href="#2_03">2_03</a></h2>
+<pre><code class="language-lisp">;; file: 2_03.rkt
+</code></pre>
+<h2 id="2_04"><a class="header" href="#2_04">2_04</a></h2>
+<pre><code class="language-lisp">;; file: 2_04.rkt
+</code></pre>
+<h2 id="2_05"><a class="header" href="#2_05">2_05</a></h2>
+<pre><code class="language-lisp">;; file: 2_05.rkt
+</code></pre>
+<h2 id="2_06"><a class="header" href="#2_06">2_06</a></h2>
+<pre><code class="language-lisp">;; file: 2_06.rkt
+</code></pre>
+<h2 id="2_07"><a class="header" href="#2_07">2_07</a></h2>
+<pre><code class="language-lisp">;; file: 2_07.rkt
+</code></pre>
+<h2 id="2_08"><a class="header" href="#2_08">2_08</a></h2>
+<pre><code class="language-lisp">;; file: 2_08.rkt
+</code></pre>
+<h2 id="2_09"><a class="header" href="#2_09">2_09</a></h2>
+<pre><code class="language-lisp">;; file: 2_09.rkt
+</code></pre>
+<h2 id="2_10"><a class="header" href="#2_10">2_10</a></h2>
+<pre><code class="language-lisp">;; file: 2_10.rkt
+</code></pre>
+<h2 id="2_11"><a class="header" href="#2_11">2_11</a></h2>
+<pre><code class="language-lisp">;; file: 2_11.rkt
+</code></pre>
+<h2 id="2_12"><a class="header" href="#2_12">2_12</a></h2>
+<pre><code class="language-lisp">;; file: 2_12.rkt
+</code></pre>
+<h2 id="2_13"><a class="header" href="#2_13">2_13</a></h2>
+<pre><code class="language-lisp">;; file: 2_13.rkt
+</code></pre>
+<h2 id="2_14"><a class="header" href="#2_14">2_14</a></h2>
+<pre><code class="language-lisp">;; file: 2_14.rkt
+</code></pre>
+<h2 id="2_15"><a class="header" href="#2_15">2_15</a></h2>
+<pre><code class="language-lisp">;; file: 2_15.rkt
+</code></pre>
+<h2 id="2_16"><a class="header" href="#2_16">2_16</a></h2>
+<pre><code class="language-lisp">;; file: 2_16.rkt
+</code></pre>
+<h2 id="2_17"><a class="header" href="#2_17">2_17</a></h2>
+<pre><code class="language-lisp">;; file: 2_17.rkt
+</code></pre>
+<h2 id="2_18"><a class="header" href="#2_18">2_18</a></h2>
+<pre><code class="language-lisp">;; file: 2_18.rkt
+</code></pre>
+<h2 id="2_19"><a class="header" href="#2_19">2_19</a></h2>
+<pre><code class="language-lisp">;; file: 2_19.rkt
+</code></pre>
+<h2 id="2_20"><a class="header" href="#2_20">2_20</a></h2>
+<pre><code class="language-lisp">;; file: 2_20.rkt
+</code></pre>
+<h2 id="2_21"><a class="header" href="#2_21">2_21</a></h2>
+<pre><code class="language-lisp">;; file: 2_21.rkt
+</code></pre>
+<h2 id="2_22"><a class="header" href="#2_22">2_22</a></h2>
+<pre><code class="language-lisp">;; file: 2_22.rkt
+</code></pre>
+<h2 id="2_23"><a class="header" href="#2_23">2_23</a></h2>
+<pre><code class="language-lisp">;; file: 2_23.rkt
+</code></pre>
+<h2 id="2_24"><a class="header" href="#2_24">2_24</a></h2>
+<pre><code class="language-lisp">;; file: 2_24.rkt
+</code></pre>
+<h2 id="2_25"><a class="header" href="#2_25">2_25</a></h2>
+<pre><code class="language-lisp">;; file: 2_25.rkt
+</code></pre>
+<h2 id="2_26"><a class="header" href="#2_26">2_26</a></h2>
+<pre><code class="language-lisp">;; file: 2_26.rkt
+</code></pre>
+<h2 id="2_27"><a class="header" href="#2_27">2_27</a></h2>
+<pre><code class="language-lisp">;; file: 2_27.rkt
+</code></pre>
+<h2 id="2_28"><a class="header" href="#2_28">2_28</a></h2>
+<pre><code class="language-lisp">;; file: 2_28.rkt
+</code></pre>
+<h2 id="2_29"><a class="header" href="#2_29">2_29</a></h2>
+<pre><code class="language-lisp">;; file: 2_29.rkt
+</code></pre>
+<h2 id="2_30"><a class="header" href="#2_30">2_30</a></h2>
+<pre><code class="language-lisp">;; file: 2_30.rkt
+</code></pre>
+<h2 id="2_31"><a class="header" href="#2_31">2_31</a></h2>
+<pre><code class="language-lisp">;; file: 2_31.rkt
+</code></pre>
+<h2 id="2_32"><a class="header" href="#2_32">2_32</a></h2>
+<pre><code class="language-lisp">;; file: 2_32.rkt
+</code></pre>
+<h2 id="2_33"><a class="header" href="#2_33">2_33</a></h2>
+<pre><code class="language-lisp">;; file: 2_33.rkt
+</code></pre>
+<h2 id="2_34"><a class="header" href="#2_34">2_34</a></h2>
+<pre><code class="language-lisp">;; file: 2_34.rkt
+</code></pre>
+<h2 id="2_35"><a class="header" href="#2_35">2_35</a></h2>
+<pre><code class="language-lisp">;; file: 2_35.rkt
+</code></pre>
+<h2 id="2_36"><a class="header" href="#2_36">2_36</a></h2>
+<pre><code class="language-lisp">;; file: 2_36.rkt
+</code></pre>
+<h2 id="2_37"><a class="header" href="#2_37">2_37</a></h2>
+<pre><code class="language-lisp">;; file: 2_37.rkt
+</code></pre>
+<h2 id="2_38"><a class="header" href="#2_38">2_38</a></h2>
+<pre><code class="language-lisp">;; file: 2_38.rkt
+</code></pre>
+<h2 id="2_39"><a class="header" href="#2_39">2_39</a></h2>
+<pre><code class="language-lisp">;; file: 2_39.rkt
+</code></pre>
+<h2 id="2_40"><a class="header" href="#2_40">2_40</a></h2>
+<pre><code class="language-lisp">;; file: 2_40.rkt
+</code></pre>
+<h2 id="2_41"><a class="header" href="#2_41">2_41</a></h2>
+<pre><code class="language-lisp">;; file: 2_41.rkt
+</code></pre>
+<h2 id="2_42"><a class="header" href="#2_42">2_42</a></h2>
+<pre><code class="language-lisp">;; file: 2_42.rkt
+</code></pre>
+<h2 id="2_43"><a class="header" href="#2_43">2_43</a></h2>
+<pre><code class="language-lisp">;; file: 2_43.rkt
+</code></pre>
+<h2 id="2_44"><a class="header" href="#2_44">2_44</a></h2>
+<pre><code class="language-lisp">;; file: 2_44.rkt
+</code></pre>
+<h2 id="2_45"><a class="header" href="#2_45">2_45</a></h2>
+<pre><code class="language-lisp">;; file: 2_45.rkt
+</code></pre>
+<h2 id="2_46"><a class="header" href="#2_46">2_46</a></h2>
+<pre><code class="language-lisp">;; file: 2_46.rkt
+</code></pre>
+<h2 id="2_47"><a class="header" href="#2_47">2_47</a></h2>
+<pre><code class="language-lisp">;; file: 2_47.rkt
+</code></pre>
+<h2 id="2_48"><a class="header" href="#2_48">2_48</a></h2>
+<pre><code class="language-lisp">;; file: 2_48.rkt
+</code></pre>
+<h2 id="2_49"><a class="header" href="#2_49">2_49</a></h2>
+<pre><code class="language-lisp">;; file: 2_49.rkt
+</code></pre>
+<h2 id="2_50"><a class="header" href="#2_50">2_50</a></h2>
+<pre><code class="language-lisp">;; file: 2_50.rkt
+</code></pre>
+<h2 id="2_51"><a class="header" href="#2_51">2_51</a></h2>
+<pre><code class="language-lisp">;; file: 2_51.rkt
+</code></pre>
+<h2 id="2_52"><a class="header" href="#2_52">2_52</a></h2>
+<pre><code class="language-lisp">;; file: 2_52.rkt
+</code></pre>
+<h2 id="2_53"><a class="header" href="#2_53">2_53</a></h2>
+<pre><code class="language-lisp">;; file: 2_53.rkt
+</code></pre>
+<h2 id="2_54"><a class="header" href="#2_54">2_54</a></h2>
+<pre><code class="language-lisp">;; file: 2_54.rkt
+</code></pre>
+<h2 id="2_55"><a class="header" href="#2_55">2_55</a></h2>
+<pre><code class="language-lisp">;; file: 2_55.rkt
+</code></pre>
+<h2 id="2_56"><a class="header" href="#2_56">2_56</a></h2>
+<pre><code class="language-lisp">;; file: 2_56.rkt
+</code></pre>
+<h2 id="2_57"><a class="header" href="#2_57">2_57</a></h2>
+<pre><code class="language-lisp">;; file: 2_57.rkt
+</code></pre>
+<h2 id="2_58"><a class="header" href="#2_58">2_58</a></h2>
+<pre><code class="language-lisp">;; file: 2_58.rkt
+</code></pre>
+<h2 id="2_59"><a class="header" href="#2_59">2_59</a></h2>
+<pre><code class="language-lisp">;; file: 2_59.rkt
+</code></pre>
+<h2 id="2_60"><a class="header" href="#2_60">2_60</a></h2>
+<pre><code class="language-lisp">;; file: 2_60.rkt
+</code></pre>
+<h2 id="2_61"><a class="header" href="#2_61">2_61</a></h2>
+<pre><code class="language-lisp">;; file: 2_61.rkt
+</code></pre>
+<h2 id="2_62"><a class="header" href="#2_62">2_62</a></h2>
+<pre><code class="language-lisp">;; file: 2_62.rkt
+</code></pre>
+<h2 id="2_63"><a class="header" href="#2_63">2_63</a></h2>
+<pre><code class="language-lisp">;; file: 2_63.rkt
+</code></pre>
+<h2 id="2_64"><a class="header" href="#2_64">2_64</a></h2>
+<pre><code class="language-lisp">;; file: 2_64.rkt
+</code></pre>
+<h2 id="2_65"><a class="header" href="#2_65">2_65</a></h2>
+<pre><code class="language-lisp">;; file: 2_65.rkt
+</code></pre>
+<h2 id="2_66"><a class="header" href="#2_66">2_66</a></h2>
+<pre><code class="language-lisp">;; file: 2_66.rkt
+</code></pre>
+<h2 id="2_67"><a class="header" href="#2_67">2_67</a></h2>
+<pre><code class="language-lisp">;; file: 2_67.rkt
+</code></pre>
+<h2 id="2_68"><a class="header" href="#2_68">2_68</a></h2>
+<pre><code class="language-lisp">;; file: 2_68.rkt
+</code></pre>
+<h2 id="2_69"><a class="header" href="#2_69">2_69</a></h2>
+<pre><code class="language-lisp">;; file: 2_69.rkt
+</code></pre>
+<h2 id="2_70"><a class="header" href="#2_70">2_70</a></h2>
+<pre><code class="language-lisp">;; file: 2_70.rkt
+</code></pre>
+<h2 id="2_71"><a class="header" href="#2_71">2_71</a></h2>
+<pre><code class="language-lisp">;; file: 2_71.rkt
+</code></pre>
+<h2 id="2_72"><a class="header" href="#2_72">2_72</a></h2>
+<pre><code class="language-lisp">;; file: 2_72.rkt
+</code></pre>
+<h2 id="2_73"><a class="header" href="#2_73">2_73</a></h2>
+<pre><code class="language-lisp">;; file: 2_73.rkt
+</code></pre>
+<h2 id="2_74"><a class="header" href="#2_74">2_74</a></h2>
+<pre><code class="language-lisp">;; file: 2_74.rkt
+</code></pre>
+<h2 id="2_75"><a class="header" href="#2_75">2_75</a></h2>
+<pre><code class="language-lisp">;; file: 2_75.rkt
+</code></pre>
+<h2 id="2_76"><a class="header" href="#2_76">2_76</a></h2>
+<pre><code class="language-lisp">;; file: 2_76.rkt
+</code></pre>
+<h2 id="2_77"><a class="header" href="#2_77">2_77</a></h2>
+<pre><code class="language-lisp">;; file: 2_77.rkt
+</code></pre>
+<h2 id="2_78"><a class="header" href="#2_78">2_78</a></h2>
+<pre><code class="language-lisp">;; file: 2_78.rkt
+</code></pre>
+<h2 id="2_79"><a class="header" href="#2_79">2_79</a></h2>
+<pre><code class="language-lisp">;; file: 2_79.rkt
+</code></pre>
+<h2 id="2_80"><a class="header" href="#2_80">2_80</a></h2>
+<pre><code class="language-lisp">;; file: 2_80.rkt
+</code></pre>
+<h2 id="2_81"><a class="header" href="#2_81">2_81</a></h2>
+<pre><code class="language-lisp">;; file: 2_81.rkt
+</code></pre>
+<h2 id="2_82"><a class="header" href="#2_82">2_82</a></h2>
+<pre><code class="language-lisp">;; file: 2_82.rkt
+</code></pre>
+<h2 id="2_83"><a class="header" href="#2_83">2_83</a></h2>
+<pre><code class="language-lisp">;; file: 2_83.rkt
+</code></pre>
+<h2 id="2_84"><a class="header" href="#2_84">2_84</a></h2>
+<pre><code class="language-lisp">;; file: 2_84.rkt
+</code></pre>
+<h2 id="2_85"><a class="header" href="#2_85">2_85</a></h2>
+<pre><code class="language-lisp">;; file: 2_85.rkt
+</code></pre>
+<h2 id="2_86"><a class="header" href="#2_86">2_86</a></h2>
+<pre><code class="language-lisp">;; file: 2_86.rkt
+</code></pre>
+<h2 id="2_87"><a class="header" href="#2_87">2_87</a></h2>
+<pre><code class="language-lisp">;; file: 2_87.rkt
+</code></pre>
+<h2 id="2_88"><a class="header" href="#2_88">2_88</a></h2>
+<pre><code class="language-lisp">;; file: 2_88.rkt
+</code></pre>
+<h2 id="2_89"><a class="header" href="#2_89">2_89</a></h2>
+<pre><code class="language-lisp">;; file: 2_89.rkt
+</code></pre>
+<h2 id="2_90"><a class="header" href="#2_90">2_90</a></h2>
+<pre><code class="language-lisp">;; file: 2_90.rkt
+</code></pre>
+<h2 id="2_91"><a class="header" href="#2_91">2_91</a></h2>
+<pre><code class="language-lisp">;; file: 2_91.rkt
+</code></pre>
+<h2 id="2_92"><a class="header" href="#2_92">2_92</a></h2>
+<pre><code class="language-lisp">;; file: 2_92.rkt
+</code></pre>
+<h2 id="2_93"><a class="header" href="#2_93">2_93</a></h2>
+<pre><code class="language-lisp">;; file: 2_93.rkt
+</code></pre>
+<h2 id="2_94"><a class="header" href="#2_94">2_94</a></h2>
+<pre><code class="language-lisp">;; file: 2_94.rkt
+</code></pre>
+<h2 id="2_95"><a class="header" href="#2_95">2_95</a></h2>
+<pre><code class="language-lisp">;; file: 2_95.rkt
+</code></pre>
+<h2 id="2_96"><a class="header" href="#2_96">2_96</a></h2>
+<pre><code class="language-lisp">;; file: 2_96.rkt
+</code></pre>
+<h2 id="2_97"><a class="header" href="#2_97">2_97</a></h2>
+<pre><code class="language-lisp">;; file: 2_97.rkt
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-03"><a class="header" href="#연습문제-풀이-03">연습문제 풀이 03</a></h1>
+<h2 id="3_01"><a class="header" href="#3_01">3_01</a></h2>
+<pre><code class="language-lisp">;; file: 3_01.rkt
+</code></pre>
+<h2 id="3_02"><a class="header" href="#3_02">3_02</a></h2>
+<pre><code class="language-lisp">;; file: 3_02.rkt
+</code></pre>
+<h2 id="3_03"><a class="header" href="#3_03">3_03</a></h2>
+<pre><code class="language-lisp">;; file: 3_03.rkt
+</code></pre>
+<h2 id="3_04"><a class="header" href="#3_04">3_04</a></h2>
+<pre><code class="language-lisp">;; file: 3_04.rkt
+</code></pre>
+<h2 id="3_05"><a class="header" href="#3_05">3_05</a></h2>
+<pre><code class="language-lisp">;; file: 3_05.rkt
+</code></pre>
+<h2 id="3_06"><a class="header" href="#3_06">3_06</a></h2>
+<pre><code class="language-lisp">;; file: 3_06.rkt
+</code></pre>
+<h2 id="3_07"><a class="header" href="#3_07">3_07</a></h2>
+<pre><code class="language-lisp">;; file: 3_07.rkt
+</code></pre>
+<h2 id="3_08"><a class="header" href="#3_08">3_08</a></h2>
+<pre><code class="language-lisp">;; file: 3_08.rkt
+</code></pre>
+<h2 id="3_09"><a class="header" href="#3_09">3_09</a></h2>
+<pre><code class="language-lisp">;; file: 3_09.rkt
+</code></pre>
+<h2 id="3_10"><a class="header" href="#3_10">3_10</a></h2>
+<pre><code class="language-lisp">;; file: 3_10.rkt
+</code></pre>
+<h2 id="3_11"><a class="header" href="#3_11">3_11</a></h2>
+<pre><code class="language-lisp">;; file: 3_11.rkt
+</code></pre>
+<h2 id="3_12"><a class="header" href="#3_12">3_12</a></h2>
+<pre><code class="language-lisp">;; file: 3_12.rkt
+</code></pre>
+<h2 id="3_13"><a class="header" href="#3_13">3_13</a></h2>
+<pre><code class="language-lisp">;; file: 3_13.rkt
+</code></pre>
+<h2 id="3_14"><a class="header" href="#3_14">3_14</a></h2>
+<pre><code class="language-lisp">;; file: 3_14.rkt
+</code></pre>
+<h2 id="3_15"><a class="header" href="#3_15">3_15</a></h2>
+<pre><code class="language-lisp">;; file: 3_15.rkt
+</code></pre>
+<h2 id="3_16"><a class="header" href="#3_16">3_16</a></h2>
+<pre><code class="language-lisp">;; file: 3_16.rkt
+</code></pre>
+<h2 id="3_17"><a class="header" href="#3_17">3_17</a></h2>
+<pre><code class="language-lisp">;; file: 3_17.rkt
+</code></pre>
+<h2 id="3_18"><a class="header" href="#3_18">3_18</a></h2>
+<pre><code class="language-lisp">;; file: 3_18.rkt
+</code></pre>
+<h2 id="3_19"><a class="header" href="#3_19">3_19</a></h2>
+<pre><code class="language-lisp">;; file: 3_19.rkt
+</code></pre>
+<h2 id="3_20"><a class="header" href="#3_20">3_20</a></h2>
+<pre><code class="language-lisp">;; file: 3_20.rkt
+</code></pre>
+<h2 id="3_21"><a class="header" href="#3_21">3_21</a></h2>
+<pre><code class="language-lisp">;; file: 3_21.rkt
+</code></pre>
+<h2 id="3_22"><a class="header" href="#3_22">3_22</a></h2>
+<pre><code class="language-lisp">;; file: 3_22.rkt
+</code></pre>
+<h2 id="3_23"><a class="header" href="#3_23">3_23</a></h2>
+<pre><code class="language-lisp">;; file: 3_23.rkt
+</code></pre>
+<h2 id="3_24"><a class="header" href="#3_24">3_24</a></h2>
+<pre><code class="language-lisp">;; file: 3_24.rkt
+</code></pre>
+<h2 id="3_25"><a class="header" href="#3_25">3_25</a></h2>
+<pre><code class="language-lisp">;; file: 3_25.rkt
+</code></pre>
+<h2 id="3_26"><a class="header" href="#3_26">3_26</a></h2>
+<pre><code class="language-lisp">;; file: 3_26.rkt
+</code></pre>
+<h2 id="3_27"><a class="header" href="#3_27">3_27</a></h2>
+<pre><code class="language-lisp">;; file: 3_27.rkt
+</code></pre>
+<h2 id="3_28"><a class="header" href="#3_28">3_28</a></h2>
+<pre><code class="language-lisp">;; file: 3_28.rkt
+</code></pre>
+<h2 id="3_29"><a class="header" href="#3_29">3_29</a></h2>
+<pre><code class="language-lisp">;; file: 3_29.rkt
+</code></pre>
+<h2 id="3_30"><a class="header" href="#3_30">3_30</a></h2>
+<pre><code class="language-lisp">;; file: 3_30.rkt
+</code></pre>
+<h2 id="3_31"><a class="header" href="#3_31">3_31</a></h2>
+<pre><code class="language-lisp">;; file: 3_31.rkt
+</code></pre>
+<h2 id="3_32"><a class="header" href="#3_32">3_32</a></h2>
+<pre><code class="language-lisp">;; file: 3_32.rkt
+</code></pre>
+<h2 id="3_33"><a class="header" href="#3_33">3_33</a></h2>
+<pre><code class="language-lisp">;; file: 3_33.rkt
+</code></pre>
+<h2 id="3_34"><a class="header" href="#3_34">3_34</a></h2>
+<pre><code class="language-lisp">;; file: 3_34.rkt
+</code></pre>
+<h2 id="3_35"><a class="header" href="#3_35">3_35</a></h2>
+<pre><code class="language-lisp">;; file: 3_35.rkt
+</code></pre>
+<h2 id="3_36"><a class="header" href="#3_36">3_36</a></h2>
+<pre><code class="language-lisp">;; file: 3_36.rkt
+</code></pre>
+<h2 id="3_37"><a class="header" href="#3_37">3_37</a></h2>
+<pre><code class="language-lisp">;; file: 3_37.rkt
+</code></pre>
+<h2 id="3_38"><a class="header" href="#3_38">3_38</a></h2>
+<pre><code class="language-lisp">;; file: 3_38.rkt
+</code></pre>
+<h2 id="3_39"><a class="header" href="#3_39">3_39</a></h2>
+<pre><code class="language-lisp">;; file: 3_39.rkt
+</code></pre>
+<h2 id="3_40"><a class="header" href="#3_40">3_40</a></h2>
+<pre><code class="language-lisp">;; file: 3_40.rkt
+</code></pre>
+<h2 id="3_41"><a class="header" href="#3_41">3_41</a></h2>
+<pre><code class="language-lisp">;; file: 3_41.rkt
+</code></pre>
+<h2 id="3_42"><a class="header" href="#3_42">3_42</a></h2>
+<pre><code class="language-lisp">;; file: 3_42.rkt
+</code></pre>
+<h2 id="3_43"><a class="header" href="#3_43">3_43</a></h2>
+<pre><code class="language-lisp">;; file: 3_43.rkt
+</code></pre>
+<h2 id="3_44"><a class="header" href="#3_44">3_44</a></h2>
+<pre><code class="language-lisp">;; file: 3_44.rkt
+</code></pre>
+<h2 id="3_45"><a class="header" href="#3_45">3_45</a></h2>
+<pre><code class="language-lisp">;; file: 3_45.rkt
+</code></pre>
+<h2 id="3_46"><a class="header" href="#3_46">3_46</a></h2>
+<pre><code class="language-lisp">;; file: 3_46.rkt
+</code></pre>
+<h2 id="3_47"><a class="header" href="#3_47">3_47</a></h2>
+<pre><code class="language-lisp">;; file: 3_47.rkt
+</code></pre>
+<h2 id="3_48"><a class="header" href="#3_48">3_48</a></h2>
+<pre><code class="language-lisp">;; file: 3_48.rkt
+</code></pre>
+<h2 id="3_49"><a class="header" href="#3_49">3_49</a></h2>
+<pre><code class="language-lisp">;; file: 3_49.rkt
+</code></pre>
+<h2 id="3_50"><a class="header" href="#3_50">3_50</a></h2>
+<pre><code class="language-lisp">;; file: 3_50.rkt
+</code></pre>
+<h2 id="3_51"><a class="header" href="#3_51">3_51</a></h2>
+<pre><code class="language-lisp">;; file: 3_51.rkt
+</code></pre>
+<h2 id="3_52"><a class="header" href="#3_52">3_52</a></h2>
+<pre><code class="language-lisp">;; file: 3_52.rkt
+</code></pre>
+<h2 id="3_53"><a class="header" href="#3_53">3_53</a></h2>
+<pre><code class="language-lisp">;; file: 3_53.rkt
+</code></pre>
+<h2 id="3_54"><a class="header" href="#3_54">3_54</a></h2>
+<pre><code class="language-lisp">;; file: 3_54.rkt
+</code></pre>
+<h2 id="3_55"><a class="header" href="#3_55">3_55</a></h2>
+<pre><code class="language-lisp">;; file: 3_55.rkt
+</code></pre>
+<h2 id="3_56"><a class="header" href="#3_56">3_56</a></h2>
+<pre><code class="language-lisp">;; file: 3_56.rkt
+</code></pre>
+<h2 id="3_57"><a class="header" href="#3_57">3_57</a></h2>
+<pre><code class="language-lisp">;; file: 3_57.rkt
+</code></pre>
+<h2 id="3_58"><a class="header" href="#3_58">3_58</a></h2>
+<pre><code class="language-lisp">;; file: 3_58.rkt
+</code></pre>
+<h2 id="3_59"><a class="header" href="#3_59">3_59</a></h2>
+<pre><code class="language-lisp">;; file: 3_59.rkt
+</code></pre>
+<h2 id="3_60"><a class="header" href="#3_60">3_60</a></h2>
+<pre><code class="language-lisp">;; file: 3_60.rkt
+</code></pre>
+<h2 id="3_61"><a class="header" href="#3_61">3_61</a></h2>
+<pre><code class="language-lisp">;; file: 3_61.rkt
+</code></pre>
+<h2 id="3_62"><a class="header" href="#3_62">3_62</a></h2>
+<pre><code class="language-lisp">;; file: 3_62.rkt
+</code></pre>
+<h2 id="3_63"><a class="header" href="#3_63">3_63</a></h2>
+<pre><code class="language-lisp">;; file: 3_63.rkt
+</code></pre>
+<h2 id="3_64"><a class="header" href="#3_64">3_64</a></h2>
+<pre><code class="language-lisp">;; file: 3_64.rkt
+</code></pre>
+<h2 id="3_65"><a class="header" href="#3_65">3_65</a></h2>
+<pre><code class="language-lisp">;; file: 3_65.rkt
+</code></pre>
+<h2 id="3_66"><a class="header" href="#3_66">3_66</a></h2>
+<pre><code class="language-lisp">;; file: 3_66.rkt
+</code></pre>
+<h2 id="3_67"><a class="header" href="#3_67">3_67</a></h2>
+<pre><code class="language-lisp">;; file: 3_67.rkt
+</code></pre>
+<h2 id="3_68"><a class="header" href="#3_68">3_68</a></h2>
+<pre><code class="language-lisp">;; file: 3_68.rkt
+</code></pre>
+<h2 id="3_69"><a class="header" href="#3_69">3_69</a></h2>
+<pre><code class="language-lisp">;; file: 3_69.rkt
+</code></pre>
+<h2 id="3_70"><a class="header" href="#3_70">3_70</a></h2>
+<pre><code class="language-lisp">;; file: 3_70.rkt
+</code></pre>
+<h2 id="3_71"><a class="header" href="#3_71">3_71</a></h2>
+<pre><code class="language-lisp">;; file: 3_71.rkt
+</code></pre>
+<h2 id="3_72"><a class="header" href="#3_72">3_72</a></h2>
+<pre><code class="language-lisp">;; file: 3_72.rkt
+</code></pre>
+<h2 id="3_73"><a class="header" href="#3_73">3_73</a></h2>
+<pre><code class="language-lisp">;; file: 3_73.rkt
+</code></pre>
+<h2 id="3_74"><a class="header" href="#3_74">3_74</a></h2>
+<pre><code class="language-lisp">;; file: 3_74.rkt
+</code></pre>
+<h2 id="3_75"><a class="header" href="#3_75">3_75</a></h2>
+<pre><code class="language-lisp">;; file: 3_75.rkt
+</code></pre>
+<h2 id="3_76"><a class="header" href="#3_76">3_76</a></h2>
+<pre><code class="language-lisp">;; file: 3_76.rkt
+</code></pre>
+<h2 id="3_77"><a class="header" href="#3_77">3_77</a></h2>
+<pre><code class="language-lisp">;; file: 3_77.rkt
+</code></pre>
+<h2 id="3_78"><a class="header" href="#3_78">3_78</a></h2>
+<pre><code class="language-lisp">;; file: 3_78.rkt
+</code></pre>
+<h2 id="3_79"><a class="header" href="#3_79">3_79</a></h2>
+<pre><code class="language-lisp">;; file: 3_79.rkt
+</code></pre>
+<h2 id="3_80"><a class="header" href="#3_80">3_80</a></h2>
+<pre><code class="language-lisp">;; file: 3_80.rkt
+</code></pre>
+<h2 id="3_81"><a class="header" href="#3_81">3_81</a></h2>
+<pre><code class="language-lisp">;; file: 3_81.rkt
+</code></pre>
+<h2 id="3_82"><a class="header" href="#3_82">3_82</a></h2>
+<pre><code class="language-lisp">;; file: 3_82.rkt
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-04"><a class="header" href="#연습문제-풀이-04">연습문제 풀이 04</a></h1>
+<h2 id="4_01"><a class="header" href="#4_01">4_01</a></h2>
+<pre><code class="language-lisp">;; file: 4_01.rkt
+</code></pre>
+<h2 id="4_02"><a class="header" href="#4_02">4_02</a></h2>
+<pre><code class="language-lisp">;; file: 4_02.rkt
+</code></pre>
+<h2 id="4_03"><a class="header" href="#4_03">4_03</a></h2>
+<pre><code class="language-lisp">;; file: 4_03.rkt
+</code></pre>
+<h2 id="4_04"><a class="header" href="#4_04">4_04</a></h2>
+<pre><code class="language-lisp">;; file: 4_04.rkt
+</code></pre>
+<h2 id="4_05"><a class="header" href="#4_05">4_05</a></h2>
+<pre><code class="language-lisp">;; file: 4_05.rkt
+</code></pre>
+<h2 id="4_06"><a class="header" href="#4_06">4_06</a></h2>
+<pre><code class="language-lisp">;; file: 4_06.rkt
+</code></pre>
+<h2 id="4_07"><a class="header" href="#4_07">4_07</a></h2>
+<pre><code class="language-lisp">;; file: 4_07.rkt
+</code></pre>
+<h2 id="4_08"><a class="header" href="#4_08">4_08</a></h2>
+<pre><code class="language-lisp">;; file: 4_08.rkt
+</code></pre>
+<h2 id="4_09"><a class="header" href="#4_09">4_09</a></h2>
+<pre><code class="language-lisp">;; file: 4_09.rkt
+</code></pre>
+<h2 id="4_10"><a class="header" href="#4_10">4_10</a></h2>
+<pre><code class="language-lisp">;; file: 4_10.rkt
+</code></pre>
+<h2 id="4_11"><a class="header" href="#4_11">4_11</a></h2>
+<pre><code class="language-lisp">;; file: 4_11.rkt
+</code></pre>
+<h2 id="4_12"><a class="header" href="#4_12">4_12</a></h2>
+<pre><code class="language-lisp">;; file: 4_12.rkt
+</code></pre>
+<h2 id="4_13"><a class="header" href="#4_13">4_13</a></h2>
+<pre><code class="language-lisp">;; file: 4_13.rkt
+</code></pre>
+<h2 id="4_14"><a class="header" href="#4_14">4_14</a></h2>
+<pre><code class="language-lisp">;; file: 4_14.rkt
+</code></pre>
+<h2 id="4_15"><a class="header" href="#4_15">4_15</a></h2>
+<pre><code class="language-lisp">;; file: 4_15.rkt
+</code></pre>
+<h2 id="4_16"><a class="header" href="#4_16">4_16</a></h2>
+<pre><code class="language-lisp">;; file: 4_16.rkt
+</code></pre>
+<h2 id="4_17"><a class="header" href="#4_17">4_17</a></h2>
+<pre><code class="language-lisp">;; file: 4_17.rkt
+</code></pre>
+<h2 id="4_18"><a class="header" href="#4_18">4_18</a></h2>
+<pre><code class="language-lisp">;; file: 4_18.rkt
+</code></pre>
+<h2 id="4_19"><a class="header" href="#4_19">4_19</a></h2>
+<pre><code class="language-lisp">;; file: 4_19.rkt
+</code></pre>
+<h2 id="4_20"><a class="header" href="#4_20">4_20</a></h2>
+<pre><code class="language-lisp">;; file: 4_20.rkt
+</code></pre>
+<h2 id="4_21"><a class="header" href="#4_21">4_21</a></h2>
+<pre><code class="language-lisp">;; file: 4_21.rkt
+</code></pre>
+<h2 id="4_22"><a class="header" href="#4_22">4_22</a></h2>
+<pre><code class="language-lisp">;; file: 4_22.rkt
+</code></pre>
+<h2 id="4_23"><a class="header" href="#4_23">4_23</a></h2>
+<pre><code class="language-lisp">;; file: 4_23.rkt
+</code></pre>
+<h2 id="4_24"><a class="header" href="#4_24">4_24</a></h2>
+<pre><code class="language-lisp">;; file: 4_24.rkt
+</code></pre>
+<h2 id="4_25"><a class="header" href="#4_25">4_25</a></h2>
+<pre><code class="language-lisp">;; file: 4_25.rkt
+</code></pre>
+<h2 id="4_26"><a class="header" href="#4_26">4_26</a></h2>
+<pre><code class="language-lisp">;; file: 4_26.rkt
+</code></pre>
+<h2 id="4_27"><a class="header" href="#4_27">4_27</a></h2>
+<pre><code class="language-lisp">;; file: 4_27.rkt
+</code></pre>
+<h2 id="4_28"><a class="header" href="#4_28">4_28</a></h2>
+<pre><code class="language-lisp">;; file: 4_28.rkt
+</code></pre>
+<h2 id="4_29"><a class="header" href="#4_29">4_29</a></h2>
+<pre><code class="language-lisp">;; file: 4_29.rkt
+</code></pre>
+<h2 id="4_30"><a class="header" href="#4_30">4_30</a></h2>
+<pre><code class="language-lisp">;; file: 4_30.rkt
+</code></pre>
+<h2 id="4_31"><a class="header" href="#4_31">4_31</a></h2>
+<pre><code class="language-lisp">;; file: 4_31.rkt
+</code></pre>
+<h2 id="4_32"><a class="header" href="#4_32">4_32</a></h2>
+<pre><code class="language-lisp">;; file: 4_32.rkt
+</code></pre>
+<h2 id="4_33"><a class="header" href="#4_33">4_33</a></h2>
+<pre><code class="language-lisp">;; file: 4_33.rkt
+</code></pre>
+<h2 id="4_34"><a class="header" href="#4_34">4_34</a></h2>
+<pre><code class="language-lisp">;; file: 4_34.rkt
+</code></pre>
+<h2 id="4_35"><a class="header" href="#4_35">4_35</a></h2>
+<pre><code class="language-lisp">;; file: 4_35.rkt
+</code></pre>
+<h2 id="4_36"><a class="header" href="#4_36">4_36</a></h2>
+<pre><code class="language-lisp">;; file: 4_36.rkt
+</code></pre>
+<h2 id="4_37"><a class="header" href="#4_37">4_37</a></h2>
+<pre><code class="language-lisp">;; file: 4_37.rkt
+</code></pre>
+<h2 id="4_38"><a class="header" href="#4_38">4_38</a></h2>
+<pre><code class="language-lisp">;; file: 4_38.rkt
+</code></pre>
+<h2 id="4_39"><a class="header" href="#4_39">4_39</a></h2>
+<pre><code class="language-lisp">;; file: 4_39.rkt
+</code></pre>
+<h2 id="4_40"><a class="header" href="#4_40">4_40</a></h2>
+<pre><code class="language-lisp">;; file: 4_40.rkt
+</code></pre>
+<h2 id="4_41"><a class="header" href="#4_41">4_41</a></h2>
+<pre><code class="language-lisp">;; file: 4_41.rkt
+</code></pre>
+<h2 id="4_42"><a class="header" href="#4_42">4_42</a></h2>
+<pre><code class="language-lisp">;; file: 4_42.rkt
+</code></pre>
+<h2 id="4_43"><a class="header" href="#4_43">4_43</a></h2>
+<pre><code class="language-lisp">;; file: 4_43.rkt
+</code></pre>
+<h2 id="4_44"><a class="header" href="#4_44">4_44</a></h2>
+<pre><code class="language-lisp">;; file: 4_44.rkt
+</code></pre>
+<h2 id="4_45"><a class="header" href="#4_45">4_45</a></h2>
+<pre><code class="language-lisp">;; file: 4_45.rkt
+</code></pre>
+<h2 id="4_46"><a class="header" href="#4_46">4_46</a></h2>
+<pre><code class="language-lisp">;; file: 4_46.rkt
+</code></pre>
+<h2 id="4_47"><a class="header" href="#4_47">4_47</a></h2>
+<pre><code class="language-lisp">;; file: 4_47.rkt
+</code></pre>
+<h2 id="4_48"><a class="header" href="#4_48">4_48</a></h2>
+<pre><code class="language-lisp">;; file: 4_48.rkt
+</code></pre>
+<h2 id="4_49"><a class="header" href="#4_49">4_49</a></h2>
+<pre><code class="language-lisp">;; file: 4_49.rkt
+</code></pre>
+<h2 id="4_50"><a class="header" href="#4_50">4_50</a></h2>
+<pre><code class="language-lisp">;; file: 4_50.rkt
+</code></pre>
+<h2 id="4_51"><a class="header" href="#4_51">4_51</a></h2>
+<pre><code class="language-lisp">;; file: 4_51.rkt
+</code></pre>
+<h2 id="4_52"><a class="header" href="#4_52">4_52</a></h2>
+<pre><code class="language-lisp">;; file: 4_52.rkt
+</code></pre>
+<h2 id="4_53"><a class="header" href="#4_53">4_53</a></h2>
+<pre><code class="language-lisp">;; file: 4_53.rkt
+</code></pre>
+<h2 id="4_54"><a class="header" href="#4_54">4_54</a></h2>
+<pre><code class="language-lisp">;; file: 4_54.rkt
+</code></pre>
+<h2 id="4_55"><a class="header" href="#4_55">4_55</a></h2>
+<pre><code class="language-lisp">;; file: 4_55.rkt
+</code></pre>
+<h2 id="4_56"><a class="header" href="#4_56">4_56</a></h2>
+<pre><code class="language-lisp">;; file: 4_56.rkt
+</code></pre>
+<h2 id="4_57"><a class="header" href="#4_57">4_57</a></h2>
+<pre><code class="language-lisp">;; file: 4_57.rkt
+</code></pre>
+<h2 id="4_58"><a class="header" href="#4_58">4_58</a></h2>
+<pre><code class="language-lisp">;; file: 4_58.rkt
+</code></pre>
+<h2 id="4_59"><a class="header" href="#4_59">4_59</a></h2>
+<pre><code class="language-lisp">;; file: 4_59.rkt
+</code></pre>
+<h2 id="4_60"><a class="header" href="#4_60">4_60</a></h2>
+<pre><code class="language-lisp">;; file: 4_60.rkt
+</code></pre>
+<h2 id="4_61"><a class="header" href="#4_61">4_61</a></h2>
+<pre><code class="language-lisp">;; file: 4_61.rkt
+</code></pre>
+<h2 id="4_62"><a class="header" href="#4_62">4_62</a></h2>
+<pre><code class="language-lisp">;; file: 4_62.rkt
+</code></pre>
+<h2 id="4_63"><a class="header" href="#4_63">4_63</a></h2>
+<pre><code class="language-lisp">;; file: 4_63.rkt
+</code></pre>
+<h2 id="4_64"><a class="header" href="#4_64">4_64</a></h2>
+<pre><code class="language-lisp">;; file: 4_64.rkt
+</code></pre>
+<h2 id="4_65"><a class="header" href="#4_65">4_65</a></h2>
+<pre><code class="language-lisp">;; file: 4_65.rkt
+</code></pre>
+<h2 id="4_66"><a class="header" href="#4_66">4_66</a></h2>
+<pre><code class="language-lisp">;; file: 4_66.rkt
+</code></pre>
+<h2 id="4_67"><a class="header" href="#4_67">4_67</a></h2>
+<pre><code class="language-lisp">;; file: 4_67.rkt
+</code></pre>
+<h2 id="4_68"><a class="header" href="#4_68">4_68</a></h2>
+<pre><code class="language-lisp">;; file: 4_68.rkt
+</code></pre>
+<h2 id="4_69"><a class="header" href="#4_69">4_69</a></h2>
+<pre><code class="language-lisp">;; file: 4_69.rkt
+</code></pre>
+<h2 id="4_70"><a class="header" href="#4_70">4_70</a></h2>
+<pre><code class="language-lisp">;; file: 4_70.rkt
+</code></pre>
+<h2 id="4_71"><a class="header" href="#4_71">4_71</a></h2>
+<pre><code class="language-lisp">;; file: 4_71.rkt
+</code></pre>
+<h2 id="4_72"><a class="header" href="#4_72">4_72</a></h2>
+<pre><code class="language-lisp">;; file: 4_72.rkt
+</code></pre>
+<h2 id="4_73"><a class="header" href="#4_73">4_73</a></h2>
+<pre><code class="language-lisp">;; file: 4_73.rkt
+</code></pre>
+<h2 id="4_74"><a class="header" href="#4_74">4_74</a></h2>
+<pre><code class="language-lisp">;; file: 4_74.rkt
+</code></pre>
+<h2 id="4_75"><a class="header" href="#4_75">4_75</a></h2>
+<pre><code class="language-lisp">;; file: 4_75.rkt
+</code></pre>
+<h2 id="4_76"><a class="header" href="#4_76">4_76</a></h2>
+<pre><code class="language-lisp">;; file: 4_76.rkt
+</code></pre>
+<h2 id="4_77"><a class="header" href="#4_77">4_77</a></h2>
+<pre><code class="language-lisp">;; file: 4_77.rkt
+</code></pre>
+<h2 id="4_78"><a class="header" href="#4_78">4_78</a></h2>
+<pre><code class="language-lisp">;; file: 4_78.rkt
+</code></pre>
+<h2 id="4_79"><a class="header" href="#4_79">4_79</a></h2>
+<pre><code class="language-lisp">;; file: 4_79.rkt
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-05"><a class="header" href="#연습문제-풀이-05">연습문제 풀이 05</a></h1>
+<h2 id="5_01"><a class="header" href="#5_01">5_01</a></h2>
+<pre><code class="language-lisp">;; file: 5_01.rkt
+</code></pre>
+<h2 id="5_02"><a class="header" href="#5_02">5_02</a></h2>
+<pre><code class="language-lisp">;; file: 5_02.rkt
+</code></pre>
+<h2 id="5_03"><a class="header" href="#5_03">5_03</a></h2>
+<pre><code class="language-lisp">;; file: 5_03.rkt
+</code></pre>
+<h2 id="5_04"><a class="header" href="#5_04">5_04</a></h2>
+<pre><code class="language-lisp">;; file: 5_04.rkt
+</code></pre>
+<h2 id="5_05"><a class="header" href="#5_05">5_05</a></h2>
+<pre><code class="language-lisp">;; file: 5_05.rkt
+</code></pre>
+<h2 id="5_06"><a class="header" href="#5_06">5_06</a></h2>
+<pre><code class="language-lisp">;; file: 5_06.rkt
+</code></pre>
+<h2 id="5_07"><a class="header" href="#5_07">5_07</a></h2>
+<pre><code class="language-lisp">;; file: 5_07.rkt
+</code></pre>
+<h2 id="5_08"><a class="header" href="#5_08">5_08</a></h2>
+<pre><code class="language-lisp">;; file: 5_08.rkt
+</code></pre>
+<h2 id="5_09"><a class="header" href="#5_09">5_09</a></h2>
+<pre><code class="language-lisp">;; file: 5_09.rkt
+</code></pre>
+<h2 id="5_10"><a class="header" href="#5_10">5_10</a></h2>
+<pre><code class="language-lisp">;; file: 5_10.rkt
+</code></pre>
+<h2 id="5_11"><a class="header" href="#5_11">5_11</a></h2>
+<pre><code class="language-lisp">;; file: 5_11.rkt
+</code></pre>
+<h2 id="5_12"><a class="header" href="#5_12">5_12</a></h2>
+<pre><code class="language-lisp">;; file: 5_12.rkt
+</code></pre>
+<h2 id="5_13"><a class="header" href="#5_13">5_13</a></h2>
+<pre><code class="language-lisp">;; file: 5_13.rkt
+</code></pre>
+<h2 id="5_14"><a class="header" href="#5_14">5_14</a></h2>
+<pre><code class="language-lisp">;; file: 5_14.rkt
+</code></pre>
+<h2 id="5_15"><a class="header" href="#5_15">5_15</a></h2>
+<pre><code class="language-lisp">;; file: 5_15.rkt
+</code></pre>
+<h2 id="5_16"><a class="header" href="#5_16">5_16</a></h2>
+<pre><code class="language-lisp">;; file: 5_16.rkt
+</code></pre>
+<h2 id="5_17"><a class="header" href="#5_17">5_17</a></h2>
+<pre><code class="language-lisp">;; file: 5_17.rkt
+</code></pre>
+<h2 id="5_18"><a class="header" href="#5_18">5_18</a></h2>
+<pre><code class="language-lisp">;; file: 5_18.rkt
+</code></pre>
+<h2 id="5_19"><a class="header" href="#5_19">5_19</a></h2>
+<pre><code class="language-lisp">;; file: 5_19.rkt
+</code></pre>
+<h2 id="5_20"><a class="header" href="#5_20">5_20</a></h2>
+<pre><code class="language-lisp">;; file: 5_20.rkt
+</code></pre>
+<h2 id="5_21"><a class="header" href="#5_21">5_21</a></h2>
+<pre><code class="language-lisp">;; file: 5_21.rkt
+</code></pre>
+<h2 id="5_22"><a class="header" href="#5_22">5_22</a></h2>
+<pre><code class="language-lisp">;; file: 5_22.rkt
+</code></pre>
+<h2 id="5_23"><a class="header" href="#5_23">5_23</a></h2>
+<pre><code class="language-lisp">;; file: 5_23.rkt
+</code></pre>
+<h2 id="5_24"><a class="header" href="#5_24">5_24</a></h2>
+<pre><code class="language-lisp">;; file: 5_24.rkt
+</code></pre>
+<h2 id="5_25"><a class="header" href="#5_25">5_25</a></h2>
+<pre><code class="language-lisp">;; file: 5_25.rkt
+</code></pre>
+<h2 id="5_26"><a class="header" href="#5_26">5_26</a></h2>
+<pre><code class="language-lisp">;; file: 5_26.rkt
+</code></pre>
+<h2 id="5_27"><a class="header" href="#5_27">5_27</a></h2>
+<pre><code class="language-lisp">;; file: 5_27.rkt
+</code></pre>
+<h2 id="5_28"><a class="header" href="#5_28">5_28</a></h2>
+<pre><code class="language-lisp">;; file: 5_28.rkt
+</code></pre>
+<h2 id="5_29"><a class="header" href="#5_29">5_29</a></h2>
+<pre><code class="language-lisp">;; file: 5_29.rkt
+</code></pre>
+<h2 id="5_30"><a class="header" href="#5_30">5_30</a></h2>
+<pre><code class="language-lisp">;; file: 5_30.rkt
+</code></pre>
+<h2 id="5_31"><a class="header" href="#5_31">5_31</a></h2>
+<pre><code class="language-lisp">;; file: 5_31.rkt
+</code></pre>
+<h2 id="5_32"><a class="header" href="#5_32">5_32</a></h2>
+<pre><code class="language-lisp">;; file: 5_32.rkt
+</code></pre>
+<h2 id="5_33"><a class="header" href="#5_33">5_33</a></h2>
+<pre><code class="language-lisp">;; file: 5_33.rkt
+</code></pre>
+<h2 id="5_34"><a class="header" href="#5_34">5_34</a></h2>
+<pre><code class="language-lisp">;; file: 5_34.rkt
+</code></pre>
+<h2 id="5_35"><a class="header" href="#5_35">5_35</a></h2>
+<pre><code class="language-lisp">;; file: 5_35.rkt
+</code></pre>
+<h2 id="5_36"><a class="header" href="#5_36">5_36</a></h2>
+<pre><code class="language-lisp">;; file: 5_36.rkt
+</code></pre>
+<h2 id="5_37"><a class="header" href="#5_37">5_37</a></h2>
+<pre><code class="language-lisp">;; file: 5_37.rkt
+</code></pre>
+<h2 id="5_38"><a class="header" href="#5_38">5_38</a></h2>
+<pre><code class="language-lisp">;; file: 5_38.rkt
+</code></pre>
+<h2 id="5_39"><a class="header" href="#5_39">5_39</a></h2>
+<pre><code class="language-lisp">;; file: 5_39.rkt
+</code></pre>
+<h2 id="5_40"><a class="header" href="#5_40">5_40</a></h2>
+<pre><code class="language-lisp">;; file: 5_40.rkt
+</code></pre>
+<h2 id="5_41"><a class="header" href="#5_41">5_41</a></h2>
+<pre><code class="language-lisp">;; file: 5_41.rkt
+</code></pre>
+<h2 id="5_42"><a class="header" href="#5_42">5_42</a></h2>
+<pre><code class="language-lisp">;; file: 5_42.rkt
+</code></pre>
+<h2 id="5_43"><a class="header" href="#5_43">5_43</a></h2>
+<pre><code class="language-lisp">;; file: 5_43.rkt
+</code></pre>
+<h2 id="5_44"><a class="header" href="#5_44">5_44</a></h2>
+<pre><code class="language-lisp">;; file: 5_44.rkt
+</code></pre>
+<h2 id="5_45"><a class="header" href="#5_45">5_45</a></h2>
+<pre><code class="language-lisp">;; file: 5_45.rkt
+</code></pre>
+<h2 id="5_46"><a class="header" href="#5_46">5_46</a></h2>
+<pre><code class="language-lisp">;; file: 5_46.rkt
+</code></pre>
+<h2 id="5_47"><a class="header" href="#5_47">5_47</a></h2>
+<pre><code class="language-lisp">;; file: 5_47.rkt
+</code></pre>
+<h2 id="5_48"><a class="header" href="#5_48">5_48</a></h2>
+<pre><code class="language-lisp">;; file: 5_48.rkt
+</code></pre>
+<h2 id="5_49"><a class="header" href="#5_49">5_49</a></h2>
+<pre><code class="language-lisp">;; file: 5_49.rkt
+</code></pre>
+<h2 id="5_50"><a class="header" href="#5_50">5_50</a></h2>
+<pre><code class="language-lisp">;; file: 5_50.rkt
+</code></pre>
+<h2 id="5_51"><a class="header" href="#5_51">5_51</a></h2>
+<pre><code class="language-lisp">;; file: 5_51.rkt
+</code></pre>
+<h2 id="5_52"><a class="header" href="#5_52">5_52</a></h2>
+<pre><code class="language-lisp">;; file: 5_52.rkt
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            MathJax.Hub.Register.StartupHook('End', function() {
+                window.setTimeout(window.print, 100);
+            });
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>
