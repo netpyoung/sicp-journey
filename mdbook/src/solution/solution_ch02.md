@@ -1,5 +1,7 @@
 # 연습문제 풀이 02
 
+- <https://github.com/netpyoung/sicp-journey/tree/main/source/exercise>
+
 ## 2_01
 
 ``` lisp
