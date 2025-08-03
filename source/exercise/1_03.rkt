@@ -20,7 +20,7 @@
   
 (check-equal? (ex1-03 2 10 3) 109)
 
-
+;; ======================================================================================
 
 (define first car)
 (define rest cdr)
@@ -40,7 +40,7 @@
              (smaller (filter (lambda (x) (less-than? x pivot)) rest))
              (greater-equal (filter (lambda (x) (not (less-than? x pivot))) rest)))
         (append (sort less-than? smaller)
-                (cons pivot (sort  less-than? greater-equal))))))
+                (cons pivot (sort less-than? greater-equal))))))
 
 (define (take n sequence)
   (cond ((<= n 0) '())
