@@ -2,7 +2,7 @@
 ;; file: 4_04.rkt
 
 (#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.scm")
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require rackunit)
 
 ;; Install and and or as new special forms
