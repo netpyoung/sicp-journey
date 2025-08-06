@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>3장. 모듈, 객체, 상태 - SICP 여정</title>
+        <title>DrRacket - SICP 여정</title>
 
 
         <!-- Custom HTML head -->
@@ -150,7 +150,7 @@
                         <a href="https://github.com/netpyoung/sicp-journey" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/netpyoung/sicp-journey/edit/main/src/chapter/ch03.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                        <a href="https://github.com/netpyoung/sicp-journey/edit/main/src/etc/drracket.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -184,138 +184,170 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="3장-모듈-객체-상태"><a class="header" href="#3장-모듈-객체-상태">3장. 모듈, 객체, 상태</a></h1>
+                        <h1 id="drracket"><a class="header" href="#drracket">DrRacket</a></h1>
+<p>The Racket Programming Environment</p>
+<ul>
+<li><a href="https://download.racket-lang.org/">다운로드</a></li>
+</ul>
+<h2 id="흔히-쓰게될-단축키"><a class="header" href="#흔히-쓰게될-단축키">흔히 쓰게될 단축키</a></h2>
+<div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th></tr></thead><tbody>
+<tr><td>파일 실행</td><td>Ctrl + R  / F5</td><td></td></tr>
+<tr><td>코드 정렬</td><td>Ctrl + I</td><td></td></tr>
+<tr><td>코드 &lt;=&gt; Repl 전환</td><td>Ctrl + F6</td><td>shift-focus</td></tr>
+<tr><td>λ 문자 삽입</td><td>Ctrl + \</td><td>insert λ</td></tr>
+<tr><td>자동완성</td><td>Ctrl + /</td><td>Complete Word</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>정의로 가기는 단축키가 없다
+<ul>
+<li>함수 이름 우클릭 &gt; Jump to definition of {blabla}? 클릭</li>
+</ul>
+</li>
+</ul>
+<h2 id="tip"><a class="header" href="#tip">Tip</a></h2>
+<h3 id="sicp가-설치가-안되어-있다면"><a class="header" href="#sicp가-설치가-안되어-있다면">SICP가 설치가 안되어 있다면</a></h3>
+<ul>
+<li>File &gt; Package Manager... 쪽에서 sicp를 찾아보면 된다
+<ul>
+<li><a href="https://docs.racket-lang.org/sicp-manual/SICP_Language.html">https://docs.racket-lang.org/sicp-manual/SICP_Language.html</a></li>
+</ul>
+</li>
+</ul>
+<h3 id="코드-색깔-바꾸기"><a class="header" href="#코드-색깔-바꾸기">코드 색깔 바꾸기</a></h3>
 <ul>
 <li>
-<p>Modularity, Objects, and State</p>
+<p>define이라도 색깔이 다르면 좀 더 코드가 보기 편해진다.</p>
+</li>
+<li>
+<p>다음 사이트에서 원하는 테마를 고르고</p>
 <ul>
-<li>3장은, 상태를 도입하면 프로그램이 더 많은 것을 표현할 수 있지만, 그만큼 이해와 예측이 어려워지는 것을 설명.</li>
+<li><a href="https://github.com/tuirgin/base16-drracket">https://github.com/tuirgin/base16-drracket</a></li>
+<li><a href="https://github.com/catppuccin/drracket">https://github.com/catppuccin/drracket</a></li>
 </ul>
 </li>
 <li>
-<p>변하는 데이터와 시간의 흐름을 다룸.</p>
+<p>File &gt; Package Manager... 쪽에서</p>
 <ul>
-<li>상태가 있는 시스템에서 시간과 동시성 문제는 필연적으로 등장.</li>
-<li>상태를 안전하게 다루는 데에 있어 모듈성과 캡슐화는 필수.</li>
-<li>지연 평가를 활용하면 무한 리스트나 신호 처리처럼 강력한 모델을 만들 수 있음.</li>
+<li><code>https://github.com/tuirgin/base16-drracket</code> 를 붙여넣어서 설치 하거나</li>
+<li><code>https://github.com/catppuccin/drracket</code> 를 붙여넣어서 설치</li>
 </ul>
 </li>
 </ul>
-<h2 id="기본"><a class="header" href="#기본">기본</a></h2>
-<h3 id="문법"><a class="header" href="#문법">문법</a></h3>
-<pre><code class="language-lisp">;; ================
-;; 셋팅
+<h3 id="코드-포맷"><a class="header" href="#코드-포맷">코드 포맷</a></h3>
+<ul>
+<li>메뉴&gt; Racket &gt; Reindent All</li>
+<li>혹은 단축키 Ctrl + I</li>
+<li>혹은 전체 선택(Ctrl + A) 후 Tab</li>
+</ul>
+<h3 id="백업파일bak-생성-안되게"><a class="header" href="#백업파일bak-생성-안되게">백업파일(.bak) 생성 안되게</a></h3>
+<ul>
+<li>메뉴&gt; Edit &gt; Preferences...
+<ul>
+<li>General 탭
+<ul>
+<li>Make backups for unsaved files 체크 해제</li>
+<li>Create first-change files 체크 해제</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="emacs-키-바인딩이-그립다면"><a class="header" href="#emacs-키-바인딩이-그립다면">Emacs 키 바인딩이 그립다면</a></h3>
+<ul>
+<li>
+<p>메뉴&gt; Edit &gt; Preferences...</p>
+<ul>
+<li>Editing 탭
+<ul>
+<li>General Editing탭
+<ul>
+<li>Enable keybindings in menus (overrides Emacs keybindings) 체크 해제</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>ref</p>
+<ul>
+<li><a href="https://docs.racket-lang.org/drracket/Keyboard_Shortcuts.html">https://docs.racket-lang.org/drracket/Keyboard_Shortcuts.html</a></li>
+<li><a href="https://blog.racket-lang.org/2009/03/the-drscheme-repl-isnt-the-one-in-emacs.html">https://blog.racket-lang.org/2009/03/the-drscheme-repl-isnt-the-one-in-emacs.html</a></li>
+<li><a href="https://stackoverflow.com/questions/56916606/drracket-custom-keybindings">https://stackoverflow.com/questions/56916606/drracket-custom-keybindings</a></li>
+</ul>
+</li>
+<li>
+<p>emacs</p>
+<ul>
+<li><a href="https://docs.racket-lang.org/guide/Emacs.html">https://docs.racket-lang.org/guide/Emacs.html</a>
+<ul>
+<li><a href="https://www.nongnu.org/geiser/">https://www.nongnu.org/geiser/</a></li>
+<li><a href="https://github.com/emacsmirror/geiser?tab=readme-ov-file">https://github.com/emacsmirror/geiser?tab=readme-ov-file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="쓰레딩-매크로----를-사용하고-싶다면"><a class="header" href="#쓰레딩-매크로----를-사용하고-싶다면">쓰레딩 매크로( ~&gt; / ~&gt;&gt; )를 사용하고 싶다면</a></h3>
+<ul>
+<li><a href="https://github.com/lexi-lambda/threading">threading</a>
+<ul>
+<li>clojure -&gt; / -&gt;&gt; 와는 다르게 ~&gt; / ~&gt;&gt; 이다</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">#lang sicp
+(#%require threading)
 
-(set! a 10)
-;;!&gt; set!: assignment disallowed;
-;;!&gt; cannot set variable before its definition
-;;!&gt;  variable: a
+(~&gt; 2 (/ 5))
+;;=&gt; 2/5
 
-(define a 10)
-(set! a 20)
-a
-;;=&gt; 20
-
-
-(define a-cons (cons 1 2))
-a-cons
-;;=&gt; (1 . 2)
-(set-car! a-cons 10)
-(set-cdr! a-cons 20)
-a-cons
-;;=&gt; (10 . 20)
-
-
-;; ================
-;; begin 블록
-(begin                 ; 블록 구문. 맨 마지막 표현식이 반환값.
-  (display "Hello, ")
-  (display "world!")
-  (newline)
-  42)
-;;&gt;&gt; Hello, world!
-;;=&gt; 42
-
-
-
-cons-stream - (cons a (delay b))
-delay - (delay exp)는 구문적 설탕입니다 .(lambda () exp)
-force
+(~&gt;&gt; 2 (/ 5))
+;;=&gt; 5/2
 </code></pre>
-<h2 id="closure"><a class="header" href="#closure">Closure</a></h2>
+<h3 id="유닛테스트를-하고-싶다면"><a class="header" href="#유닛테스트를-하고-싶다면">유닛테스트를 하고 싶다면?</a></h3>
 <ul>
-<li>함수가 정의될 때, 해당 함수가 속한 어휘적 환경(lexical environment) 에 대한 접근 권한을 유지하는 함수.</li>
+<li><a href="https://docs.racket-lang.org/rackunit/">rackunit</a></li>
 </ul>
-<pre><code class="language-lisp">(define (new-counter initial-value)
-  (let ((curr (dec initial-value)))                        ; local state variable
-    (lambda ()
-      (set! curr (inc curr))
-      curr)))
+<pre><code class="language-lisp">#lang sicp
 
-(define counter (new-counter 1))
-counterx)
-;;=&gt; 1
-(counter)
-;;=&gt; 2
-(counter)
-;;=&gt; 3
+(#%require rackunit)
 
-curr                                                        ; count-factory함수 밖에서는 curr접근 불가.
-;;!&gt; . . curr: undefined;
- ;;!&gt; cannot reference an identifier before its definition
+(check-equal? (+ 1 2) 3)
 </code></pre>
-<hr />
-<h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
-<p>3.3 변형 가능한 데이터로 프로그래밍하기
-3.3.1 변형 가능한 리스트
-3.3.2 큐
-queue/deque
-dictionary
-memoization - fibonacci</p>
-<ul>
-<li>https://clojuredocs.org/clojure.core/memoize</li>
-</ul>
-<p>3.3.3 표
-3.3.4 디지털 회로 시뮬레이터
-3.3.5 관계 알리기(constraint propagation)</p>
-<p>3.4 병행성竝行性 : 시간은 중요하다
-은행의 출금을 예로들어
-serializer</p>
-<ul>
-<li>자원을 공유하는 함수들 끼리 그룹을 묶어, 그 구룹내에 있는 함수들은 동시에 실행이 안되게 막음.</li>
-<li>job queue같은걸 만들어 큐에 쌓고 순차적으로 실행.</li>
-</ul>
-<p>parallel-execute - https://stackoverflow.com/questions/13467753/implement-parallel-execute-in-scheme</p>
-<ul>
-<li>mutex(Mutual Exclusion Lock)락을 이용해서 재화를 건드리는 함수들에 락을 걸어버림.
-<ul>
-<li>하나의 쓰레드만 자원 접근 가능</li>
-</ul>
-</li>
-</ul>
-<p>3.5 스트림</p>
-<ul>
-<li>stream == lazy sequence
-<ul>
-<li>지연 평가(lazy evaluation)를 통해 필요할 때만 다음 요소를 계산하는 시퀀스를 뜻합니다.</li>
-</ul>
-</li>
-<li>ref
-<ul>
-<li>https://clojuredocs.org/clojure.core/lazy-seq</li>
-</ul>
-</li>
-</ul>
+<h3 id="drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면"><a class="header" href="#drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면">DrRacket 디버거 사용이 힘들어 그냥 쉽게 출력해서 보고 싶다면</a></h3>
+<p>https://docs.racket-lang.org/debug/index.html</p>
+<pre><code class="language-lisp">#lang debug sicp
+(+ 1 2 #R(* 3 4))
+;;&gt;&gt; {* 3 4} = 12
+;;=&gt; 15
+</code></pre>
+<h3 id="기타-문법"><a class="header" href="#기타-문법">기타 문법</a></h3>
+<pre><code class="language-lisp">
+;; 블록 코맨트( #; )
+#;(error "wtf")
+
+
+;; TODO 설명 필요
+
+(#%require threading)
+
+(#%require (prefix racket/ racket))
+(racket/provide (racket/all-defined-out))
+
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../chapter/ch02.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../chapter/ch04.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../chapter/ch01.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -325,11 +357,11 @@ serializer</p>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../chapter/ch02.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../chapter/ch04.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../chapter/ch01.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -185,6 +185,221 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="2장-데이터로-추상화-쌓기"><a class="header" href="#2장-데이터로-추상화-쌓기">2장. 데이터로 추상화 쌓기</a></h1>
+<ul>
+<li>
+<p>Building Abstractions with Data</p>
+<ul>
+<li>2장은, 1장에서의 함수 뿐만 아니라 데이터도 추상화가 필요함을 설명한다.</li>
+</ul>
+</li>
+<li>
+<p>데이터 은닉 + 인터페이스 노출</p>
+<ul>
+<li>sicp: 클로저와 인터페이스 함수로 캡슐화 구현</li>
+<li>OOP: 클래스와 접근 제한자로 캡슐화 구현</li>
+</ul>
+</li>
+<li>
+<p>데이터 저장 방식이 달라도 영향이 없음.</p>
+<ul>
+<li>어느 위치 한 점을
+<ul>
+<li><a href="https://ko.wikipedia.org/wiki/%EB%8D%B0%EC%B9%B4%EB%A5%B4%ED%8A%B8_%EC%A2%8C%ED%91%9C%EA%B3%84">데카르트 좌표계</a>로 저장하거나</li>
+<li><a href="https://ko.wikipedia.org/wiki/%EA%B7%B9%EC%A2%8C%ED%91%9C%EA%B3%84">극 좌표계</a>로 저장.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="기본"><a class="header" href="#기본">기본</a></h2>
+<h3 id="문법"><a class="header" href="#문법">문법</a></h3>
+<pre><code class="language-lisp">;; ================
+;; Cons Cell
+(cons 1 2)
+;;=&gt; (1 . 2)
+
+(car '(1 . 2))          ; cons cell의 첫번째
+;;=&gt; 1
+
+(cdr '(1 . 2))          ; cons cell의 두번째
+;;=&gt; 2
+
+(pair? '(1 . 2))       ; cons cell로 구성되어 있는가?
+;;=&gt; #t
+
+
+;; ================
+;; 리스트
+(list 1 2 3)            ; '(1 . (2 . (3 . ())))
+;;=&gt; (1 2 3)
+
+(car '(1 2 3))
+;;=&gt; 1
+
+(cdr '(1 2 3))
+;;=&gt; (2 3)
+
+(cadr '(1 2 3))        ; cdr 이후 car
+;;=&gt; 2
+
+(pair? '(1 2 3))       ; list 역시 cons cell.
+;;=&gt; #t
+
+(length '(1 2))        ; 길이
+;;=&gt; 2
+
+(append '(1 2) '(3 4)) ; 덧붙이기
+;;=&gt; (1 2 3 4)
+
+(memq 'c '(a b c d))   ; 포함하는 맴버인지 확인
+;;=&gt; (c d)
+(memq 'c '(a b (c) d))
+;;=&gt; #f
+
+
+;; ================
+;; 널
+(null? nil)            ; nil은 null이다.
+;;=&gt; #t
+(null? '())            ; '() 빈것도 null이다.
+;;=&gt; #t
+
+
+;; ================
+;; quote 평가 지연
+(quote '(1 2 3))       ; 입력받은 표현식을 평가하지 않고 반환.
+;;=&gt; '(1 2 3)
+
+
+;; ================
+;; 음수? / 0? / 양수?
+(negative? -1)         ; 음수?
+;;=&gt; #t
+
+(zero? 0)              ; 0?
+;;=&gt; #t
+
+(positive? 1)          ; 양수?
+;;=&gt; #t
+
+
+;; ================
+;; 동일한지 체크
+(eq? nil '())          ; 같은 객체인가?
+;;=&gt; #t
+(eq? '(1 2) '(1 2))
+;;=&gt; #f
+
+(equal? '(1 2) '(1 2)) ; 구조가 같은가?
+;;=&gt; #t
+
+;; ================
+;; association list(연관 리스트, alist)
+(define a-alist '((apple . 100) (banana . 200))) ; '((key-a . value-a) (key-b . value-b) ... )
+(assoc 'apple a-list)
+;;=&gt;(apple . 100)                                ; (key-a . value-a)
+</code></pre>
+<h2 id="data-abstraction데이터-추상화"><a class="header" href="#data-abstraction데이터-추상화">Data Abstraction(데이터 추상화)</a></h2>
+<ul>
+<li>
+<p>데이터를 <strong>어떻게 사용할지</strong> 만을 드러내는 기법.</p>
+<ul>
+<li><strong>어떻게 표현할지</strong>는 드러나지 않음.</li>
+</ul>
+</li>
+<li>
+<p>Constructor : 생성자</p>
+<ul>
+<li>데이터 객체를 만드는 함수.</li>
+<li>ex) vector2</li>
+</ul>
+</li>
+<li>
+<p>Selector : 흔히 말하는 getter</p>
+<ul>
+<li>만들어진 데이터 객체에서 필드를 꺼내는 함수.</li>
+<li>ex) vector2-x, vector2-y</li>
+</ul>
+</li>
+</ul>
+<h3 id="예제"><a class="header" href="#예제">예제</a></h3>
+<ul>
+<li>vector2 / vector2-x / vector2-y
+<ul>
+<li>데이터를 사용하는 방식은 유지한체</li>
+<li>데이터를 표현하는 방식은 바뀔 수 있다.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">;; v1 - cons cell을 이용한 방식
+
+(define (vector2 x y)
+  (cons x y))
+(define (vector2-x p)
+  (cons-item1 p))
+(define (vector2-y p)
+  (cons-item2 p))
+  
+(vector2 1 2)
+;;=&gt; (1 . 2)
+(vector2-x (vector2 1 2))
+;;=&gt; 1
+(vector2-y (vector2 1 2))
+;;=&gt; 2
+</code></pre>
+<pre><code class="language-lisp">;; v2 - 리스트를 이용한 방식
+
+(define (vector2 x y)
+  (list x y))
+(define (vector2-x p)
+  (first p))
+(define (vector2-y p)
+  (second p))
+
+(vector2 1 2)
+;;=&gt; (1 2)
+(vector2-x (vector2 1 2))
+;;=&gt; 1
+(vector2-y (vector2 1 2))
+;;=&gt; 2
+</code></pre>
+<pre><code class="language-lisp">(cons (list 1 2) (list 3 4))
+;;
+;; (
+;;   (1 . (2 . ())) . (3 . (4 . ()))
+;; )
+;; 
+;; +---+---+   +---+---+    +---+---+
+;; | ● | ●---&gt; | 3 | ●---&gt;  | 4 | ()|
+;; +-|-+---+   +---+---+    +---+---+
+;;   |             
+;;   v             
+;; +---+---+    +---+---+
+;; | 1 | ●---&gt;  | 2 | ()|
+;; +---+---+    +---+---+
+
+</code></pre>
+<hr />
+<h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
+<p>복소수</p>
+<p>연습문제 2.42 에잇퀸 퍼즐</p>
+<p>2.2.4 연습 : 그림 언어
+https://docs.racket-lang.org/sicp-manual/SICP_Picture_Language.html</p>
+<pre><code class="language-lisp">#lang sicp
+(#%require sicp-pict)
+(paint einstein)
+</code></pre>
+<p>2.3.4 연습 : 허프만 인코딩 나무</p>
+<p>2.4 요약된 데이터의 표현 방식이 여러 가지일 때
+복소수를 직각좌표로도 극좌표로도 구현
+2.4.1 복소수 표현
+2.4.2 타입을 표시한 데이터
+2.4.3 데이터 중심 프로그래밍과 덧붙임 성질</p>
+<p>2.5 일반화된 연산 시스템
+2.5.1 일반화된 산술 연산
+2.5.2 타입이 다른 데이터를 엮어 쓰는 방법
+2.5.3 연습 : 기호 식 대수</p>
+<p>분수</p>
 
                     </main>
 

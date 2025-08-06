@@ -185,12 +185,295 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="1장-함수로-추상화-쌓기"><a class="header" href="#1장-함수로-추상화-쌓기">1장. 함수로 추상화 쌓기</a></h1>
+<ul>
+<li>
+<p>Building Abstractions with Procedures</p>
+<ul>
+<li>1장은, 추상화를 쌓아 올리기 위한 함수 기법을 설명한다.</li>
+</ul>
+</li>
+<li>
+<p>프로그래밍에서 추상화(abstraction)는 복잡한 것에서 불필요한 세부를 숨기고, 꼭 필요한 핵심만 간추려 내는 것을 말한다.</p>
+</li>
+<li>
+<p>책에서는 함수(function)를 수학적인 개념이라하고, 프로씨저(procedure)를 계산 절차라 구분지었는데,</p>
+<ul>
+<li>함수를 짠다는 말이 더 익숙하기에 그냥 이 둘을 합쳐서 함수로 퉁치자.</li>
+</ul>
+</li>
+<li>
+<p>복잡한 것을 단순한 것에서부터 쌓아 올려 일반화(여러 상황에서 쓸 수 있도록)한다.</p>
+<ul>
+<li>세부 구현을 숨기면, 복잡한 로직도 하나의 <strong>도구</strong>처럼 취급 가능</li>
+</ul>
+</li>
+<li>
+<p>함수를 이름 붙여 재사용하고, 세부 구현을 감춘다.</p>
+</li>
+<li>
+<p>동작 자체를 데이터처럼 다루는 능력</p>
+<ul>
+<li>함수를 인자로 받아 사용하거나 함수를 반환하는 함수.</li>
+</ul>
+</li>
+</ul>
+<h2 id="기본"><a class="header" href="#기본">기본</a></h2>
+<h3 id="문법"><a class="header" href="#문법">문법</a></h3>
+<pre><code class="language-lisp">;; ================
+;; 변수 정의
+(define SIZE 2)
+
+;; ================
+;; 영역 변수
+(let ((x 1)
+      (y 2))
+  (+ x y))
+
+(let* ((x 1)
+       (y (+ x 2)))
+  (+ x y))
+
+;; ================
+;; 함수 정의
+(define (Square x)
+  (* x x))
+
+;; ================
+;; 익명함수
+((lambda (x) (+ x 4)) 5)
+   
+;; ================
+;; 조건문 cond / if
+(define (Abs-1 x)
+  (cond ((= x 0) 0)
+        ((&gt; x 0) x)
+        ((&lt; x 0) (- x))))
+
+(define (Abs-2 x)
+  (cond ((&lt; x 0) (- x))
+        (else x)))
+
+(define (Abs-3 x)
+  (if (&lt; x 0)
+      (- x)
+      x))
+
+;; =============
+;; 참(true , #t) / 거짓 (false , #f)
+true
+;;=&gt; #t
+#t
+;;=&gt; #t
+false
+;;=&gt; #f
+#f
+;;=&gt; #f
+
+;; ================
+;; 시퀀스의 각 요소에 함수를 적용.
+(map (lambda (x) (* x x)) '(1 2 3 4))
+;;=&gt; (1 4 9 16)
+</code></pre>
+<h3 id="기타-내장-함수"><a class="header" href="#기타-내장-함수">기타 내장 함수</a></h3>
+<pre><code class="language-lisp">(display "Hello World")       ; 출력
+;;&gt;&gt; Hello World
+
+(newline)                     ; 빈 라인 출력
+;;&gt;&gt; 
+;;=&gt; 
+
+(error "this is error!" 1 2 3) ; 에러 출력 및 중단
+;;=&gt; this is error! 1 2 3
+
+(inc 1)                        ; 1 증가
+;;=&gt; 2
+
+(dec 1)                        ; 1 감소
+;;=&gt; 0
+</code></pre>
+<h2 id="function--procedure--process"><a class="header" href="#function--procedure--process">Function / Procedure / Process</a></h2>
+<ul>
+<li>책에서는 함수와 프로시져를 구분해왔으나, 여기 개념설명 이후, 그냥 함수( function + procedure )로 퉁 치겠다.</li>
+</ul>
+<h3 id="함수function--수학적-개념"><a class="header" href="#함수function--수학적-개념">함수(Function) = 수학적 개념</a></h3>
+<pre><code class="language-txt">Factorial(N) = N!
+</code></pre>
+<h3 id="프로시저procedure---프로그래머가-작성한-계산-절차알고리즘"><a class="header" href="#프로시저procedure---프로그래머가-작성한-계산-절차알고리즘">프로시저(Procedure) =  프로그래머가 작성한 계산 절차(알고리즘)</a></h3>
+<pre><code class="language-lisp">(define (Factorial n)
+  (if (= n 1)
+      1
+      (* n (Factorial (dec n)))))
+</code></pre>
+<h3 id="프로세스process--프로시저를-실행할-때-전개되는-계산의-단계적-진행상황"><a class="header" href="#프로세스process--프로시저를-실행할-때-전개되는-계산의-단계적-진행상황">프로세스(Process) = 프로시저를 실행할 때, 전개되는 계산의 단계적 진행상황</a></h3>
+<pre><code class="language-txt">(Factorial 3)
+→ 3 * (Factorial 2)
+→ 3 * (2 * (Factorial 1))
+→ 3 * (2 * (1 * (Factorial 0)))
+→ 3 * (2 * (1 * 1))
+→ 6
+</code></pre>
+<h2 id="일반-재귀-non-tail-recursion와-꼬리-재귀-tail-recursion"><a class="header" href="#일반-재귀-non-tail-recursion와-꼬리-재귀-tail-recursion">일반 재귀 (non-tail recursion)와 꼬리 재귀 (tail recursion)</a></h2>
+<h3 id="일반-재귀-non-tail-recursion"><a class="header" href="#일반-재귀-non-tail-recursion">일반 재귀 (non-tail recursion)</a></h3>
+<ul>
+<li>내부의 곱셈을 계산하기 위해 함수의 Call 스택이 쌓인다.
+<ul>
+<li>단계가 늘어나면 스택이 넘치게 된다( Stack overflow )</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">(define (Factorial-recur n)
+  (if (= n 1)
+      1
+      (* n (Factorial-recur (dec n)))))
+
+;; (Factorial-recur 3)
+;; → 3 * (Factorial-recur 2)
+;; → 3 * (2 * (Factorial-recur 1))
+;; → 3 * (2 * (1 * (Factorial-recur 0)))
+;; → 3 * (2 * (1 * 1))
+;; → 6
+</code></pre>
+<h3 id="꼬리-재귀-tail-recursion"><a class="header" href="#꼬리-재귀-tail-recursion">꼬리 재귀 (tail recursion)</a></h3>
+<ul>
+<li>스택 프레임 생성 자체를 억제시켜 함수의 Call 스택이지 않는다.
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Tail_call">tail-call optimization (TCO)</a></li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">(define (Factorial-iter n)
+  (if (&lt; n 0)
+      (error "n must be greater than or equal to 0. n =" n ))
+  (define (iter acc x)
+    (if (= x 0)
+        acc
+        (iter (* acc x) (dec x))))
+  (iter 1 n))
+
+;; (Factorial-iter 3)
+;; → (iter 1 3)
+;; → (iter (* 1 3) 2)
+;; → (iter (* 3 2) 1)
+;; → (iter (* 6 1) 0)
+;; → 6
+</code></pre>
+<h2 id="고차-함수-higher-order-function"><a class="header" href="#고차-함수-higher-order-function">고차 함수 (higher-order function)</a></h2>
+<ul>
+<li>함수를 데이터처럼 사용하는 함수
+<ul>
+<li>ex)
+<ul>
+<li>C 에서의 <a href="https://en.wikipedia.org/wiki/Function_pointer">함수포인터</a></li>
+<li>C# 에서의 delegate 혹은 Func/Action/Predicate타입</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">(define (compose f g)
+  (lambda (x)
+    (f (g x))))
+
+(define (square x)
+  (* x x))
+
+((compose square inc) 6)
+;=&gt; (square (inc 6))
+;=&gt; (square 7)
+;=&gt; 49
+</code></pre>
+<h2 id="평가전략evaluation-strategy"><a class="header" href="#평가전략evaluation-strategy">평가전략(evaluation strategy)</a></h2>
+<ul>
+<li>Applicative-Order Evaluation</li>
+<li>다른 이름: Call-by-Value, Eager Evaluation</li>
+<li>인자를 먼저 평가하고 그 결과 값을 프로시저에 대입</li>
+<li>Normal-Order Evaluation</li>
+<li>다른 이름: Call-by-Name</li>
+<li>인자를 평가하지 않고 그대로 본문에 대입 (문자 그대로 펼침)</li>
+<li>Lazy Evaluation</li>
+<li>다른 이름: Call-by-Need</li>
+<li>Normal-Order와 비슷하지만 한 번 계산한 결과를 저장해서 다시 계산하는것을 방지(메모이제이션)</li>
+</ul>
+<h2 id="뉴턴-랩슨-방법으로-제곱근-찾기"><a class="header" href="#뉴턴-랩슨-방법으로-제곱근-찾기">뉴턴-랩슨 방법으로 제곱근 찾기</a></h2>
+<ul>
+<li>뉴턴-랩슨 방법( Newton-Raphson method )
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Newton%27s_method">https://en.wikipedia.org/wiki/Newton%27s_method</a></li>
+<li>미분가능한 함수 f(a, b) → R에 대해 x에 대한 방정식 f(x)=0의 근의 근삿값을 구하는 알고리즘.</li>
+<li>뉴턴: 1669년 무렵, 비선형 방정식을 푸는 반복법을 고안. 주로 기하학적 직관과 미분 개념을 활용.</li>
+<li>랩슨: 1690년에 뉴턴 방법을 기하학 설명 없이 순수 대수 형태로 단순화해서 발표. 이 버전이 계산에 더 쓰기 좋아짐.</li>
+</ul>
+</li>
+<li>뉴턴-랩슨 공식</li>
+</ul>
+<p>$$ x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)} $$</p>
+<h3 id="제곱근-구하기"><a class="header" href="#제곱근-구하기">제곱근 구하기</a></h3>
+<p>$$ y {&gt;=} 0; 이고; y^2=x; 일때; \sqrt{x}는; y다.$$</p>
+<p>$$ y \ge 0, \quad y^2 = S$$</p>
+<ul>
+<li>
+<p>함수 정의
+$$ f(x) = x^2 - S $$</p>
+</li>
+<li>
+<p>미분
+$$ f'(x) = 2x $$</p>
+</li>
+<li>
+<p>공식에 대입
+$$ x_{n+1} = x_n - \frac{x_n^2 - S}{2x_n} $$</p>
+</li>
+</ul>
+<p>$$ x_{n+1} = \frac{2x_n^2 - x_n^2 + S}{2x_n} $$</p>
+<p>$$ x_{n+1} = \frac{x_n^2 + S}{2x_n} $$</p>
+<ul>
+<li>최종 식
+$$ x_{n+1} = \frac{1}{2} \left( x_n + \frac{S}{x_n} \right) $$</li>
+</ul>
+<pre><code class="language-lisp">;; 1.1.7 연습: 뉴튼 법으로 제곱근 찾기
+;; 연습문제: 1_06, 1_07
+
+(define (square x)
+  (* x x))
+
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x) x)))
+
+(define (improve guess x)
+  (average guess (/ x guess)))
+
+(define (average x y)
+  (~&gt; (+ x y) 
+      (/ 2)))
+
+(define (good-enough? guess x)
+  (~&gt; (square guess)
+      (- x)
+      (abs)
+      (&lt; 0.001)))
+
+(define (sqrt x)
+  (sqrt-iter 1.0 x))
+
+(sqrt 9)
+;;=&gt; 3.00009155413138
+</code></pre>
+<hr />
+<h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
+<p>expt 거듭제곱
+GDC 유클리드
+소수찾기 페르마 검사
+연습문제
+피보나치
+하노이의 탑</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../Index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../etc/drracket.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -204,7 +487,7 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../Index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../etc/drracket.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
