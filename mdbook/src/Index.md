@@ -1,6 +1,8 @@
 # SICP(`S`tructure and `I`nterpretation of `C`omputer `P`rograms)
 
-- by Harold Abelson and Gerald Jay Sussman with Julie Sussman
+
+- `S`tructures and `I`nterpretation of `C`omputer `P`rogram
+  - 컴퓨터 프로그램의 구조와 해석은 MIT 대학 교수인 `Harold Abelson`과 `Gerald Jay Sussman`이 `Julie Sussman`과 함께 쓴 컴퓨터 과학 교과서입니다. 해커 문화에서는 "마법사 책"으로 알려져 있습니다.
 - [wikipedia](https://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs)
 
 ## 책
@@ -16,7 +18,9 @@
   - [epub](https://github.com/sarabander/sicp-epub/blob/master/sicp.epub?raw=true)
     - [epub reader - readest](https://readest.com/)
 - [한글판: 컴퓨터 프로그램의 구조와 해석](https://product.kyobobook.co.kr/detail/S000001033024)
+  - 번역) 김재우,안윤호,김수정,김정민, 감수) 이광근
   - 비추천
+    - <https://kizoo.blogspot.com/2007/03/sicp.html>
 
 ## 비디오
 
@@ -29,6 +33,7 @@
 - [by code_report](https://www.youtube.com/playlist?list=PLVFrD1dmDdvdvWFK8brOVNL7bKHpE-9w0)
 
 ## 솔루션
+
 - [SICP exercises - Is this a cdadr which I see before me? ](https://wizardbook.wordpress.com/solutions-index/)
   - [source](https://gitlab.com/barry.allison/wizard-book-solutions)
 - [SICP Study](https://mk12.github.io/sicp/exercise/index.html)
@@ -39,3 +44,11 @@
 - by lisp-korea
   - [source 1](https://github.com/lisp-korea/sicp)
   - [source 2](https://github.com/lisp-korea/sicp2014)
+- by 아꿈사 스터디(아키텍트를 꿈꾸는 사람들, andstudy)
+  - <https://github.com/andstudy/forge/wiki/sicp>
+  - <https://github.com/andstudy/afternoon/wiki/2014_SICP>
+
+## 기타
+
+- [Language Oriented Design - Discussing SICP with Hal Abelson](https://corecursive.com/039-hal-abelson-sicp/)
+ 

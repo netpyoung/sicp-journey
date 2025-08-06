@@ -3,6 +3,8 @@
 The Racket Programming Environment
 
 - [다운로드](https://download.racket-lang.org/)
+  - [깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(1)](https://kkalkkalparrot.tistory.com/31)
+  - [깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(2)](https://kkalkkalparrot.tistory.com/32)
 
 ## 흔히 쓰게될 단축키
 
