@@ -184,7 +184,11 @@
                     <main>
                         <h1 id="sicpstructure-and-interpretation-of-computer-programs"><a class="header" href="#sicpstructure-and-interpretation-of-computer-programs">SICP(<code>S</code>tructure and <code>I</code>nterpretation of <code>C</code>omputer <code>P</code>rograms)</a></h1>
 <ul>
-<li>by Harold Abelson and Gerald Jay Sussman with Julie Sussman</li>
+<li><code>S</code>tructures and <code>I</code>nterpretation of <code>C</code>omputer <code>P</code>rogram
+<ul>
+<li>컴퓨터 프로그램의 구조와 해석은 MIT 대학 교수인 <code>Harold Abelson</code>과 <code>Gerald Jay Sussman</code>이 <code>Julie Sussman</code>과 함께 쓴 컴퓨터 과학 교과서입니다. 해커 문화에서는 "마법사 책"으로 알려져 있습니다.</li>
+</ul>
+</li>
 <li><a href="https://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs">wikipedia</a></li>
 </ul>
 <h2 id="책"><a class="header" href="#책">책</a></h2>
@@ -213,7 +217,12 @@
 </li>
 <li><a href="https://product.kyobobook.co.kr/detail/S000001033024">한글판: 컴퓨터 프로그램의 구조와 해석</a>
 <ul>
-<li>비추천</li>
+<li>번역) 김재우,안윤호,김수정,김정민, 감수) 이광근</li>
+<li>비추천
+<ul>
+<li><a href="https://kizoo.blogspot.com/2007/03/sicp.html">https://kizoo.blogspot.com/2007/03/sicp.html</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -254,12 +263,27 @@
 <li><a href="https://github.com/lisp-korea/sicp2014">source 2</a></li>
 </ul>
 </li>
+<li>by 아꿈사 스터디(아키텍트를 꿈꾸는 사람들, andstudy)
+<ul>
+<li><a href="https://github.com/andstudy/forge/wiki/sicp">https://github.com/andstudy/forge/wiki/sicp</a></li>
+<li><a href="https://github.com/andstudy/afternoon/wiki/2014_SICP">https://github.com/andstudy/afternoon/wiki/2014_SICP</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="기타"><a class="header" href="#기타">기타</a></h2>
+<ul>
+<li><a href="https://corecursive.com/039-hal-abelson-sicp/">Language Oriented Design - Discussing SICP with Hal Abelson</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="들어가며"><a class="header" href="#들어가며">들어가며</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="drracket"><a class="header" href="#drracket">DrRacket</a></h1>
 <p>The Racket Programming Environment</p>
 <ul>
-<li><a href="https://download.racket-lang.org/">다운로드</a></li>
+<li><a href="https://download.racket-lang.org/">다운로드</a>
+<ul>
+<li><a href="https://kkalkkalparrot.tistory.com/31">깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(1)</a></li>
+<li><a href="https://kkalkkalparrot.tistory.com/32">깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(2)</a></li>
+</ul>
+</li>
 </ul>
 <h2 id="흔히-쓰게될-단축키"><a class="header" href="#흔히-쓰게될-단축키">흔히 쓰게될 단축키</a></h2>
 <div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th></tr></thead><tbody>
@@ -992,6 +1016,13 @@ curr                                                        ; count-factory함�
 </code></pre>
 <hr />
 <h2 id="todo-2"><a class="header" href="#todo-2">TODO</a></h2>
+<ul>
+<li><a href="https://corecursive.com/039-hal-abelson-sicp/">Language Oriented Design - Discussing SICP with Hal Abelson</a>
+<ul>
+<li>클래스 같은 추상화나 다양한 객체를 클래스로 어떻게 구성하는지, 그리고 그 전체적인 구조는 어떻게 되는지에 대해서는 전혀 언급하지 않았습니다</li>
+</ul>
+</li>
+</ul>
 <p>3.3 변형 가능한 데이터로 프로그래밍하기
 3.3.1 변형 가능한 리스트
 3.3.2 큐
@@ -1564,21 +1595,425 @@ VERY-SMALL-RADIO
 </code></pre>
 <h2 id="1_08"><a class="header" href="#1_08">1_08</a></h2>
 <pre><code class="language-lisp">;; file: 1_08.rkt
+(#%require threading)
+(#%require (prefix racket/ racket))
+(#%require rackunit)
+
+;; imporve 가 바뀌고 나머지는sqrt를 구할때와 거의 비슷한 흐름으로 흘러간다.
+(define (improve guess x)
+  "( x/y^2 + 2y ) / 3"
+  (/ (+ (/ x (* guess guess)) (* 2 guess)) 3))
+
+(define VERY-SMALL-RADIO 0.00000000001)
+
+(define (good-enough? guess next-guess)
+  (let ((diff (- guess next-guess)))
+    (~&gt; (/ diff next-guess)
+        (abs)
+        (&lt; VERY-SMALL-RADIO))))
+
+
+(define (cube-root-iter guess x)
+  (let ((next-guess (improve guess x)))
+    (if (good-enough? guess next-guess)
+        guess
+        (cube-root-iter next-guess x))))
+
+(define (cube-root x)
+  (cube-root-iter 1.0 x))
+
+(define (cube x)
+  (* x x x))
+
+(define COMPARE-EPSILON 0.00000001)
+(check-= 12345 (cube (cube-root 12345)) COMPARE-EPSILON)
 </code></pre>
 <h2 id="1_09"><a class="header" href="#1_09">1_09</a></h2>
 <pre><code class="language-lisp">;; file: 1_09.rkt
+
+(define (x+ a b)
+  (if (= a 0)
+      b
+      (inc (x+ (dec a) b))))
+
+;; (x+ 2 1)
+;; (inc (x+ 1 1))
+;; (inc (inc (x+ 0 1)))
+;; (inc (inc 1))
+;; (inc 2)
+;;=&gt; 3
+
+(define (y+ a b)
+  (if (= a 0)
+      b
+      (y+ (dec a) (inc b))))
+
+;; (y+ 2 1)
+;; (y+ 1 2))
+;; (y+ 0 3)
+;;=&gt; 3
+
+(#%require (prefix trace/ racket/trace))
+(trace/trace x+)
+(trace/trace y+)
+
+(display "x+ ==============================\n")
+(x+ 2 1)
+;;&gt;&gt; &gt;{x+ 2 1}
+;;&gt;&gt; &gt; {x+ 1 1}
+;;&gt;&gt; &gt; &gt;{x+ 0 1}
+;;&gt;&gt; &lt; &lt;1
+;;&gt;&gt; &lt; 2
+;;&gt;&gt; &lt;3
+;;=&gt; 3
+(display "y+ ==============================\n")
+(y+ 2 1)
+;;&gt;&gt; &gt;{y+ 2 1}
+;;&gt;&gt; &gt;{y+ 1 2}
+;;&gt;&gt; &gt;{y+ 0 3}
+;;&gt;&gt; &lt;3
+;;=&gt; 3
 </code></pre>
 <h2 id="1_10"><a class="header" href="#1_10">1_10</a></h2>
 <pre><code class="language-lisp">;; file: 1_10.rkt
+
+(define (A x y)
+  ;; A(x, 0) = 0
+  ;; A(0, y) = 2y
+  ;; A(x, 1) = 2
+  ;; A(x, y) = A(x-1, A(x, y-1))
+  (cond ((= y 0) 0)
+        ((= x 0) (* 2 y))
+        ((= y 1) 2)
+        (else   (A (- x 1) (A x (- y 1))))))
+
+(A 1 10)
+;;=&gt; 1024
+(A 2 4)
+;;=&gt; 65536
+(A 3 3)
+;;=&gt; 65536
+(A 4 2)
+;;=&gt; 4
+
+
+(define (f n) (A 0 n))
+;; A(0, y) = 2y
+;; f(n) = 2n
+
+(define (g n) (A 1 n))
+;; A(1, n-0)
+;; = 2 * A(1, n-1)
+;; = 2 * 2 * A(1, n-2)
+;; = 2 * 2 * ... * A(1, n-(n- 1))
+;; = 2 * 2 * ... * 2
+;; g(n) = 2^n
+
+(define (h n) (A 2 n))
+;; 2^2^2 or 2^h(n-1)
+;; A(2, n - 0)
+;; = A(1, A(2, n-1))
+;; = A(1, A(1, A(2, n-2))
+;; = A(1, A(1, A(1, ... A(1, A(2, n-(n-1))))
+;; h(n) = 2^2^2....2 (2의 갯수는 n개)
+;; h(n) = pow(2, h(n-1))
+
+(define (k n) (* 5 n n))
+;; k(n) = 5n^2
+
+
+;; Primitive Recursive Function = 반복 횟수가 미리 정해져 있어서 for문 같은 단순 반복으로 구현 가능 (factorial같은거)
+;; Ackermann은 'for' 문 같은 구조로는 표현할 수 없는 함수도 있다는걸 보여주기 위해 Ackermann함수를 만듬.
+;; 재귀 깊이가 입력값에 따라 아주 빠르게 늘어나서, 고정된 반복 횟수로 미리 제한하는 'for'문으로는 표현하기 힘듬.
+;;
+;; ref:
+;;   - https://en.wikipedia.org/wiki/Ackermann_function
+;;   - https://plato.stanford.edu/Entries/recursive-functions/ackermann-peter.html
+;;   - https://sites.google.com/site/pointlesslargenumberstuff/home/2/ackermann
+
+;; Ackermann original function
+(define (φ x y z)
+  ;; φ(x, y, 0) = x + y
+  ;; φ(x, 0, z) = α(x, z-1)
+  ;; φ(x, y, z) = φ(x, φ(x, y-1, z) z-1)
+  (cond ((= z 0) (+ x y))
+        ((= y 0) (α x (- z 1)))
+        (else    (φ x (φ x (- y 1) z) (- z 1)))))
+
+(define (α x y)
+  ;; α(x, 0) = 0
+  ;; α(x, 1) = 1
+  ;; α(x, y) = x
+  (cond ((= y 0) 0)
+        ((= y 1) 1)
+        (else    x)))
+
+;; Ackermann-Peter function
+(define (C m n)
+  ;; C(0, n) = n+1
+  ;; C(m, 0) = C(m-1, 1)
+  ;; C(m, n) = C(m-1, C(m, n-1))
+  (cond ((= m 0) (+ n 1))
+        ((= n 0) (C (- m 1) 1))
+        (else    (C (- m 1) (C m (- n 1))))))
+
+(#%require (prefix trace/ racket/trace))
+(trace/trace φ)
+(trace/trace C)
+(φ 1 2 3)
+(C 2 1)
 </code></pre>
 <h2 id="1_11"><a class="header" href="#1_11">1_11</a></h2>
 <pre><code class="language-lisp">;; file: 1_11.rkt
+
+;; n &lt;  3 : f(n) = n                        
+;; n &gt;= 3 : f(n) = f(n-1) + 2f(n-2) + 3f(n-3)   
+
+(define (f-recur n)
+  (cond ((&lt; n 3) n)
+        (else    (+ (f-recur (- n 1))
+                    (* 2 (f-recur (- n 2)))
+                    (* 3 (f-recur (- n 3)))))))
+
+
+
+;;      |  p1    |   p2    |   p3   |
+;; f(n) = f(n-1) + 2f(n-2) + 3f(n-3)
+;; ...
+;; f(4) = f(3) + 2f(2) + 3f(1) = (2 + 2*1 + 3*0) + 2*2 + 3*1 = 11
+;; f(3) = f(2) + 2f(1) + 3f(0) =  2              + 2*1 + 3*0 = 4
+;; f(2) = 2
+;; f(1) = 1
+;; f(0) = 0
+
+(define (iter curr-n target-n fn-1 fn-2 fn-3)
+  (let ((next-fn-1 (+ fn-1 (* 2 fn-2) (* 3 fn-3)))
+        (next-fn-2 fn-1)
+        (next-fn-3 fn-2))
+    (if (= curr-n target-n)
+        next-fn-1
+        (iter (inc curr-n) target-n next-fn-1 next-fn-2 next-fn-3))))
+
+(define (f-iter n)
+  (if (&lt; n 3)
+      n
+      (iter 3 n 2 1 0)))
+
+
+
+(#%require (prefix racket/ racket))
+(#%require rackunit)
+(racket/for ([i 20])
+            (check-eq? (f-recur i)(f-iter i)))
 </code></pre>
 <h2 id="1_12"><a class="header" href="#1_12">1_12</a></h2>
 <pre><code class="language-lisp">;; file: 1_12.rkt
+
+;; 파스칼 삼각형
+
+(define (P x y)
+  (cond ((zero? x) 1)
+        ((= x y)   1)
+        (else      (+ (P (- x 1) y)
+                      (P (- x 1) (- y 1))))))
+
+
+
+(#%require (prefix racket/ racket))
+(racket/for ([y (racket/in-inclusive-range 0 5)])
+            (display y)
+            (display ": ")
+            (racket/for ([x (racket/in-inclusive-range 0 y)])
+                        (display (P x y))
+                        (display " "))
+            (newline))
+;;&gt;&gt; 0: 1 
+;;&gt;&gt; 1: 1 1 
+;;&gt;&gt; 2: 1 2 1 
+;;&gt;&gt; 3: 1 2 4 1 
+;;&gt;&gt; 4: 1 2 4 8 1 
+;;&gt;&gt; 5: 1 2 4 8 16 1 
 </code></pre>
 <h2 id="1_13"><a class="header" href="#1_13">1_13</a></h2>
 <pre><code class="language-lisp">;; file: 1_13.rkt
+
+;; ==============================================================
+;; - 특성방정식(Characteristic equation)
+;;   - https://en.wikipedia.org/wiki/Characteristic_equation_(calculus)
+;;   - 선형 점화식의 일반해를 구하기 위해 도입하는 보조적인 다항방정식
+;;     - 즉, 쉽게 구할 수 있는걸로 바꿔 계산하자임.
+;;   - 제약조건
+;;     - 선형(linear)
+;;       - 곱하기, 더하기만 있음.(항들 사이에 곱하거나 제곱하지 않음)
+;;       - 안되는 경우: F(n)=F(n−1)*F(n−2) (항 들 사이에 곱했음)
+;;     - 상수 계수(with constant coefficients)
+;;       - 계수들이 모두 상수여야 함 (즉, n에 따라 변하면 안 됨)
+;;       - 안되는 경우: F(n)=n*F(n−1)+F(n−2) (n에 따라 변함)
+;;     - 동차(homogeneous)
+;;       - 오른쪽에 독립적인 항이 없음
+;;       - 안되는 경우: F(n)=F(n−1)+F(n−2)+1 (오른쪽에 상수, n, 2^n, +5 같은 추가적인 항이 붙어 있으면 비동차)
+;; - 근의 공식(quadratic equation)
+;;   - https://en.wikipedia.org/wiki/Quadratic_equation
+;; - (1+√5)/2
+;;   - 황금비(golden ratio): https://en.wikipedia.org/wiki/Golden_ratio
+;; - 비넷공식(binet formula)
+;;   - https://en.wikipedia.org/wiki/Fibonacci_sequence#Binet's_formula
+;; - 귀납법(induction)
+;;   - https://en.wikipedia.org/wiki/Mathematical_induction
+;;   - 歸納(돌아갈 귀, 들일 납)
+;;   - 개별적인 사실들로부터 일반적인 결론을 이끌어내는  
+;;   - 기저 사례(Base Case): 증명하고자 하는 명제가 특정 초기 값에 대해 참임을 보이는 단계
+;;   - 귀납 단계(Induction Step): 특정 수 n에 대해 명제가 참이라고 가정하고 (귀납 가설), 이를 이용하여 n+1에 대해서도 명제가 참임을 증명.
+
+
+;; ==============================================================
+;; 1. Fib(n)이 (φ^n)/√5에 가까운 정수임을 증명해라. (φ = (1+√5)/2, ψ = (1−√5)/2)
+;;
+;; # 1.1: 일반적인 접근법
+;;
+;; ## Fib는 특성방정식을 만족함.(선형/상수계수/동차를 만족함)
+;; F(n) = F(n−1) + F(n−2)
+;;
+;; Fib(n) = x^n 이라 바꿔 계산하면.
+;; x^n           = x^(n-1)         + x^(n-2)
+;; x^n / x^(n-2) = x^(n-1)/x^(n-2) + x^(n-2)/x^(n-2)
+;;
+;; x^2         = x + 1
+;; x^2 - x - 1 = 0
+;;
+;; 근의 공식으로 풀면
+;; x = (1+√5)/2 = φ
+;; x = (1-√5)/2 = ψ
+;;
+;;
+;; ## Binet공식: F(n)= (φ^n - ψ^n)/√5
+;; 앞서구한 해 φ와 ψ로 F(n)을 나타내면
+;; F(n)     = Aφ^n + Bψ^n
+;; F(0) = 0 = A + B       | 즉, A = -B
+;; F(1) = 1 = Aφ + Bψ
+;;          = Aφ - Aψ
+;;          = A(φ - ψ)
+;;
+;; A =  1/(φ - ψ)
+;; B = -1/(φ - ψ)
+;;
+;; φ - ψ = (1+√5)/2 - (1-√5)/2
+;;       = 2√5/2
+;;       = √5
+;;
+;; A =  1/√5
+;; B = -1/√5
+;;
+;; F(n) = Aφ^n     + Bψ^n
+;;      = 1/√5*φ^n - 1/√5*ψ^n
+;;      = (φ^n - ψ^n)/√5
+;;
+;;
+;; # 1.2: G(n)을 도입한 다른 접근법
+;;
+;; φ + ψ = 1
+;; φ - ψ = √5
+;; φ * ψ = -1
+;; 
+;; F(n+2)            = (φ+ψ)*F(n+1) - (φ*ψ)*F(n)
+;; F(n+2) - φ*F(n+1) = ψ*(F(n+1) - φ*F(n))
+;;
+;;
+;; ## G(n) 정의
+;;
+;; G(n  ) = F(n+1) - φ*F(n)
+;; G(n+1) = ψ*G(n)
+;; G(0)   = F(1)   - φ*F(0)
+;;        = 1      - φ*0
+;;        = 1
+;;        = ψ^0
+;; G(1)   = ψ*G(0)
+;;        = ψ^1
+;; G(n)   = ψ^n
+;;        = F(n+1) - φ*F(n)
+;;
+;; ## 역전개하여 F(n+1) 유도
+;; F(n+1) - φ*F(n) = ψ^n
+;;
+;; F(n+1) = φ*F(n)                             + ψ^n
+;;        = φ(φ*F(n-1)             + ψ^(n-1))  + ψ^n
+;;        = φ^2*F(n-1)                         + ψ^n + φ*ψ^(n-1)
+;;        = φ^3*F(n-2)                         + ψ^n + φ*ψ^(n-1) + φ*ψ^(n-2)
+;;        = ...
+;;        = φ^(n+1)*F(0)                       + sum(k=0~n, φ^(n-k)*ψ^k)
+;;        = φ^(n+1)*0                          + sum(k=0~n, φ^(n-k)*ψ^k)
+;;        = sum(k=0~n, φ^(n-k)*ψ^k)
+;;        = φ^n * sum(k=0~n, (ψ/φ)^k)                                |  sum(k=0~n, r^k) = (1-r^(n+1)) / (1-r)
+;;        = φ^n * (1-(ψ/φ)^(n+1))            / (1-(ψ/φ))
+;;        = φ^n * (1-(ψ/φ)^(n+1)) * φ^(n+1)  / (1-(ψ/φ)) * φ^(n+1)
+;;        = φ^n * (φ^(n+1) - ψ^(n+1))        / (φ^(n+1) - (ψ * φ^n))
+;;        = (φ^(n+1) - ψ^(n+1)) / (φ - ψ)
+;;        = (φ^(n+1) - ψ^(n+1)) / √5
+;;
+;; 따라서
+;; F(n)   = (φ^n - ψ^n) / √5
+;;
+;;
+;; ## 1.3: Fib(n)이 (φ^n)/√5에 가까운 정수임을 증명.
+;;
+;; ψ = (1-√5)/2
+;;   = −0.6180339887...
+;; |ψ^0|/√5 = 0.447....  | 1/2 보다 작음.
+;; |ψ^1|/√5 = 0.276....
+;; ...
+;; |ψ^n|/√5 = 0.000....  | 0으로 수렴
+;; |ψ^n|/√5 = 1/2보다 작고 0으로 수렴.
+;;
+;; F(n)  = (φ^n     -  ψ^n)/√5
+;;       = (φ^n)/√5 - (ψ^n)/√5
+;;      ~= (φ^n)/√5            | (ψ^n)/√5 은 0으로 수렴함으로.
+;;      ~= (φ^n)/√5            | 따라서 F(n)은 (φ^n)/√5에 가까운 정수.
+;;
+;; 더 나가자면 ψ^n은 1/2보다 작으므로
+;;
+;; F(n) = round((φ^n)/√5)
+;;
+
+;; ==============================================================
+;; 2. Fib의 정의로 Fib(n) = (φ^n – ψ^n)/√5 임을 induction으로 밝혀라
+;;
+;; ## 기저 사례(Base case)
+;;
+;; n = 0 일때 성립
+;; (φ^0 – ψ^0)/√5 = (1 - 1)/√5
+;;                = 0
+;;
+;; n = 1 일때 성립
+;; (φ^1 – ψ^1)/√5 = (φ – ψ)/√5
+;;                = ((1+√5)/2) - (1-√5)/2) /√5
+;;                = (√5/2 + √5/2)/√5
+;;                = 1
+;;
+;; ## 귀납단계(Induction Step)
+;;
+;; Fib(n  ) = (φ^(n-0) – ψ^(n-0))/√5
+;; Fib(n-1) = (φ^(n-1) – ψ^(n-1))/√5
+;; Fib(n+1) = Fib(n)         + Fib(n-1)
+;;          = (φ^n – ψ^n)/√5 + (φ^(n-1) – ψ^(n-1))/√5
+;;          = (φ^n + φ^(n-1)) – (ψ^n + ψ^(n-1)) /√5
+;;
+;; φ   =  (1+√5)/2
+;; φ^2 =  (1 + 2√5 + 5)/4
+;;     =  (6 + 2√5)/4
+;;     = 2(3 + √5)/4
+;;     =  (3 + √5)/2
+;;     = (1+√5)/2 + 1
+;;     = φ + 1
+;;
+;; (φ^n + φ^(n-1)) = φ^(n-1) * (φ + 1)
+;;                 = φ^(n-1) * φ^2
+;;                 = φ^(n+1)
+;; (ψ^n + ψ^(n-1)) = ψ^(n+1)
+;;
+;; 따라서 Fib(n+1) = (φ^(n+1) - ψ^(n+1)) /√5
+;;
+;; ## 결론.
+;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
 </code></pre>
 <h2 id="1_14"><a class="header" href="#1_14">1_14</a></h2>
 <pre><code class="language-lisp">;; file: 1_14.rkt
@@ -2528,7 +2963,6 @@ VERY-SMALL-RADIO
 ;;   -cond는 if로부터 파생된(derived) 표현식임)
 ;;
 ;; and / or 역시 if 로 변환하여 계산할 수 있음.
-;(set! eval 1)
 
 
 (define (expand-and clauses)
