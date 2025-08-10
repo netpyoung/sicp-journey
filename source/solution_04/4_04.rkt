@@ -34,6 +34,7 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
 
 (define (and? exp) (tagged-list? exp 'and))
 (define (or?  exp) (tagged-list? exp 'or))

@@ -56,7 +56,7 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
-
+(override-eval! eval)
 (define (let? exp) (tagged-list? exp 'let))
 
 

@@ -14,14 +14,15 @@
 
 ;;;from section 4.1.4 -- must precede def of metacircular apply
 
+(#%require (prefix  r5rs/ r5rs))
 (#%require (prefix racket/ racket))
 (racket/provide (racket/all-defined-out))
 
-(define apply-in-underlying-scheme racket/apply)
+(define apply-in-underlying-scheme r5rs/apply)
 
 ;;;SECTION 4.1.1
 
-(define (eval exp env)
+(define (_eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -40,21 +41,26 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
+(define eval _eval)
+(define (override-eval! func)
+  (set! eval func))
 
-(define (apply procedure arguments)
+(define (_apply procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
          (eval-sequence
-           (procedure-body procedure)
-           (extend-environment
-             (procedure-parameters procedure)
-             arguments
-             (procedure-environment procedure))))
+          (procedure-body procedure)
+          (extend-environment
+           (procedure-parameters procedure)
+           arguments
+           (procedure-environment procedure))))
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
-
+(define apply _apply)
+(define (override-apply! func)
+  (set! apply func))
 
 (define (list-of-values exps env)
   (if (no-operands? exps)
@@ -80,8 +86,8 @@
 
 (define (eval-definition exp env)
   (define-variable! (definition-variable exp)
-                    (eval (definition-value exp) env)
-                    env)
+    (eval (definition-value exp) env)
+    env)
   'ok)
 
 ;;;SECTION 4.1.2
@@ -310,7 +316,7 @@
         (list 'cdr cdr)
         (list 'cons cons)
         (list 'null? null?)
-;;      more primitives
+        ;;      more primitives
         ))
 
 (define (primitive-procedure-names)

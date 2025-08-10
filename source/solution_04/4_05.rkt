@@ -94,7 +94,7 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
-
+(override-eval! eval)
 
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)

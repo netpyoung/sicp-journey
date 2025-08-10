@@ -104,26 +104,7 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
-
-;; Racket 모듈의 바인딩은 불변이라 그냥 require하면 못 바꾸니, apply와 eval-sequence를 재정의해야 동작한다.
-(define (apply procedure arguments)
-  (cond ((primitive-procedure? procedure)
-         (apply-primitive-procedure procedure arguments))
-        ((compound-procedure? procedure)
-         (eval-sequence
-           (procedure-body procedure)
-           (extend-environment
-             (procedure-parameters procedure)
-             arguments
-             (procedure-environment procedure))))
-        (else
-         (error
-          "Unknown procedure type -- APPLY" procedure))))
-
-(define (eval-sequence exps env)
-  (cond ((last-exp? exps) (eval (first-exp exps) env))
-        (else (eval (first-exp exps) env)
-              (eval-sequence (rest-exps exps) env))))
+(override-eval! eval)
 
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
