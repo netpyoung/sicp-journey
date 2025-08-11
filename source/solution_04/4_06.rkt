@@ -6,8 +6,8 @@
 (#%require (prefix racket/ racket))
 (#%require rackunit)
 (racket/provide
- let->combination
- let?)
+ let?
+ let->combination)
 
 (define first car)
 (define rest cdr)

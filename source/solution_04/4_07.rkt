@@ -5,6 +5,10 @@
 (#%require rackunit)
 (#%require (prefix racket/ racket))
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(racket/provide
+ let*?
+ let*->nested-lets)
+;; (#%require (only "4_07.rkt" make-let))
 
 ;; 1-1. let*식이 여러개의 let식으로 변환될 수 있는지.
 ;;
@@ -26,9 +30,9 @@
 (define third caddr)
 
 (define (make-let binding body)
-    (if (null? binding)
-        (append (list 'let '()) body)
-        (append (list 'let (list binding)) body)))
+  (if (null? binding)
+      (append (list 'let '()) body)
+      (append (list 'let (list binding)) body)))
 
 (check-equal? (make-let '(b 1) (list (make-let '((a 1)) '((display) (display)))))
               '(let ((b 1)) (let (((a 1))) (display) (display))))

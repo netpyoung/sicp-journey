@@ -22,9 +22,12 @@
 ;;      (+ a b))
 ;;    (hello 1 2)))
 ;;
+(#%require (prefix racket/ racket))
 (#%require (rename "4_06.rkt" let->combination-normal let->combination))
 (#%require rackunit)
-
+(racket/provide
+ make-define
+ let->combination)
 (define first car)
 (define rest cdr)
 (define second cadr)
