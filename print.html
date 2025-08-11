@@ -1969,7 +1969,9 @@ VERY-SMALL-RADIO
 ;;      ~= (φ^n)/√5            | (ψ^n)/√5 은 0으로 수렴함으로.
 ;;      ~= (φ^n)/√5            | 따라서 F(n)은 (φ^n)/√5에 가까운 정수.
 ;;
-;; 더 나가자면 ψ^n은 1/2보다 작으므로
+;; 더 나가자면 |ψ^n|/√5 는 항상 1/2보다 작고 0으로 수렴하므로,
+;; 오차는 round 함수의 오차 허용 한계인 0.5보다 항상 작다.
+;; 따라서
 ;;
 ;; F(n) = round((φ^n)/√5)
 ;;
@@ -2014,12 +2016,159 @@ VERY-SMALL-RADIO
 ;;
 ;; ## 결론.
 ;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
+
+
+(#%require (prefix racket/ racket))
+(#%require threading)
+(#%require rackunit)
+
+
+
+(define (fib n)
+  (fib-iter 1 0 n))
+
+(define (fib-iter a b count)
+  (if (= count 0)
+      b
+      (fib-iter (+ a b) a (- count 1))))
+
+(define (fib-binet n)
+  (let* ((root-5 (sqrt 5))
+         (φ (/ (+ 1 root-5) 2))
+         (ψ (/ (- 1 root-5) 2)))
+    (~&gt; (- (expt φ n) (expt ψ n))
+        (/ root-5)
+        (round-half-up))))
+
+(define (round-half-up x)
+  ;; racket/exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
+  ;; Round half up은 0.5이상 일때 무조건 올림.
+  (cond ((zero? x) 0)
+        ((positive? x) (racket/exact-floor (+ x 0.5)))
+        (else          (racket/exact-floor (- x 0.5)))))
+
+(racket/for ([x (racket/in-inclusive-range 1 75)])
+            ;; 부동소수점 정밀도의 한계로 에러가 발생.
+            (check-eq? (fib x) (fib-binet x) (racket/~a x)))
 </code></pre>
 <h2 id="1_14"><a class="header" href="#1_14">1_14</a></h2>
 <pre><code class="language-lisp">;; file: 1_14.rkt
+
+;; 1.2.2: count-change
+(define (count-change amount)
+  (cc amount 5))
+
+(define (cc amount kinds-of-coins)
+  (cond ((= amount 0)
+         1)
+        ((or (&lt; amount 0) (= kinds-of-coins 0))
+         0)
+        (else
+         (+ (cc amount (- kinds-of-coins 1))
+            (cc (- amount (first-denomination kinds-of-coins)) kinds-of-coins)))))
+
+(define (first-denomination kinds-of-coins)
+  (cond ((= kinds-of-coins 1) 1)
+        ((= kinds-of-coins 2) 5)
+        ((= kinds-of-coins 3) 10)
+        ((= kinds-of-coins 4) 25)
+        ((= kinds-of-coins 5) 50)))
+
+(count-change 100)
+;;=&gt; 292
+
+(#%require (prefix trace/ racket/trace))
+(trace/trace cc)
+(count-change 11)
+;;=&gt; 4
+;;
+;; 1. 10x 1 +  1x 1
+;; 2.  5x 1 +  1x 6
+;; 3.  5x 2 +  1x 1
+;; 4.  1x11
+
+;; amount가 증가함에 따라 사용되는 공간과 수행 단계의 증가 차수는?
+;;
+;; 1. 수행 단계 수 (시간 복잡도)
+;; - https://en.wikipedia.org/wiki/Time_complexity
+;;
+;; - 얼핏보면: O(2^n)
+;;   - cc안에서 cc가 두번 호출. 호출 트리가 이진 트리처럼 보임
+;; - 사실은: O(n^5)
+;;   - amount뿐만 아니라 동전 종류도 고려되야함.
+;;   - 그리고 cc를 보면 중복호출하는데 이 중복 계산도 포함하게 되면 - O(n^k)
+;;   - 메모이제이션이나 동적 계획법으로 풀면 O(n*k) 복잡도는 줄어들 수 있음.
+;;
+;; 2. 공간 사용량 (공간 복잡도)
+;; - https://en.wikipedia.org/wiki/Space_complexity
+;;
+;; - 선형 O(n)
+;;   - amount가 지속적 감소 ( 최대 호출 스택 깊이 )
 </code></pre>
 <h2 id="1_15"><a class="header" href="#1_15">1_15</a></h2>
 <pre><code class="language-lisp">;; file: 1_15.rkt
+
+(define (cube x)
+  (* x x x))
+
+(define (p x)
+  (- (* 3 x)
+     (* 4 (cube x))))
+
+(define (sine angle)
+  (if (not (&gt; (abs angle) 0.1))
+      angle
+      (p (sine (/ angle 3.0)))))
+
+(#%require (prefix trace/ racket/trace))
+(trace/trace p)
+(trace/trace sine)
+
+;; 1. (sine 12.15)가 호출되면 p가 몇번 호출되나?
+;; sine에서 angle을 3.0으로 계속 나누고 탈출조건은 |angle| &lt; 0.1이니
+;;
+;; |12.15/3^(x - 1)} &lt; 0.1
+;; |3^(x - 1)|       &lt; 121.5
+;; 3^4=81
+;; 3^5=243
+;; 따라서 x = 5
+
+;; (/ 12.15 3)               4.05
+;; (/ 4.05 3)                1.3499999999999999
+;; (/ 1.3499999999999999 3)  0.44999999999999996
+;; (/ 0.44999999999999996 3) 0.15
+;; (/ 0.15 3)                0.049999999999999996
+
+(sine 12.15)
+;;&gt;&gt; &gt;{sine 12.15}
+;;&gt;&gt; &gt; {sine 4.05}
+;;&gt;&gt; &gt; &gt;{sine 1.3499999999999999}
+;;&gt;&gt; &gt; &gt; {sine 0.44999999999999996}
+;;&gt;&gt; &gt; &gt; &gt;{sine 0.15}
+;;&gt;&gt; &gt; &gt; &gt; {sine 0.049999999999999996}
+;;&gt;&gt; &lt; &lt; &lt; 0.049999999999999996
+;;&gt;&gt; &gt; &gt; &gt;{p 0.049999999999999996}        --- 1
+;;&gt;&gt; &lt; &lt; &lt;0.1495
+;;&gt;&gt; &gt; &gt; {p 0.1495}                       --- 2
+;;&gt;&gt; &lt; &lt; 0.4351345505
+;;&gt;&gt; &gt; &gt;{p 0.4351345505}                  --- 3
+;;&gt;&gt; &lt; &lt;0.9758465331678772
+;;&gt;&gt; &gt; {p 0.9758465331678772}             --- 4
+;;&gt;&gt; &lt; -0.7895631144708228
+;;&gt;&gt; &gt;{p -0.7895631144708228}             --- 5
+;;&gt;&gt; &lt;-0.39980345741334
+;;=&gt; -0.39980345741334
+
+
+;; 2. (sine a)를 계산시 시간 복접도와 공간 복잡도를 a로 표현.
+;;
+;; 깊이 - 여기선 시간복잡도, 공간사용량도 깊이랑 같음.
+;; a/3^n &lt; 0.1
+;; 3^n   &gt; 10a
+;; n     &gt; log3(10a)
+;;
+;; - 수행 단계 수 (시간 복잡도): O(log(a))
+;; - 공간 사용량  (공간 복잡도): O(log(a))
 </code></pre>
 <h2 id="1_16"><a class="header" href="#1_16">1_16</a></h2>
 <pre><code class="language-lisp">;; file: 1_16.rkt
@@ -2907,6 +3056,7 @@ VERY-SMALL-RADIO
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
 
 (define (and? exp) (tagged-list? exp 'and))
 (define (or?  exp) (tagged-list? exp 'or))
@@ -3008,18 +3158,577 @@ VERY-SMALL-RADIO
 </code></pre>
 <h2 id="4_05"><a class="header" href="#4_05">4_05</a></h2>
 <pre><code class="language-lisp">;; file: 4_05.rkt
+
+(#%require (prefix racket/ racket))
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(#%require rackunit)
+
+;; expand-clauses의 (sequence-&gt;exp (cond-actions first)) 부분을 수정하면 된다.
+
+(define first car)
+(define rest cdr)
+(define second cadr)
+(define third caddr)
+
+(define (cond-&gt;if exp)
+  (expand-clauses (cond-clauses exp)))
+ 
+(define (expand-clauses clauses)
+  (if (null? clauses)
+      'false                          ; no else clause
+      (let ((first (car clauses))
+            (rest (cdr clauses)))
+        (if (cond-else-clause? first)
+            (if (null? rest)
+                (sequence-&gt;exp (cond-actions first))
+                (error "ELSE clause isn't last -- COND-&gt;IF"
+                       clauses))
+            ;; Before:
+            ;; (make-if (cond-predicate first)
+            ;;             (sequence-&gt;exp (cond-actions first))
+            ;;             (expand-clauses rest))
+            ;; After:
+            (if (=&gt;sequence? first)
+                (make-if (cond-predicate first)
+                         (expend=&gt;sequence first)
+                         (expand-clauses rest))
+                (make-if (cond-predicate first)
+                         (sequence-&gt;exp (cond-actions first))
+                         (expand-clauses rest)))))))
+
+
+(define (=&gt;sequence? clause)
+  (eq? (second clause) '=&gt;))
+
+(define (expend=&gt;sequence clause)
+  (list (third clause) (first clause)))
+
+(check-equal? (expend=&gt;sequence '((assoc 'b '((a 1) (b 2))) =&gt; cadr))
+              '(cadr (assoc 'b '((a 1) (b 2)))))
+
+(check-equal? (cond-&gt;if '(cond ((assoc 'b '((a 1) (b 2))) =&gt; cadr)
+                               (else false)))
+              '(if (assoc 'b '((a 1) (b 2)))
+                   (cadr (assoc 'b '((a 1) (b 2))))
+                   false))
+
+
+
+;;==== additional test
+(check-equal? (cond-&gt;if '(cond ((= 1 1) true)
+                               (else false)))
+              '(if (= 1 1)
+                   true
+                   false))
+
+(check-equal? (cond-&gt;if '(cond ((assoc 'b '((a 1) (b 2))) =&gt; cadr)
+                               ((assoc 'b '((a 1) (b 2))) =&gt; cadr)))
+              '(if (assoc 'b '((a 1) (b 2)))
+                   (cadr (assoc 'b '((a 1) (b 2))))
+                   (if (assoc 'b '((a 1) (b 2)))
+                       (cadr (assoc 'b '((a 1) (b 2))))
+                       false)))
+
+
+
+;; eval test -----------------------
+
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
+
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! 'assoc (list 'primitive assoc) env2)
+(define-variable! 'cadr (list 'primitive cadr) env2)
+
+(check-equal? (eval '(cond ((assoc 'b '((a 1) (b 2))) =&gt; cadr)
+                           (else false)) env2)
+              2)
 </code></pre>
 <h2 id="4_06"><a class="header" href="#4_06">4_06</a></h2>
 <pre><code class="language-lisp">;; file: 4_06.rkt
+;; 4_07 / 4_08
+
+
+(#%require (prefix racket/ racket))
+(#%require rackunit)
+(racket/provide
+ let?
+ let-&gt;combination)
+
+(define first car)
+(define rest cdr)
+(define second cadr)
+(define third caddr)
+
+;; let-&gt;combination 구현 ------------------------------
+;; 중첩 let을 생각안하면 4_07에서 오류를 맞이할거임.
+
+(define (let-&gt;combination let-clause)
+  (let* ((bindings (second let-clause))
+         (vars (map first bindings))
+         (exps (map second bindings))
+         (body (rest (rest let-clause))))
+    (cons (make-lambda vars body)
+          exps)))
+
+(check-equal? (let-&gt;combination '(let ((a 1) (b 2)) (+ a b)))
+              '((lambda (a b) (+ a b)) 1 2))
+
+(check-equal? (let-&gt;combination '(let () 1))
+              '((lambda () 1))
+              "empty")
+
+
+;; eval이 let구문을 처리할 수 있도록 수정 ---------------
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((let? exp) (eval (let-&gt;combination exp) env)) ;; &lt;&lt;--- 추가.
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
+(define (let? exp) (tagged-list? exp 'let))
+
+
+;; test -----------------------
+
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(check-equal? (eval '(let ((a 1) (b 2)) (+ a b)) env2) 3)
 </code></pre>
 <h2 id="4_07"><a class="header" href="#4_07">4_07</a></h2>
 <pre><code class="language-lisp">;; file: 4_07.rkt
+;; 4_06 cont
+
+(#%require rackunit)
+(#%require (prefix racket/ racket))
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(racket/provide
+ let*?
+ let*-&gt;nested-lets)
+;; (#%require (only "4_07.rkt" make-let))
+
+;; 1-1. let*식이 여러개의 let식으로 변환될 수 있는지.
+;;
+;;  (let* ((x 3)
+;;         (y (+ x 2))
+;;         (z (+ x y 5)))
+;;    (* x z)))
+;;
+;; (let ((x 3))
+;;   (let ((y (+ x 2)))
+;;     (let ((z (+ x y 5)))
+;;       (* x z)))))
+;;
+;; 1-2. let*-&gt;nested-lets 를 작성해라.
+
+(define first car)
+(define rest cdr)
+(define second cadr)
+(define third caddr)
+
+(define (make-let binding body)
+  (if (null? binding)
+      (append (list 'let '()) body)
+      (append (list 'let (list binding)) body)))
+
+(check-equal? (make-let '(b 1) (list (make-let '((a 1)) '((display) (display)))))
+              '(let ((b 1)) (let (((a 1))) (display) (display))))
+
+(check-equal? (make-let '(b 1) '('a 'b))
+              '(let ((b 1)) 'a 'b))
+
+
+(define (let*-&gt;nested-lets expr)
+  (define (iter acc bs)
+    (if (null? bs)
+        acc
+        (iter (make-let (first bs) (list acc)) (rest bs))))
+  (let* ((bindings (reverse (second expr)))
+         (body (rest (rest expr))))
+    (if (null? bindings)
+        (make-let '() body)
+        (iter (make-let (first bindings) body) (rest bindings)))))
+
+(define (let*? expr)
+  (tagged-list? expr 'let*))
+
+(check-equal? (let*-&gt;nested-lets
+               '(let* ((x 3)
+                       (y (+ x 2))
+                       (z (+ x y 5)))
+                  (* x z)))   
+              '(let ((x 3))
+                 (let ((y (+ x 2)))
+                   (let ((z (+ x y 5)))
+                     (* x z)))))
+
+(check-equal? (let*-&gt;nested-lets
+               '(let* () 1))
+              '(let () 1))
+
+(check-equal? (let*-&gt;nested-lets
+               '(let* ((x 3)
+                       (y x))
+                  'a
+                  'b))
+              '(let ((x 3))
+                 (let ((y x))
+                   'a
+                   'b)))
+
+;; 2.1 eval에 (eval (let*-&gt;nested-lets exp) env)를 추가하면 동작할까?
+;; 동작 한다.
+
+
+(#%require "4_06.rkt")
+
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+
+        ((let? exp) (eval (let-&gt;combination exp) env))   ; &lt;&lt;--- 저번 4_06에서 추가.
+        ((let*? exp) (eval (let*-&gt;nested-lets exp) env)) ; &lt;&lt;--- 이번 4_07에서 추가.
+        
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
+
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '* (list 'primitive *) env2)
+
+(#%require (prefix  r5rs/ r5rs))
+(define expression '(let* ((x 3)
+                           (y (+ x 2))
+                           (z (+ x y 5)))
+                      (* x z)))
+
+(#%require (prefix trace/ racket/trace))
+
+(check-equal? (eval expression env2)
+              (r5rs/eval expression (scheme-report-environment 5)))
+
 </code></pre>
 <h2 id="4_08"><a class="header" href="#4_08">4_08</a></h2>
-<pre><code class="language-lisp">;; file: 4_08.rkt
+<pre><code class="language-lisp">
+#;(#%require errortrace)
+;; file: 4_08.rkt
+;; 4_06 cont
+
+
+;; 기존 let-&gt;combination
+;; 
+;; (let ((a 1) (b 2)) (+ a b)) =&gt; ((lambda (a b) (+ a b)) 1 2)
+;;
+;; (let &lt;var&gt; &lt;bindings&gt; &lt;body&gt;) 형태를 지원할 수 있도록 수정하해야함.
+;;
+;; 간단한 named-let expression이 다음과 같다고 하면,
+;;
+;; (let hello ((a 1) (b 2))
+;;   (+ a b))
+;;
+;; a) lambda와 define사용.
+;; ((lambda ()
+;;    (define (hello a b)
+;;      (+ a b))
+;;    (hello 1 2)))
+;;
+(#%require (prefix racket/ racket))
+(#%require (rename "4_06.rkt" let-&gt;combination-normal let-&gt;combination))
+(#%require rackunit)
+(racket/provide
+ make-define
+ let-&gt;combination)
+(define first car)
+(define rest cdr)
+(define second cadr)
+(define third caddr)
+
+(define (make-define func-name args body)
+  (append (list 'define (append (list func-name) args)) body))
+
+(check-equal? (make-define 'hello '(a b) '(1 2 3 4 5))
+              '(define (hello a b) 1 2 3 4 5))
+
+(define (let-named-&gt;combination let-clause)
+  (let* ((bindings (third let-clause))
+         (func-name (second let-clause))
+         (vars (map first bindings))
+         (exps (map second bindings))
+         (body (rest (rest (rest let-clause)))))
+    (list (make-lambda '()
+                       (list (make-define func-name vars body)
+                             (append (list func-name) exps))))))
+    
+
+(define (let-&gt;combination let-clause)
+  (if (symbol? (second let-clause))
+      (let-named-&gt;combination let-clause)      
+      (let-&gt;combination-normal let-clause)))
+
+
+(check-equal? (let-&gt;combination '(let ((a 1) (b 2)) (+ a b)))
+              '((lambda (a b) (+ a b)) 1 2))
+
+(check-equal? (let-&gt;combination '(let hello ((a 1) (b 2))
+                                   (+ a b)))
+              '((lambda ()
+                  (define (hello a b)
+                    (+ a b))
+                  (hello 1 2))))
+
+;; eval이 let구문을 처리할 수 있도록 수정 ---------------
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+
+(define (let? exp) (tagged-list? exp 'let))
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((let? exp) (eval (let-&gt;combination exp) env)) ;; &lt;&lt;--- 추가.
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
+
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '- (list 'primitive -) env2)
+(define-variable! '= (list 'primitive =) env2)
+
+(check-equal? (eval '(let hello ((a 1) (b 2))
+                       (+ a b))
+                    env2)
+              3)
+
+(check-equal? (eval '(define (fib n)
+                       (let fib-iter ((a 1)
+                                      (b 0)
+                                      (count n))
+                         (if (= count 0)
+                             b
+                             (fib-iter (+ a b) 
+                                       a 
+                                       (- count 1)))))
+                    env2)
+              'ok)
+(check-equal? (eval '(fib 10) env2) 55)
 </code></pre>
 <h2 id="4_09"><a class="header" href="#4_09">4_09</a></h2>
 <pre><code class="language-lisp">;; file: 4_09.rkt
+;; 4_06 4_07 cont
+
+;;  do / for / while / until 를 derived expression으로 구현해라
+;; ref:
+;; guile - do - https://www.gnu.org/software/guile/manual/html_node/while-do.html
+;; common lisp - do - https://www.lispworks.com/documentation/HyperSpec/Body/m_do_do.htm
+;; ruby - do for while until - https://www.geeksforgeeks.org/ruby/ruby-loops-for-while-do-while-until/
+
+;; Derived expressions.
+;; 4.1.2Representing Expressions
+;;  - Derived expressions
+;; (cond ((&gt; x 0) x)
+;;       ((= x 0) (display 'zero) 0)
+;;       (else (- x)))
+;;
+;; (if (&gt; x 0)
+;;     x
+;;     (if (= x 0)
+;;         (begin (display 'zero) 0)
+;;         (- x)))
+;;
+;; - cond는 if로 변환하여 계산됨
+;;   -cond는 if로부터 파생된(derived) 표현식임)
+
+(#%require (prefix racket/ racket))
+(#%require (prefix  r5rs/ r5rs))
+(#%require rackunit)
+(#%require threading)
+(racket/provide
+ do?
+ do-&gt;expand)
+
+(define first car)
+(define rest cdr)
+(define second cadr)
+(define third caddr)
+
+(define (second-or-nil expr)
+  (let ((x  (rest expr)))
+    (if (null? x)
+        nil
+        (first x))))
+(define (third-or-nil expr)
+  (let ((x (rest (rest expr))))
+    (if (null? x)
+        nil
+        (first x))))
+
+(define (make-define func-name args body)
+  (append (list 'define (append (list func-name) args)) body))
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+
+(define (comp f g h)
+  (lambda (x)
+    (h (f (g x)))))
+
+(define (do-&gt;expand expr)
+  (let* ((snd (second expr))
+         (trd (third expr))
+         (vars (map first snd))
+         (assigns (map second snd))
+         (step-or-nils (map third-or-nil snd))
+         (test (first trd))
+         (ret (second-or-nil trd))
+         (body (rest (rest (rest expr)))))
+    
+    (list 'let* (map list vars assigns)
+          (make-define 'loop '()
+                       (list (list 'if test
+                                   ret
+                                   (append (list 'begin)
+                                           body
+                                           (~&gt;&gt; (map (lambda (v x) (if (null? x) nil (list 'set! v x))) vars step-or-nils)
+                                                (filter (comp not null? identity) ))
+                                           '((loop))))))
+          '(loop))))
+
+(check-equal? (do ((i 10 (dec i))
+                   (j '()))
+                ((&lt; i 0) j)
+                (set! j (cons i j)))
+              '(0 1 2 3 4 5 6 7 8 9 10))
+
+(check-equal? (do-&gt;expand '(do ((i 10 (dec i))
+                                (j '()))
+                             ((&lt; i 0) j)
+                             (set! j (cons i j))))
+              
+              '(let* ((i 10)
+                      (j '()))
+                 (define (loop)
+                   (if (&lt; i 0)
+                       j
+                       (begin
+                         (set! j (cons i j))
+                         (set! i (dec i))
+                         (loop))))
+                 (loop)))
+
+
+
+
+;; eval이 let구문을 처리할 수 있도록 수정 ---------------
+(#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(#%require "4_06.rkt")
+(#%require "4_07.rkt")
+
+(define (do? exp) (tagged-list? exp 'do))
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((let? exp) (eval (let-&gt;combination exp) env))   ; &lt;&lt;--- 저번 4_06에서 추가.
+        ((let*? exp) (eval (let*-&gt;nested-lets exp) env)) ; &lt;&lt;--- 저번 4_07에서 추가.
+        ((do? exp) (eval (do-&gt;expand exp) env)) ;; &lt;&lt;--- 추가.
+        
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
+
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '- (list 'primitive -) env2)
+(define-variable! '= (list 'primitive =) env2)
+(define-variable! '&lt; (list 'primitive &lt;) env2)
+(define-variable! 'dec (list 'primitive dec) env2)
+
+
+(check-equal? (eval'(do ((i 10 (dec i))
+                         (j '()))
+                      ((&lt; i 0) j)
+                      (set! j (cons i j))) env2)
+              '(0 1 2 3 4 5 6 7 8 9 10))
 </code></pre>
 <h2 id="4_10"><a class="header" href="#4_10">4_10</a></h2>
 <pre><code class="language-lisp">;; file: 4_10.rkt
