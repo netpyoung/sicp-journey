@@ -3608,7 +3608,11 @@ VERY-SMALL-RADIO
 (#%require threading)
 (racket/provide
  do?
- do-&gt;expand)
+ while?
+ until?
+ do-&gt;expand
+ while-&gt;do
+ until-&gt;do)
 
 (define first car)
 (define rest cdr)
@@ -3639,6 +3643,18 @@ VERY-SMALL-RADIO
   (lambda (x)
     (h (f (g x)))))
 
+(define (make-do vars assigns step-or-nils test ret body)
+  (list 'let* (map list vars assigns)
+        (make-define 'loop '()
+                     (list (list 'if test
+                                 ret
+                                 (append (list 'begin)
+                                         body
+                                         (~&gt;&gt; (map (lambda (v x) (if (null? x) nil (list 'set! v x))) vars step-or-nils)
+                                              (filter (comp not null? identity) ))
+                                         '((loop))))))
+        '(loop)))
+
 (define (do-&gt;expand expr)
   (let* ((snd (second expr))
          (trd (third expr))
@@ -3648,17 +3664,7 @@ VERY-SMALL-RADIO
          (test (first trd))
          (ret (second-or-nil trd))
          (body (rest (rest (rest expr)))))
-    
-    (list 'let* (map list vars assigns)
-          (make-define 'loop '()
-                       (list (list 'if test
-                                   ret
-                                   (append (list 'begin)
-                                           body
-                                           (~&gt;&gt; (map (lambda (v x) (if (null? x) nil (list 'set! v x))) vars step-or-nils)
-                                                (filter (comp not null? identity) ))
-                                           '((loop))))))
-          '(loop))))
+    (make-do vars assigns step-or-nils test ret body)))
 
 (check-equal? (do ((i 10 (dec i))
                    (j '()))
@@ -3684,6 +3690,45 @@ VERY-SMALL-RADIO
 
 
 
+(define (while-&gt;do expr)
+  (let ((vars '())
+        (assigns '())
+        (step-or-nils '())
+        (test (second expr))
+        (ret (quote '()))
+        (body (rest (rest expr))))
+    (make-do vars assigns step-or-nils (list 'not test) ret body)))
+
+(check-equal? (while-&gt;do '(while (&gt; i 0)
+                                 (set! i (dec i))))
+              '(let* ()
+                 (define (loop)
+                   (if (not (&gt; i 0))
+                       '()
+                       (begin
+                         (set! i (dec i))
+                         (loop))))
+                 (loop)))
+
+(define (until-&gt;do expr)
+  (let ((vars '())
+        (assigns '())
+        (step-or-nils '())
+        (test (second expr))
+        (ret (quote '()))
+        (body (rest (rest expr))))
+    (make-do vars assigns step-or-nils test ret body)))
+
+(check-equal? (until-&gt;do '(until (&gt; i 5)
+                                 (set! i (inc i))))
+              '(let* ()
+                 (define (loop)
+                   (if (&gt; i 5)
+                       '()
+                       (begin
+                         (set! i (inc i))
+                         (loop))))
+                 (loop)))
 
 ;; eval이 let구문을 처리할 수 있도록 수정 ---------------
 (#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
@@ -3691,6 +3736,9 @@ VERY-SMALL-RADIO
 (#%require "4_07.rkt")
 
 (define (do? exp) (tagged-list? exp 'do))
+(define (while? exp) (tagged-list? exp 'while))
+(define (until? exp) (tagged-list? exp 'until))
+
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
@@ -3708,7 +3756,8 @@ VERY-SMALL-RADIO
         ((let? exp) (eval (let-&gt;combination exp) env))   ; &lt;&lt;--- 저번 4_06에서 추가.
         ((let*? exp) (eval (let*-&gt;nested-lets exp) env)) ; &lt;&lt;--- 저번 4_07에서 추가.
         ((do? exp) (eval (do-&gt;expand exp) env)) ;; &lt;&lt;--- 추가.
-        
+        ((while? exp) (eval (while-&gt;do exp) env))
+        ((until? exp) (eval (until-&gt;do exp) env))
         ((application? exp)
          (apply (eval (operator exp) env)
                 (list-of-values (operands exp) env)))
@@ -3721,17 +3770,145 @@ VERY-SMALL-RADIO
 (define-variable! '- (list 'primitive -) env2)
 (define-variable! '= (list 'primitive =) env2)
 (define-variable! '&lt; (list 'primitive &lt;) env2)
+(define-variable! '&gt; (list 'primitive &gt;) env2)
+(define-variable! 'inc (list 'primitive inc) env2)
 (define-variable! 'dec (list 'primitive dec) env2)
+(define-variable! 'not (list 'primitive not) env2)
 
 
-(check-equal? (eval'(do ((i 10 (dec i))
-                         (j '()))
-                      ((&lt; i 0) j)
-                      (set! j (cons i j))) env2)
+(check-equal? (eval '(do ((i 10 (dec i))
+                          (j '()))
+                       ((&lt; i 0) j)
+                       (set! j (cons i j)))
+                    env2)
               '(0 1 2 3 4 5 6 7 8 9 10))
+
+(check-equal? (eval '(let ((acc '())
+                           (i 5))
+                       (while (&gt; i 0)
+                              (set! acc (cons i acc))
+                              (set! i (dec i)))
+                       acc)
+                    env2)
+              '(1 2 3 4 5))
+
+(check-equal? (eval '(let ((acc '())
+                           (i 1))
+                       (until (&gt; i 5)
+                              (set! acc (cons i acc))
+                              (set! i (inc i)))
+                       acc)
+                    env2)
+              '(5 4 3 2 1))
 </code></pre>
 <h2 id="4_10"><a class="header" href="#4_10">4_10</a></h2>
 <pre><code class="language-lisp">;; file: 4_10.rkt
+
+(#%require rackunit)
+;; 기존 eval과 apply 코드는 그대로 두고 Scheme의 새로운 문법(syntax) 을 설계하고 구현하라.
+;; define의 문법을 clojure 처럼 def / defn으로 변경.
+;; -- scheme
+;; (define x 10)
+;; (define (foo a b c)
+;;   (* a b c))
+;;
+;; -- clojure
+;; (def x 10)
+;; (defn foo [a b c]
+;;   (* a b c))
+
+(define rest cdr)
+(define second cadr)
+(define third caddr)
+
+(define (definition? exp)
+  (or 
+   (tagged-list? exp 'def)
+   (tagged-list? exp 'defn)))
+
+(define (definition-variable exp)
+  (if (symbol? (cadr exp))
+      (cadr exp)
+      (caadr exp)))
+
+(check-equal? (definition-variable '(define (foo a b c)
+                                      (* a b c)))
+              'foo)
+
+(define (definition-variable2 exp)
+  (if (tagged-list? exp 'def)
+      (second exp)
+      (second exp)))
+
+(check-equal? (definition-variable '(defn foo [a b c]
+                                      (* a b c)))
+              'foo)
+
+(define (definition-value exp)
+  (if (symbol? (cadr exp))
+      (caddr exp)
+      (make-lambda (cdadr exp)
+                   (cddr exp))))
+
+(check-equal? (definition-value '(define (foo a b c)
+                                   (* a b c)))
+              '(lambda (a b c) (* a b c)))
+
+(define (definition-value2 exp)
+  (if (tagged-list? exp 'def)
+      (caddr exp)
+      (make-lambda (third exp)
+                   (rest (rest (rest exp))))))
+
+(check-equal? (definition-value2 '(defn foo [a b c]
+                                    (* a b c)))
+              '(lambda (a b c) (* a b c)))
+
+(define (eval-definition exp env)
+  (define-variable! (definition-variable2 exp)
+    (eval (definition-value2 exp) env)
+    env)
+  'ok)
+
+;; racket모듈 특성상 동일한 코드를 다시 override할 필요가 있음.
+(#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+(override-eval! eval)
+
+
+
+(define env2 (setup-environment))
+(define-variable! '* (list 'primitive *) env2)
+(check-equal? (eval '(defn foo [a b c]
+                       (* a b c))
+                    env2)
+              'ok)
+(check-equal? (eval '(foo 2 3 4) env2)
+              24)
+
+(check-equal? (eval '(def x 10) env2)
+              'ok)
+
+(check-equal? (eval 'x env2)
+              10)
 </code></pre>
 <h2 id="4_11"><a class="header" href="#4_11">4_11</a></h2>
 <pre><code class="language-lisp">;; file: 4_11.rkt
