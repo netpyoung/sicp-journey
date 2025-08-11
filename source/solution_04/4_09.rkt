@@ -201,7 +201,8 @@
 (check-equal? (eval '(do ((i 10 (dec i))
                           (j '()))
                        ((< i 0) j)
-                       (set! j (cons i j))) env2)
+                       (set! j (cons i j)))
+                    env2)
               '(0 1 2 3 4 5 6 7 8 9 10))
 
 (check-equal? (eval '(let ((acc '())
