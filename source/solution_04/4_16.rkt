@@ -2,10 +2,13 @@
 ;; file: 4_16.rkt
 
 (#%require rackunit)
+
 (#%require (prefix racket/ racket))
+(#%require (prefix trace/ racket/trace))
+
 (racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  (make-procedure origin/make-procedure)
-                                  (procedure-body origin/procedure-body)))
+                                  (_make-procedure origin/make-procedure)
+                                  (_procedure-body origin/procedure-body)))
 ;;
 ;; 1. lookup-variable-value 함수를 고쳐서 변수의 값이 심볼 *unassigned* 면 오류를 내도록 한다.
 ;;
@@ -81,27 +84,16 @@
 (define rest cdr)
 
 (define (scan-out-defines procedure-body)
-  (let* ((defs (filter definition? procedure-body))
-         (body-without-defs (filter (complement definition?) procedure-body))
-         (vars (map definition-variable defs))
-         (vals (map definition-value defs))
-         (bindings (map (lambda (x) (list x ''*unassigned*)) vars))
-         (assigns (map (lambda (x y) (list 'set! x y)) vars vals)))
-    (make-let bindings
-              (append assigns body-without-defs))))
-
-(check-equal? (scan-out-defines (lambda-body
-                                 '(lambda (x)
-                                    (define u 1)
-                                    (define v 2)
-                                    (+ u v x))))
-
-              '(let ((u '*unassigned*)
-                     (v '*unassigned*))
-                 (set! u 1)
-                 (set! v 2)
-                 (+ u v x)))
-
+  (let ((defs (filter definition? procedure-body)))
+    (if (null? defs)
+        procedure-body
+        (let* ((body-without-defs (filter (complement definition?) procedure-body))
+               (vars (map definition-variable defs))
+               (vals (map definition-value defs))
+               (bindings (map (lambda (x) (list x ''*unassigned*)) vars))
+               (assigns (map (lambda (x y) (list 'set! x y)) vars vals)))
+          (list (make-let bindings
+                          (append assigns body-without-defs)))))))
 ;;
 ;; 3. scan-out-defines 을 인터프리터안에 넣는데,
 ;;    - make-procedure 쪽이 좋을까 procedure-body 쪽이 좋을까?
@@ -144,48 +136,72 @@
 
 
 ;; 수정한다면,
-(racket/require "4_06.rkt")
+(racket/require (racket/prefix-in ex4_06/ "4_06.rkt")) ;; 4_06의 let을 처리할 수 있는 eval
 (define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
 (define-variable! '+ (list 'primitive +) env3)
 
-(test-case "make-procedure"
-           (define (make-procedure parameters body env)
-             (list 'procedure parameters (scan-out-defines body) env))
-           (override-make-procedure! make-procedure)
-           (override-procedure-body! origin/procedure-body)
-           (check-equal? (eval '(define (hello x)
-                                  (define u 1)
-                                  (define v 2)
-                                  (+ u v x))
-                               env2)
-                         'ok)
-           #;(check-equal? (third (lookup-variable-value 'hello env2))
-                           '((lambda (u v)
+(around
+ (begin
+   (define (make-procedure parameters body env)
+     (list 'procedure parameters
+           (map (lambda (x)
+                  (if (ex4_06/let? x)
+                      (ex4_06/let->combination x)
+                      x))
+                (scan-out-defines body))
+           env))
+   (override-make-procedure! make-procedure)
+   (override-procedure-body! origin/procedure-body))
+  
+ 
+ (test-case "make-procedure"
+            (check-equal? (eval '(define (hello x)
+                                   (define u 1)
+                                   (define v 2)
+                                   (+ u v x))
+                                env2)
+                          'ok)
+            (check-equal? (third (lookup-variable-value 'hello env2))
+                          '(((lambda (u v)
                                (set! u 1)
                                (set! v 2)
                                (+ u v x))
-                             '*unassigned* '*unassigned*))
-           (check-equal? (eval '(hello 3) env2)
-                         6)
-           )
-(#%require (prefix trace/ racket/trace))
-#;(test-case "procedure-body"
-             (define (procedure-body p)
-               (let->combination (scan-out-defines (third p)))
-               )
-             (override-make-procedure! origin/make-procedure)
-             (override-procedure-body! procedure-body)
-   
-             (check-equal? (eval '(define (hello x)
-                                    (define u 1)
-                                    (define v 2)
-                                    (+ u v x))
-                                 env3)
-                           'ok)
-             (check-equal? (eval '(hello 3) env3)
-                           6)
-             )
+                             '*unassigned*
+                             '*unassigned*)))
+            (check-equal? (eval '(hello 3) env2)
+                          6)
+            )
+ (begin
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! origin/procedure-body)))
+
+(around
+ (begin
+   (define (procedure-body p)
+     (scan-out-defines (third p)))
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! procedure-body))
+ 
+ (test-case "procedure-body"
+            (check-equal? (eval '(define (hello x)
+                                   (define u 1)
+                                   (define v 2)
+                                   (+ u v x))
+                                env3)
+                          'ok)
+            (check-equal? (third (lookup-variable-value 'hello env3))
+                          '((define u 1)
+                            (define v 2)
+                            (+ u v x)))
+            
+            (check-equal? (eval '(hello 3) env3)
+                          6)
+            )
+ (begin
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! origin/procedure-body)))
+
 
