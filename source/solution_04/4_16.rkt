@@ -9,6 +9,8 @@
 (racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
+(racket/provide
+ scan-out-defines)
 ;;
 ;; 1. lookup-variable-value 함수를 고쳐서 변수의 값이 심볼 *unassigned* 면 오류를 내도록 한다.
 ;;
@@ -83,17 +85,29 @@
 (define first car)
 (define rest cdr)
 
-(define (scan-out-defines procedure-body)
-  (let ((defs (filter definition? procedure-body)))
+(define (scan-out-defines body)
+  (let ((defs (filter definition? body)))
     (if (null? defs)
-        procedure-body
-        (let* ((body-without-defs (filter (complement definition?) procedure-body))
+        body
+        (let* ((body-without-defs (filter (complement definition?) body))
                (vars (map definition-variable defs))
                (vals (map definition-value defs))
                (bindings (map (lambda (x) (list x ''*unassigned*)) vars))
                (assigns (map (lambda (x y) (list 'set! x y)) vars vals)))
           (list (make-let bindings
                           (append assigns body-without-defs)))))))
+
+
+(check-equal? (scan-out-defines (lambda-body '(lambda (x)
+                                                (define u 1)
+                                                (define v 2)
+                                                (+ u v x))))
+              '((let ((u '*unassigned*)
+                      (v '*unassigned*))
+                  (set! u 1)
+                  (set! v 2)
+                  (+ u v x))))
+
 ;;
 ;; 3. scan-out-defines 을 인터프리터안에 넣는데,
 ;;    - make-procedure 쪽이 좋을까 procedure-body 쪽이 좋을까?
@@ -134,9 +148,8 @@
 ;;          (error
 ;;           "Unknown procedure type -- APPLY" procedure))))
 
-
 ;; 수정한다면,
-(racket/require (racket/prefix-in ex4_06/ "4_06.rkt")) ;; 4_06의 let을 처리할 수 있는 eval
+(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
 (define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
@@ -146,6 +159,11 @@
 (around
  (begin
    (define (make-procedure parameters body env)
+     ;; 4_06에서 ((let? exp) (eval (let->combination exp) env)) 을
+     ;; 추가 했다면.
+     ;; (list 'procedure parameters (scan-out-defines body) env)
+     ;;
+     ;; 추가하지 않았다면,
      (list 'procedure parameters
            (map (lambda (x)
                   (if (ex4_06/let? x)
@@ -164,6 +182,8 @@
                                    (+ u v x))
                                 env2)
                           'ok)
+
+            ;; hello body의 define이 lambda로 풀어진 상태로 저장되어 있다.
             (check-equal? (third (lookup-variable-value 'hello env2))
                           '(((lambda (u v)
                                (set! u 1)
@@ -192,11 +212,14 @@
                                    (+ u v x))
                                 env3)
                           'ok)
+
+            ;; hello body의 define이 lambda로 풀어지지 않은 상태로 저장되어 있다.
             (check-equal? (third (lookup-variable-value 'hello env3))
                           '((define u 1)
                             (define v 2)
                             (+ u v x)))
             
+            ;; application평가시에 scan-out-defines이 일어남
             (check-equal? (eval '(hello 3) env3)
                           6)
             )
