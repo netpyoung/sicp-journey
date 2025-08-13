@@ -41,7 +41,7 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
-(define eval _eval)
+(define eval _eval) ;; modified for override: eval
 (define (override-eval! func)
   (set! eval func))
 
@@ -58,7 +58,7 @@
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
-(define apply _apply)
+(define apply _apply)  ;; modified for override: apply
 (define (override-apply! func)
   (set! apply func))
 
@@ -217,15 +217,23 @@
   (eq? x false))
 
 
-(define (make-procedure parameters body env)
+(define (_make-procedure parameters body env)
   (list 'procedure parameters body env))
+(define make-procedure _make-procedure)  ;; modified for override: make-procedure
+(define (override-make-procedure! func)
+  (set! make-procedure func))
 
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
 
 
 (define (procedure-parameters p) (cadr p))
-(define (procedure-body p) (caddr p))
+
+(define (_procedure-body p) (caddr p))
+(define procedure-body _procedure-body)  ;; modified for override: procedure-body
+(define (override-procedure-body! func)
+  (set! procedure-body func))
+
 (define (procedure-environment p) (cadddr p))
 
 
@@ -252,7 +260,7 @@
           (error "Too many arguments supplied" vars vals)
           (error "Too few arguments supplied" vars vals))))
 
-(define (lookup-variable-value var env)
+(define (_lookup-variable-value var env)
   (define (env-loop env)
     (define (scan vars vals)
       (cond ((null? vars)
@@ -266,6 +274,11 @@
           (scan (frame-variables frame)
                 (frame-values frame)))))
   (env-loop env))
+(define lookup-variable-value _lookup-variable-value) ;; modified for override: lookup-variable-value
+(define (override-lookup-variable-value! func)
+  (set! lookup-variable-value func))
+
+
 
 (define (set-variable-value! var val env)
   (define (env-loop env)

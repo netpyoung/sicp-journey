@@ -1,6 +1,7 @@
 #lang sicp
 ;; file: 4_12.rkt
-;;
+;; 4_13
+
 ;; 주어진 함수들의 공통된 점을 묶어 추상화하고, 그 추상화를 이용하여 다시 정의하라.
 ;;
 ;; - define-variable!
@@ -13,7 +14,6 @@
 ;;
 ;; 기타. env 는 [frame1 frame2 ..] 이다.
 
-
 (#%require rackunit)
 (#%require threading)
 (#%require (prefix racket/ racket))
@@ -22,6 +22,8 @@
                                   (define-variable! origin/define-variable!)
                                   (set-variable-value! origin/set-variable-value!)
                                   (lookup-variable-value origin/lookup-variable-value)))
+(racket/provide
+ lookup-variable-values)
 ;; =======================================
 (define first car)
 
