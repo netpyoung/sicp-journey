@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 4_16.rkt
+;; 4_06 / 4_18 cont
 
 (#%require rackunit)
 
@@ -7,9 +8,11 @@
 (#%require (prefix trace/ racket/trace))
 
 (racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_lookup-variable-value origin/lookup-variable-value)
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
 (racket/provide
+ lookup-variable-value
  scan-out-defines)
 ;;
 ;; 1. lookup-variable-value 함수를 고쳐서 변수의 값이 심볼 *unassigned* 면 오류를 내도록 한다.
@@ -228,3 +231,4 @@
    (override-procedure-body! origin/procedure-body)))
 
 
+(override-lookup-variable-value! origin/lookup-variable-value)

@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 4_17.rkt
+;; 4_06 cont
 
 ;; 본문에 나온 <e3>을 평가할때의 environment를 다이어그램으로 그려라
 ;;

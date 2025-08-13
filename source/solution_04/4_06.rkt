@@ -1,10 +1,12 @@
 #lang sicp
 ;; file: 4_06.rkt
-;; 4_07 / 4_08
+;; 4_07 / 4_08 / 4_09 / 4_16 / 4_17 / 4_18
 
 
 (#%require (prefix racket/ racket))
 (#%require rackunit)
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+
 (racket/provide
  let?
  let->combination)
@@ -34,7 +36,6 @@
 
 
 ;; eval이 let구문을 처리할 수 있도록 수정 ---------------
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
@@ -65,3 +66,5 @@
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
 (check-equal? (eval '(let ((a 1) (b 2)) (+ a b)) env2) 3)
+
+(override-eval! origin/eval)

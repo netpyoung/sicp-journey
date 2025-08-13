@@ -4,11 +4,11 @@
 
 (#%require rackunit)
 (#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 (racket/provide
+ make-let
  let*?
  let*->nested-lets)
-;; (#%require (only "4_07.rkt" make-let))
 
 ;; 1-1. let*식이 여러개의 let식으로 변환될 수 있는지.
 ;;
@@ -30,14 +30,22 @@
 (define third caddr)
 
 (define (make-let binding body)
+  ;; (make-let '((a 1)) '(1 2 3))
+  ;; => (let ((a 1)) 1 2 3)
   (if (null? binding)
       (append (list 'let '()) body)
-      (append (list 'let (list binding)) body)))
+      (append (list 'let binding) body)))
 
-(check-equal? (make-let '(b 1) (list (make-let '((a 1)) '((display) (display)))))
-              '(let ((b 1)) (let (((a 1))) (display) (display))))
 
-(check-equal? (make-let '(b 1) '('a 'b))
+(check-equal? (make-let '((b 1))
+                        (list (make-let '((a 1))
+                                        '((display) (display)))))
+              '(let ((b 1))
+                 (let ((a 1))
+                   (display)
+                   (display))))
+
+(check-equal? (make-let '((b 1)) '('a 'b))
               '(let ((b 1)) 'a 'b))
 
 
@@ -45,12 +53,12 @@
   (define (iter acc bs)
     (if (null? bs)
         acc
-        (iter (make-let (first bs) (list acc)) (rest bs))))
+        (iter (make-let (list (first bs)) (list acc)) (rest bs))))
   (let* ((bindings (reverse (second expr)))
          (body (rest (rest expr))))
     (if (null? bindings)
         (make-let '() body)
-        (iter (make-let (first bindings) body) (rest bindings)))))
+        (iter (make-let (list (first bindings)) body) (rest bindings)))))
 
 (define (let*? expr)
   (tagged-list? expr 'let*))
@@ -125,3 +133,4 @@
 (check-equal? (eval expression env2)
               (r5rs/eval expression (scheme-report-environment 5)))
 
+(override-eval! origin/eval)
