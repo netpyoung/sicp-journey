@@ -1349,7 +1349,8 @@
 </code></pre>
 <h2 id="4_12"><a class="header" href="#4_12">4_12</a></h2>
 <pre><code class="language-lisp">;; file: 4_12.rkt
-;;
+;; 4_13
+
 ;; 주어진 함수들의 공통된 점을 묶어 추상화하고, 그 추상화를 이용하여 다시 정의하라.
 ;;
 ;; - define-variable!
@@ -1362,7 +1363,6 @@
 ;;
 ;; 기타. env 는 [frame1 frame2 ..] 이다.
 
-
 (#%require rackunit)
 (#%require threading)
 (#%require (prefix racket/ racket))
@@ -1371,6 +1371,8 @@
                                   (define-variable! origin/define-variable!)
                                   (set-variable-value! origin/set-variable-value!)
                                   (lookup-variable-value origin/lookup-variable-value)))
+(racket/provide
+ lookup-variable-values)
 ;; =======================================
 (define first car)
 
@@ -1428,18 +1430,615 @@
 </code></pre>
 <h2 id="4_13"><a class="header" href="#4_13">4_13</a></h2>
 <pre><code class="language-lisp">;; file: 4_13.rkt
+;; 4_12
+
+;; scheme에서 define해서 정의한 변수를 지울 수 없음.
+;;
+;; 1-1. make-unbound! 함수를 만들어 env에서 지울 수 있도록 만들자.
+;;
+;; 1-2. first-frame에서만 지우면 되는가?
+;;
+;; - 현재 스코프(첫 프레임)내에서 선언 삭제가 됨으로, 직관적.
+;; - 첫 번째 프레임만 뒤지면 되니 탐색이 빠르고 코드가 단순함.
+;; - 상위 프레임에 중복된 이름은 살아있음.
+;;
+;; 앞선 define-variable!도 현재 스코프(첫 프레임)에서만 선언하고 있음.
+;;
+;; 초판 1985년: SICP
+;; 초판 1991년: EOPL Essentials of Programming Languages by Daniel P. Friedman, Mitchell Wand, and Christopher T. Haynes.
+;; 초판 1996년: PLP Programming Language Pragmatics by Michael L Scott - https://www.cs.rochester.edu/~scott/pragmatics/
+;; 초판 2002년: TaPL Types and Programming Languages by Benjamin C. Pierce - https://www.cis.upenn.edu/~bcpierce/tapl/index.html
+;;  etc. https://softwarefoundations.cis.upenn.edu/
+
+
+(#%require rackunit)
+(#%require (prefix racket/ racket))
+(racket/require "../allcode/ch4-4.1.1-mceval.rkt")
+
+(define first car)
+(define second cadr)
+(define rest cdr)
+
+(define (lookup-variable-vars-vals var env)
+  ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.
+  ;; values도 있으나, 그냥 list로 감싸겠다. - https://docs.racket-lang.org/reference/values.html
+  (define (env-loop env)
+    (define (scan vars vals)
+      (cond ((null? vars)
+             (env-loop (enclosing-environment env)))
+            ((eq? var (car vars))
+             (list vars vals))   ; &lt;&lt;------------ 찾으면 (vars vals)를 반환한다.
+            (else (scan (cdr vars) (cdr vals)))))
+    (if (eq? env the-empty-environment)
+        (list nil nil)          ; &lt;&lt;------------ 못찾으면 (nil nil)을 반환한다.
+        (let ((frame (first-frame env)))
+          (scan (frame-variables frame)
+                (frame-values frame)))))
+  (env-loop env))
+
+(define (make-unbound! env var is-toplevel-only)
+  (define (which-env env is-toplevel-only)
+    (if (not is-toplevel-only)
+        env
+        (let* ((frame (first-frame env))
+               (search-env (extend-environment (frame-variables frame) (frame-values frame) the-empty-environment)))
+          search-env)))
+  (let* ((frame (first-frame env))
+         (search-env (which-env env is-toplevel-only))
+         (vars-vals (lookup-variable-vars-vals var search-env))
+         (vars (first vars-vals))
+         (vals (second vars-vals)))
+    (if (null? vals)
+        nil
+        (begin
+          (let ((rst (rest vars)))
+            (set-car! vars (first rst))
+            (set-cdr! vars (rest rst)))
+          (let ((rst (rest vals)))
+            (set-car! vals (first rst))
+            (set-cdr! vals (rest rst)))))))
+
+#;(define env1 (setup-environment))
+
+#;(let ((frame (first-frame env1)))
+    frame)
+;; testing =======================================
+(define env1 (setup-environment))
+(check-equal? (lookup-variable-value 'car env1)
+              (list 'primitive car))
+(check-exn #rx"Unbound variable x"
+           (lambda () (lookup-variable-value 'x env1)))
+(check-exn #rx"Unbound variable -- SET! x"
+           (lambda () (set-variable-value! 'x 1 env1)))
+(define-variable! 'x 5 env1)
+(check-equal? (lookup-variable-value 'x env1)
+              5)
+(set-variable-value! 'x 1 env1)
+(check-equal? (lookup-variable-value 'x env1)
+              1)
+(make-unbound! env1 'x #t)
+(check-exn #rx"Unbound variable x"
+           (lambda () (lookup-variable-value 'x env1)))
+
+(check-equal? env1 (setup-environment))
 </code></pre>
 <h2 id="4_14"><a class="header" href="#4_14">4_14</a></h2>
 <pre><code class="language-lisp">;; file: 4_14.rkt
+
+(#%require rackunit)
+(#%require threading)
+(#%require (prefix racket/ racket))
+(#%require (prefix  r5rs/ r5rs))
+
+(racket/require "../allcode/ch4-4.1.1-mceval.rkt")
+;;
+;; 1. Eva Lu Ator은 map의 정의를 직접 입력해서 평가하는 방식.
+;; 2. Louis Reasoner는 map을 primitive-procedures에 넣어 버리는 방식.
+;; Eva Lu Ator는 잘 동작하는데, Louis Reasoner는 동작하지 않는 이유는?
+;;
+;; env는
+;; 1에서의 map은 (procedure (proc items) ((if (null? items) '() ...) 형태로 저장
+;; 2에서의 map은 (primitive #&lt;procedure:mcar&gt;) 형태로 저장.
+;; 작성한 eval&amp;apply과정에서 사용하는 데이터가 r5rs에서의 과정과 사용하는 데이터가 맞지않음.
+
+;; 1. Eva Lu Ator (aka, Evaluator) 방식
+;;
+
+(define env1 (setup-environment))
+(check-equal? (eval '(define (map proc items)
+                       (if (null? items)
+                           '()
+                           (cons (proc (car items))
+                                 (map proc (cdr items)))))
+                    env1)
+              'ok)
+(check-equal? (eval '(map car '((a 1) (b 2) (c 3))) env1)
+              '(a b c))
+
+;; 2. Louis Reasoner (akka, loose reasoner)
+;;
+(define env2 (setup-environment))
+(define-variable! 'map (list 'primitive map) env2) ; 아니면 primitive-procedures를 직접 수정.
+
+(check-exn
+ racket/exn:fail?
+ (lambda ()
+   ;; (r5rs/apply map (list (list 'primitive car) '((a 1) (b 2) (c 3)))) 와 같음.
+   ;; application: not a procedure;
+   ;;  expected a procedure that can be applied to arguments
+   ;;   given: (primitive #&lt;procedure:mcar&gt;)
+   (eval '(map car '((a 1) (b 2) (c 3))) env2)))
+
 </code></pre>
 <h2 id="4_15"><a class="header" href="#4_15">4_15</a></h2>
 <pre><code class="language-lisp">;; file: 4_15.rkt
+
+;;
+;; 정지 문제:
+;; - Halting Problem: https://en.wikipedia.org/wiki/Halting_problem
+;; - SCOOPING THE LOOP SNOOPER -  http://www.lel.ed.ac.uk/~gpullum/loopsnoop.html
+;;
+
+;; 가정:
+;; 함수 p와 오브젝트 a가 있을시, (p a)를 호출하면 값을 반환하거나, 에러를 뱉거나, 끊임없이 동작한다고 가정하자.
+;;
+;; 문제:
+;; 함수 p와 입력값 a에 대해, (p a)시 멈추는지 아닌지 판별하는 halts?라는 함수를 작성하는게 불가능 하다.
+;; 이를 증명해보아라.
+;;
+;; 증명:
+;; 귀류법: 해결방법이 있다라는 가정에서 모순이 발생한다는 것을 보임으로써 증명한다.
+;;
+;; 만일 halts?라는게 있다면 다음코드를 작성할 수 있을 것이며,
+;; 
+;; (define (run-forever)
+;;   (run-forever))
+;; 
+;; (define (try p)
+;;   (if (halts? p p)
+;;       (run-forever)
+;;       'halted))
+;;
+;; 그런 다음, (try try)를 호출하면 결과가 어떻든(값을 반환하거나, 에러를 뱉거나, 끊임없이 동작),
+;; halts?의 정의에 어긋남을 밝히면 된다.
+;;
+;; (halts? p a)는 (p a)시 멈춘다면 true반환할 것이다.
+;; (try try)
+;;  =&gt; (halts? try try) - 만약 참이라면 (try try)시 멈춘다는 말이다. 하지만,
+;;   =&gt; 조건문을 만족시키면서 (run-forever)로 돌면서 (try try)는 멈추지 않고 끊임없이 동작할 것이다.
+;;  =&gt;(halts? try try) - 만약 것짓이라면, (try try)시 멈추지 않는다는 말이다. 하지만,
+;;   =&gt; 조건문을 만족시키지 못하면서 'halted를 반환하면서 (try try)는 멈추게 된다.:
+;; 이 모순된 상황은 halts?의 정의와는 맞지않다.
 </code></pre>
 <h2 id="4_16"><a class="header" href="#4_16">4_16</a></h2>
 <pre><code class="language-lisp">;; file: 4_16.rkt
+
+(#%require rackunit)
+
+(#%require (prefix racket/ racket))
+(#%require (prefix trace/ racket/trace))
+
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_make-procedure origin/make-procedure)
+                                  (_procedure-body origin/procedure-body)))
+(racket/provide
+ scan-out-defines)
+;;
+;; 1. lookup-variable-value 함수를 고쳐서 변수의 값이 심볼 *unassigned* 면 오류를 내도록 한다.
+;;
+
+(define (lookup-variable-value var env)
+  (define (env-loop env)
+    (define (scan vars vals)
+      (cond ((null? vars)
+             (env-loop (enclosing-environment env)))
+            ((eq? var (car vars))
+             ;; - before
+             ;; (car vals)
+             ;;
+             ;; - after
+             (let ((found (car vals)))
+               (if (eq? found '*unassigned*)
+                   (error "Unssigned variable" var)
+                   found)))
+            (else (scan (cdr vars) (cdr vals)))))
+    (if (eq? env the-empty-environment)
+        (error "Unbound variable" var)
+        (let ((frame (first-frame env)))
+          (scan (frame-variables frame)
+                (frame-values frame)))))
+  (env-loop env))
+
+(override-lookup-variable-value! lookup-variable-value)
+
+
+(define env1 (setup-environment))
+(check-exn #rx"Unbound variable x"
+           (lambda () (lookup-variable-value 'x env1)))
+(check-equal? (eval '(define x '*unassigned*) env1)
+              'ok)
+(check-exn #rx"Unssigned variable x"
+           (lambda () (lookup-variable-value 'x env1)))
+
+;;
+;; 2. procedure body를 받아(lambda로 시작하는) 앞에 본것처럼 내부에 define이 없도록 변환과정을 거쳐 반환하는 scan-out-defines를 작성해라.
+;;
+;; - before
+;; (lambda &lt;vars&gt;
+;;  (define u &lt;e1&gt;)
+;;  (define v &lt;e2&gt;)
+;;  &lt;e3&gt;)
+;;
+;; - after
+;; (lambda &lt;vars&gt;
+;;  (let ((u '*unassigned*)
+;;        (v '*unassigned*))
+;;    (set! u &lt;e1&gt;)
+;;    (set! v &lt;e2&gt;)
+;;    &lt;e3&gt;)))
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate 
+                       (cdr sequence))))
+        (else  (filter predicate 
+                       (cdr sequence)))))
+
+(define (complement f)
+  (lambda (x)
+    (not (f x))))
+
+(define (make-let bindings body)
+  ;; (make-let '((a 1)) '((+ a 2)))
+  ;; =&gt; (let ((a 1)) (+ a 2))
+  (append (list 'let bindings) body))
+
+(define first car)
+(define rest cdr)
+
+(define (scan-out-defines body)
+  (let ((defs (filter definition? body)))
+    (if (null? defs)
+        body
+        (let* ((body-without-defs (filter (complement definition?) body))
+               (vars (map definition-variable defs))
+               (vals (map definition-value defs))
+               (bindings (map (lambda (x) (list x ''*unassigned*)) vars))
+               (assigns (map (lambda (x y) (list 'set! x y)) vars vals)))
+          (list (make-let bindings
+                          (append assigns body-without-defs)))))))
+
+
+(check-equal? (scan-out-defines (lambda-body '(lambda (x)
+                                                (define u 1)
+                                                (define v 2)
+                                                (+ u v x))))
+              '((let ((u '*unassigned*)
+                      (v '*unassigned*))
+                  (set! u 1)
+                  (set! v 2)
+                  (+ u v x))))
+
+;;
+;; 3. scan-out-defines 을 인터프리터안에 넣는데,
+;;    - make-procedure 쪽이 좋을까 procedure-body 쪽이 좋을까?
+;;       make-procedure 쪽
+;;    - 그리고 그 이유는?
+;;       eval타임인가 apply타임인가 문제인데,
+;;      인터프리터 구현체가 eval타임에서 구문을 확장하고 apply를 돌며 실제 scheme쪽 apply를 호출.
+;;      eval타임에서 구문을 확장해 나갈때 같이 확장해 놓는게 좋다.
+
+;; === make-procedure
+;; (define (make-procedure parameters body env)
+;;   (list 'procedure parameters body env))
+;; 
+;; (define (eval exp env)
+;;   (cond (
+;;          ...
+;;          ((lambda? exp)
+;;           (make-procedure (lambda-parameters exp) ; &lt;-----------------------
+;;                           (lambda-body exp)
+;;                           env))
+;;          ...
+;;          )))
+;; 
+;; === procedure-body
+;; (define (procedure-body p) (caddr p)) ;; third
+;; 
+;; (define (apply procedure arguments)
+;;    (cond ((primitive-procedure? procedure)
+;;          (apply-primitive-procedure procedure arguments))
+;;         ((compound-procedure? procedure)
+;;          (eval-sequence
+;;           (procedure-body procedure) ; &lt;-----------------------
+;;           (extend-environment
+;;            (procedure-parameters procedure)
+;;            arguments
+;;            (procedure-environment procedure))))
+;;         (else
+;;          (error
+;;           "Unknown procedure type -- APPLY" procedure))))
+
+;; 수정한다면,
+(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(define third caddr)
+(define env2 (setup-environment))
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '+ (list 'primitive +) env3)
+
+(around
+ (begin
+   (define (make-procedure parameters body env)
+     ;; 4_06에서 ((let? exp) (eval (let-&gt;combination exp) env)) 을
+     ;; 추가 했다면.
+     ;; (list 'procedure parameters (scan-out-defines body) env)
+     ;;
+     ;; 추가하지 않았다면,
+     (list 'procedure parameters
+           (map (lambda (x)
+                  (if (ex4_06/let? x)
+                      (ex4_06/let-&gt;combination x)
+                      x))
+                (scan-out-defines body))
+           env))
+   (override-make-procedure! make-procedure)
+   (override-procedure-body! origin/procedure-body))
+  
+ 
+ (test-case "make-procedure"
+            (check-equal? (eval '(define (hello x)
+                                   (define u 1)
+                                   (define v 2)
+                                   (+ u v x))
+                                env2)
+                          'ok)
+
+            ;; hello body의 define이 lambda로 풀어진 상태로 저장되어 있다.
+            (check-equal? (third (lookup-variable-value 'hello env2))
+                          '(((lambda (u v)
+                               (set! u 1)
+                               (set! v 2)
+                               (+ u v x))
+                             '*unassigned*
+                             '*unassigned*)))
+            (check-equal? (eval '(hello 3) env2)
+                          6)
+            )
+ (begin
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! origin/procedure-body)))
+
+(around
+ (begin
+   (define (procedure-body p)
+     (scan-out-defines (third p)))
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! procedure-body))
+ 
+ (test-case "procedure-body"
+            (check-equal? (eval '(define (hello x)
+                                   (define u 1)
+                                   (define v 2)
+                                   (+ u v x))
+                                env3)
+                          'ok)
+
+            ;; hello body의 define이 lambda로 풀어지지 않은 상태로 저장되어 있다.
+            (check-equal? (third (lookup-variable-value 'hello env3))
+                          '((define u 1)
+                            (define v 2)
+                            (+ u v x)))
+            
+            ;; application평가시에 scan-out-defines이 일어남
+            (check-equal? (eval '(hello 3) env3)
+                          6)
+            )
+ (begin
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! origin/procedure-body)))
+
+
 </code></pre>
 <h2 id="4_17"><a class="header" href="#4_17">4_17</a></h2>
 <pre><code class="language-lisp">;; file: 4_17.rkt
+
+;; 본문에 나온 &lt;e3&gt;을 평가할때의 environment를 다이어그램으로 그려라
+;;
+;; 첫번째 방식
+;; (lambda (x)
+;;   (define u 1)    ; 실행 시, 현재 프레임에 u를 만들고 값 1 할당
+;;   (define v 2)    ; 실행 시, 현재 프레임에 v를 만들고 값 2 할당
+;;   (+ u v x))
+;; 
+;; Global Env
+;;    |
+;;    v
+;; +----------------+
+;; | proc           | --&gt; [params: (x) body: ...] Env=Global
+;; +----------------+
+;;                      \
+;;                       v
+;;              +------------------+
+;;              | Frame F1         |   (procedure call frame)
+;;              +------------------+
+;;              | x = ARG          |
+;;              | u = 1            |
+;;              | v = 2            |
+;;              +------------------+
+;;                   |
+;;       e3: (+ u v x)  ; lookup all in F1
+
+
+;;
+;; 두번째 방식(변환된 방식)
+;; (lambda (x)
+;;   (let ((u '*unassigned*)
+;;         (v '*unassigned*))
+;;     (set! u 1)
+;;     (set! v 2)
+;;     (+ u v x)))
+;; 
+;; 
+;; Global Env
+;;    |
+;;    v
+;; +----------------+
+;; | proc           | --&gt; [params: (x) body: let ...] Env=Global
+;; +----------------+
+;;                      \
+;;                       v
+;;              +----------------+
+;;              | Frame F1       |   (procedure call frame)
+;;              +----------------+
+;;              | x = ARG        |
+;;              +----------------+
+;;                   |
+;;                   v
+;;              +------------------+
+;;              | Frame F2         |   (let frame)
+;;              +------------------+
+;;              | u = *unassigned* |
+;;              | v = *unassigned* |
+;;              +------------------+
+;;       set! u 1
+;;       set! v 2
+;;       e3: (+ u v x)  ; u,v in F2, x in F1
+;;
+
+;;
+;; 변환된 프로그램에서 왜 추가 프레임(extra frame)이 생기는가?
+;; =&gt; let이 lambda로 변환되면서 frame이 생성
+
+;; 왜 이 차이가 동작에 영향을 주지 않는가?
+;; =&gt; 값을 참조하는 시점에는 이미 초기화 되어있음.
+
+;; 추가 프레임을 만들지 않고, 내부 정의에 대해 "동시(simultaneous)" 스코프 규칙을 인터프리터가 구현하도록 하는 방법을 설계하라.
+;; simultaneous 발음
+;; 미국식 ˌsaɪ.məlˈteɪ.niəs / 사이멀테이니어스
+;; 영국식 ˌsɪm.əlˈteɪ.ni.əs / 시멀테이니어스
+;;
+;; simultaneous 방식( 두번째와 비슷하지만 추가 프레임 생성 안함.)
+;; (lambda (x)
+;;   (define u '*unassigned*)
+;;   (define v '*unassigned*)
+;;   (set! u (+ v 1))
+;;   (set! v 2)
+;;   (+ u v x))
+;; 
+;; Global Env
+;;    |
+;;    v
+;; +----------------+
+;; | proc           | --&gt; [params: (x) body: ...] Env=Global
+;; +----------------+
+;;                      \
+;;                       v
+;;              +------------------+
+;;              | Frame F1         |   (procedure call frame)
+;;              +------------------+
+;;              | x = ARG          |
+;;              | u = *unassigned* |
+;;              | v = *unassigned* |
+;;              +------------------+
+;;                   |
+;;       set! u 1
+;;       set! v 2
+;;       e3: (+ u v x)  ; lookup all in F1
+;;
+
+(#%require rackunit)
+(#%require (prefix racket/ racket))
+(#%require (prefix trace/ racket/trace))
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_make-procedure origin/make-procedure)
+                                  (_procedure-body origin/procedure-body)))
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate 
+                       (cdr sequence))))
+        (else  (filter predicate 
+                       (cdr sequence)))))
+
+(define (complement f)
+  (lambda (x)
+    (not (f x))))
+
+(define (scan-out-defines-simultaneous body)
+  (let ((defs (filter definition? body)))
+    (if (null? defs)
+        body
+        (let* ((vars (map definition-variable defs))
+               (vals (map definition-value defs))
+               (unassigns-defs (map (lambda (var) (list 'define var ''*unassigned*)) vars))
+               (assigns (map (lambda (x y) (list 'set! x y)) vars vals))
+               (body-without-defs (filter (complement definition?) body)))
+          ;; 현재 프레임에 바인딩 추가만 하고 let은 안 씀
+          (append
+           unassigns-defs
+           assigns
+           body-without-defs)))))
+
+(check-equal? (scan-out-defines-simultaneous (lambda-body '(lambda (x)
+                                                             (define u (+ v 1))
+                                                             (define v 2)
+                                                             (+ u v x))))
+              '((define u '*unassigned*)
+                (define v '*unassigned*)
+                (set! u (+ v 1))
+                (set! v 2)
+                (+ u v x)))
+
+
+(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(define third caddr)
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+
+
+(around
+ (begin
+   (define (make-procedure parameters body env)
+     ;; 4_06에서 ((let? exp) (eval (let-&gt;combination exp) env)) 을
+     ;; 추가 했다면.
+     ;; (list 'procedure parameters (scan-out-defines body) env)
+     ;;
+     ;; 추가하지 않았다면,
+     (list 'procedure parameters
+           (map (lambda (x)
+                  (if (ex4_06/let? x)
+                      (ex4_06/let-&gt;combination x)
+                      x))
+                (scan-out-defines-simultaneous body))
+           env))
+   (override-make-procedure! make-procedure)
+   (override-procedure-body! origin/procedure-body))
+  
+ 
+ (test-case "make-procedure"
+            (check-equal? (eval '(define (hello x)
+                                   (define u 1)
+                                   (define v 2)
+                                   (+ u v x))
+                                env2)
+                          'ok)
+
+            ;; hello body의 define이 lambda로 풀어진 상태로 저장되어 있다.
+            (check-equal? (third (lookup-variable-value 'hello env2))
+                          '((define u '*unassigned*)
+                            (define v '*unassigned*)
+                            (set! u 1)
+                            (set! v 2)
+                            (+ u v x)))
+            (check-equal? (eval '(hello 3) env2)
+                          6)
+            )
+ (begin
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! origin/procedure-body)))
 </code></pre>
 <h2 id="4_18"><a class="header" href="#4_18">4_18</a></h2>
 <pre><code class="language-lisp">;; file: 4_18.rkt
