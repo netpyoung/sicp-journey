@@ -641,11 +641,13 @@
 </code></pre>
 <h2 id="4_06"><a class="header" href="#4_06">4_06</a></h2>
 <pre><code class="language-lisp">;; file: 4_06.rkt
-;; 4_07 / 4_08
+;; 4_07 / 4_08 / 4_09 / 4_16 / 4_17 / 4_18
 
 
 (#%require (prefix racket/ racket))
 (#%require rackunit)
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+
 (racket/provide
  let?
  let-&gt;combination)
@@ -675,7 +677,6 @@
 
 
 ;; eval이 let구문을 처리할 수 있도록 수정 ---------------
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
@@ -706,6 +707,8 @@
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
 (check-equal? (eval '(let ((a 1) (b 2)) (+ a b)) env2) 3)
+
+(override-eval! origin/eval)
 </code></pre>
 <h2 id="4_07"><a class="header" href="#4_07">4_07</a></h2>
 <pre><code class="language-lisp">;; file: 4_07.rkt
@@ -713,11 +716,11 @@
 
 (#%require rackunit)
 (#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 (racket/provide
+ make-let
  let*?
  let*-&gt;nested-lets)
-;; (#%require (only "4_07.rkt" make-let))
 
 ;; 1-1. let*식이 여러개의 let식으로 변환될 수 있는지.
 ;;
@@ -739,14 +742,22 @@
 (define third caddr)
 
 (define (make-let binding body)
+  ;; (make-let '((a 1)) '(1 2 3))
+  ;; =&gt; (let ((a 1)) 1 2 3)
   (if (null? binding)
       (append (list 'let '()) body)
-      (append (list 'let (list binding)) body)))
+      (append (list 'let binding) body)))
 
-(check-equal? (make-let '(b 1) (list (make-let '((a 1)) '((display) (display)))))
-              '(let ((b 1)) (let (((a 1))) (display) (display))))
 
-(check-equal? (make-let '(b 1) '('a 'b))
+(check-equal? (make-let '((b 1))
+                        (list (make-let '((a 1))
+                                        '((display) (display)))))
+              '(let ((b 1))
+                 (let ((a 1))
+                   (display)
+                   (display))))
+
+(check-equal? (make-let '((b 1)) '('a 'b))
               '(let ((b 1)) 'a 'b))
 
 
@@ -754,12 +765,12 @@
   (define (iter acc bs)
     (if (null? bs)
         acc
-        (iter (make-let (first bs) (list acc)) (rest bs))))
+        (iter (make-let (list (first bs)) (list acc)) (rest bs))))
   (let* ((bindings (reverse (second expr)))
          (body (rest (rest expr))))
     (if (null? bindings)
         (make-let '() body)
-        (iter (make-let (first bindings) body) (rest bindings)))))
+        (iter (make-let (list (first bindings)) body) (rest bindings)))))
 
 (define (let*? expr)
   (tagged-list? expr 'let*))
@@ -834,6 +845,7 @@
 (check-equal? (eval expression env2)
               (r5rs/eval expression (scheme-report-environment 5)))
 
+(override-eval! origin/eval)
 </code></pre>
 <h2 id="4_08"><a class="header" href="#4_08">4_08</a></h2>
 <pre><code class="language-lisp">
@@ -1612,6 +1624,7 @@
 </code></pre>
 <h2 id="4_16"><a class="header" href="#4_16">4_16</a></h2>
 <pre><code class="language-lisp">;; file: 4_16.rkt
+;; 4_06 / 4_18 cont
 
 (#%require rackunit)
 
@@ -1619,9 +1632,11 @@
 (#%require (prefix trace/ racket/trace))
 
 (racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_lookup-variable-value origin/lookup-variable-value)
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
 (racket/provide
+ lookup-variable-value
  scan-out-defines)
 ;;
 ;; 1. lookup-variable-value 함수를 고쳐서 변수의 값이 심볼 *unassigned* 면 오류를 내도록 한다.
@@ -1840,9 +1855,11 @@
    (override-procedure-body! origin/procedure-body)))
 
 
+(override-lookup-variable-value! origin/lookup-variable-value)
 </code></pre>
 <h2 id="4_17"><a class="header" href="#4_17">4_17</a></h2>
 <pre><code class="language-lisp">;; file: 4_17.rkt
+;; 4_06 cont
 
 ;; 본문에 나온 &lt;e3&gt;을 평가할때의 environment를 다이어그램으로 그려라
 ;;
@@ -2042,12 +2059,420 @@
 </code></pre>
 <h2 id="4_18"><a class="header" href="#4_18">4_18</a></h2>
 <pre><code class="language-lisp">;; file: 4_18.rkt
+;; 4_06 / 4_16 / 4_20 cont
+
+(#%require rackunit)
+
+(#%require (prefix racket/ racket))
+(#%require (prefix trace/ racket/trace))
+
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_make-procedure origin/make-procedure)
+                                  (_procedure-body origin/procedure-body)))
+
+;; - before
+;; (lambda &lt;vars&gt;
+;;  (define u &lt;e1&gt;)
+;;  (define v &lt;e2&gt;)
+;;  &lt;e3&gt;)
+;;
+;; - 본문방식
+;; (lambda &lt;vars&gt;
+;;  (let ((u '*unassigned*)
+;;        (v '*unassigned*))
+;;    (set! u &lt;e1&gt;)
+;;    (set! v &lt;e2&gt;)
+;;    &lt;e3&gt;)))
+;;
+;; - 이번 문제 방식
+;;   - 여기서 a와 b는 인터프리터가 새로 생성한 변수명으로, 사용자의 원래 프로그램에는 등장하지 않는다.
+;; (lambda &lt;vars&gt;
+;;  (let ((u '*unassigned*)
+;;        (v '*unassigned*))
+;;    (let ((a &lt;e1&gt;)
+;;          (b &lt;e2&gt;))
+;;      (set! u a)
+;;      (set! v b))
+;;    &lt;e3&gt;))
+;;
+;; 3.5.4의 solve는
+;; (define (solve f y0 dt)
+;;  (define y (integral (delay dy) y0 dt))
+;;  (define dy (stream-map f y))
+;;  y)
+;;
+;; - 본문방식이면
+;; (let ((y '*unassigned*)
+;;       (dy '*unassigned*))
+;;   (set! y (integral (delay dy) y0 dt))
+;;   (set! dy (stream-map f y))          ; &lt;---- dy에 제대로 된 값이 저장된다.
+;;   (+ u v x)))
+;;
+;; - 이번 문제 방식에서는 이렇게 변환된다.
+;; (let ((y '*unassigned*)
+;;       (dy '*unassigned*))
+;;   (let ((a (integral (delay dy) y0 dt))
+;;         (b (stream-map f y)))         ; &lt;---- b에 (stream-map f '*unassigned*)라는 올바르지 않은 값이 저장되고, 4_16을 구현했으면 y를 가져다 쓰는 순간 에러.
+;;     (set! y a)
+;;     (set! dy b))                      ; &lt;---- 최종적으로 dy에 제대로 되지않은 b값이 저장된다.
+;;   (+ u v x)))
+
+
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate 
+                       (cdr sequence))))
+        (else  (filter predicate 
+                       (cdr sequence)))))
+
+(define (take n lst)
+  (define (iter n lst acc)
+    (cond
+      ((or (&lt;= n 0) (null? lst))
+       (reverse acc))
+      (else
+       (iter (- n 1) (cdr lst) (cons (car lst) acc)))))
+  (iter n lst '()))
+
+
+(define (complement f)
+  (lambda (x)
+    (not (f x))))
+
+(define (make-let bindings body)
+  ;; (make-let '((a 1)) '((+ a 2)))
+  ;; =&gt; (let ((a 1)) (+ a 2))
+  (append (list 'let bindings) body))
+
+(define first car)
+(define rest cdr)
+
+(define (scan-out-defines-4_18 body)
+  (let ((defs (filter definition? body)))
+    (if (null? defs)
+        body
+        (let* ((body-without-defs (filter (complement definition?) body))
+               (vars (map definition-variable defs))
+               (vals (map definition-value defs))
+               (len (length vars))
+               (var2 (take len '(a b c d e f g)))
+               (bindings (map (lambda (x) (list x ''*unassigned*)) vars))
+               (bindings2 (map (lambda (x y) (list x y)) var2 vals))
+               (assigns (map (lambda (x y) (list 'set! x y)) vars var2)))
+          (list (make-let bindings
+                          (append (list (make-let bindings2
+                                                  assigns))
+                                  body-without-defs)))))))
+
+
+(check-equal? (scan-out-defines-4_18 (lambda-body '(lambda (x)
+                                                     (define u 1)
+                                                     (define v (+ 2 u))
+                                                     (+ u v x))))
+              '((let ((u '*unassigned*)
+                      (v '*unassigned*))
+                  (let ((a 1)
+                        (b (+ 2 u)))
+                    (set! u a)
+                    (set! v b))
+                  (+ u v x))))
+
+
+
+(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(racket/require (racket/prefix-in ex4_16/ "4_16.rkt"))
+(define third caddr)
+(define env2 (setup-environment))
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '+ (list 'primitive +) env3)
+
+(override-lookup-variable-value! ex4_16/lookup-variable-value)
+
+(around
+ (begin
+   (define (make-procedure parameters body env)
+     ;; 4_06에서 ((let? exp) (eval (let-&gt;combination exp) env)) 을
+     ;; 추가 했다면.
+     ;; (list 'procedure parameters (scan-out-defines-4_18 body) env)
+     ;;
+     ;; 추가하지 않았다면,
+     (list 'procedure parameters
+           (map (lambda (x)
+                  (if (ex4_06/let? x)
+                      (ex4_06/let-&gt;combination x)
+                      x))
+                (scan-out-defines-4_18 body))
+           env))
+   (override-make-procedure! make-procedure)
+   (override-procedure-body! origin/procedure-body))
+  
+ 
+ (test-case "make-procedure"
+            (check-equal? (eval '(define (hello x)
+                                   (define u 1)
+                                   (define v (+ 2 u))
+                                   (+ u v x))
+                                env2)
+                          'ok)
+
+            (check-exn #rx"Unssigned variable u"
+                       (lambda ()
+                         (eval '(hello 3) env2)))
+            )
+ (begin
+   (override-make-procedure! origin/make-procedure)
+   (override-procedure-body! origin/procedure-body)))
 </code></pre>
 <h2 id="4_19"><a class="header" href="#4_19">4_19</a></h2>
 <pre><code class="language-lisp">;; file: 4_19.rkt
+
+
+;; (let ((a 1))
+;;   (define (f x)
+;;     (define b (+ a x))
+;;     (define a 5)
+;;     (+ a b))
+;;   (f 10))
+
+;; Ben Bitdiddle 의견
+;; 순차적 규칙(sequential rule) - c / python ...
+;; a = 1  (let ((a 1))
+;; x = 10 (f 10)
+;; b = 11 (+ a x)
+;; a = 5
+;; 
+;; (+ a b) =&gt; 16
+
+;; Alyssa P. Hacker 의견
+;; 동시 범위(simultaneous scope) 규칙 - scheme
+;; a = 1  (let ((a 1))
+;; x = 10 (f 10)
+;; b = *unassigned*
+;; a = *unassigned*
+;; b = 에러발생 (+ *unassigned* x)
+
+;; Eva Lu Ator 의견
+;; Layzy Evaluation - haskell / OCaml ...
+;; a = 1  (let ((a 1))
+;; x = 10 (f 10)
+;; b = lazy(+ a x)
+;; a = 5
+;; 
+;; (+ a b) = 5 + lazy(+ a x)
+;;         = 5 + (+ 5 10)
+;;         = 20
+
+
+;; 1. 세 가지 관점 중 어느 것(또는 어느 것도 아닌 것)을 지지하는가?
+;; 살짝 정적 분석같은 기믹도 가미된 Alyssa P.
+;;
+;; 2. Eva Lu Ator 의견에 따라 동작하도록 구현할 수 있는가?
+;; 정의부를 lambda식으로 감싸 실제 필요할때 평가도록 하면 될꺼같은데...
+
+
 </code></pre>
 <h2 id="4_20"><a class="header" href="#4_20">4_20</a></h2>
 <pre><code class="language-lisp">;; file: 4_20.rkt
+;; 4_17 / 4_18 / 4_21
+
+(#%require rackunit)
+(#%require (prefix racket/ racket))
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+
+
+;; | 구문       | 바인딩 생성 방식                  | 앞 변수 참조 | 상호/자기 참조 |
+;; | -------- | ----------------------------------- | ------------ | -------------- |
+;; | `let`    | 모든 값 먼저 계산 후 한 번에 바인딩 | ❌          | ❌            |
+;; | `let*`   | 순차적으로 바인딩 생성              | ⭕          | ❌            |
+;; | `letrec` | 이름만 먼저 바인딩 후 값 설정       | ⭕          | ⭕            |
+
+;; letrec: let recursive
+
+;;
+;; a. letrec을 derived expression로 처리. 연습문제 4.18 처럼 변수는 let으로 생성, set!으로 설정하라.
+;;
+(#%require (only "4_06.rkt" let? let-&gt;combination))
+(#%require (only "4_07.rkt" make-let ))
+
+
+(define first car)
+(define second cadr)
+(define rest cdr)
+
+(define (letrec-&gt;let expr)
+  (let* ((bindings (second expr))
+         (body (rest (rest expr)))
+         (vars (map first bindings))
+         (new-bindings (map (lambda (x) (list x ''*unassigned*)) vars))
+         (vals (map second bindings))
+         (setter (map (lambda (x y) (list 'set! x y)) vars vals)))
+    (make-let new-bindings (append setter body))))
+
+(check-equal? (letrec-&gt;let
+               '(letrec ((x 1))
+                  (+ x 2)))
+              '(let ((x '*unassigned*))
+                 (set! x 1)
+                 (+ x 2)))
+
+(check-equal? (letrec-&gt;let
+               '(letrec ((fact
+                          (lambda (n)
+                            (if (= n 1)
+                                1
+                                (* n (fact (- n 1)))))))
+                  (fact 10)))
+              '(let ((fact '*unassigned*))
+                 (set! fact
+                       (lambda (n)
+                         (if (= n 1)
+                             1
+                             (* n (fact (- n 1))))))
+                 (fact 10)))
+
+(define (letrec? exp) (tagged-list? exp 'letrec))
+
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((let? exp) (eval (let-&gt;combination exp) env))
+        ((letrec? exp) (eval (letrec-&gt;let exp) env)) ;; &lt;&lt;--- 추가.
+        ((application? exp)
+         (apply (eval (operator exp) env)
+                (list-of-values (operands exp) env)))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+
+(override-eval! eval)
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '- (list 'primitive -) env2)
+(define-variable! '* (list 'primitive *) env2)
+(define-variable! '= (list 'primitive =) env2)
+
+(check-equal? (eval '(letrec ((x 1))
+                       (+ x 2))
+                    env2)
+              3)
+
+(check-eq? (eval '(letrec ((fact
+                            (lambda (n)
+                              (if (= n 1)
+                                  1
+                                  (* n (fact (- n 1)))))))
+                    (fact 10))
+                 env2)
+           3628800)
+
+(check-eq? (letrec ((fact
+                     (lambda (n)
+                       (if (= n 1)
+                           1
+                           (* n (fact (- n 1)))))))
+             (fact 10))
+           3628800)
+;; 
+;; b. (f 5)를 평가하는 동안 &lt;rest of body of f&gt;가 평가되는 환경(environment)을 나타내는
+;; letrec버전 let버전에 대한  environment diagram을 그려라.
+;; (odd?/even?은 이미 정의되어 있어, 오류를 확인하기 위해 odd?/even?을 new-odd?/new-even?으로 변경.)
+
+;; let 버전
+(define expr-v-let
+  '(define (f x)
+     ;; (f 5)
+     ;; f 호출 환경 (x = 5)
+     ;; ┌─────────────────────────────┐
+     ;; │ f-frame                      │
+     ;; │ x → 5                        │
+     ;; └─────────────────────────────┘
+     ;; 
+     ;; let-frame
+     ;; ┌─────────────────────────────┐
+     ;; │ new-even? → &lt;lambda&gt;        │ &lt;&lt; lambda를 정의시 new-odd?를 찾아보는데 정의가 되지않아 오류가 나타난다.
+     ;; │ new-odd?                    |
+     ;; └─────────────────────────────┘
+     (let ((new-even?
+            (lambda (n)
+              (if (= n 0)
+                  true
+                  (new-odd? (- n 1))))) ; new-odd?: unbound identifier in: new-odd?
+           (new-odd?
+            (lambda (n)
+              (if (= n 0)
+                  false
+                  (new-even? (- n 1))))))
+       "&lt;rest of body of f&gt;"
+       (new-even? x))))
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env3)
+(define-variable! '- (list 'primitive -) env3)
+(define-variable! '* (list 'primitive *) env3)
+(define-variable! '= (list 'primitive =) env3)
+(check-equal? (eval expr-v-let
+                    env3)
+              'ok)
+(check-exn #rx"Unbound variable new-odd?"
+           (lambda ()
+             (eval '(f 5) env3)))
+
+
+;; letrec 버전
+(define expr-v-letrec
+  '(define (f x)
+     ;; (f 5)
+     ;; f 호출 환경 (x = 5)
+     ;; ┌─────────────────────────────┐
+     ;; │ f-frame                      │
+     ;; │ x → 5                        │
+     ;; └─────────────────────────────┘
+     ;; 
+     ;; letrec-frame
+     ;; ┌─────────────────────────────┐
+     ;; │ new-even? → &lt;unassigned&gt;    │
+     ;; │ new-odd?  → &lt;unassigned&gt;    │
+     ;; └─────────────────────────────┘
+     ;; set! new-even? &lt;lambda&gt;
+     ;; set! new-odd?  &lt;lambda&gt;
+     (letrec ((new-even?
+               (lambda (n)
+                 (if (= n 0)
+                     true
+                     (new-odd? (- n 1)))))
+              (new-odd?
+               (lambda (n)
+                 (if (= n 0)
+                     false
+                     (new-even? (- n 1))))))
+       "&lt;rest of body of f&gt;"
+       (new-even? x))))
+
+(define env4 (setup-environment))
+(define-variable! '+ (list 'primitive +) env4)
+(define-variable! '- (list 'primitive -) env4)
+(define-variable! '* (list 'primitive *) env4)
+(define-variable! '= (list 'primitive =) env4)
+(check-equal? (eval expr-v-letrec
+                    env4)
+              'ok)
+(check-eq? (eval '(f 5) env4)
+           false)
+
+
+(override-eval! origin/eval)
 </code></pre>
 <h2 id="4_21"><a class="header" href="#4_21">4_21</a></h2>
 <pre><code class="language-lisp">;; file: 4_21.rkt
