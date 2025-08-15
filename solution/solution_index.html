@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>5장. 레지스터 머신으로 계산 - SICP 여정</title>
+        <title>연습문제 - SICP 여정</title>
 
 
         <!-- Custom HTML head -->
@@ -150,7 +150,7 @@
                         <a href="https://github.com/netpyoung/sicp-journey" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/netpyoung/sicp-journey/edit/main/src/chapter/ch05.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                        <a href="https://github.com/netpyoung/sicp-journey/edit/main/src/solution/solution_index.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -184,56 +184,89 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="5장-레지스터-머신으로-계산"><a class="header" href="#5장-레지스터-머신으로-계산">5장. 레지스터 머신으로 계산</a></h1>
-<hr />
-<h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
-<ul>
-<li>Computing with Register Machines
-<ul>
-<li>5장은, 레지스터 머신과 가비지 컬렉터 그리고 컴파일러를 구현한다.</li>
-</ul>
-</li>
-</ul>
-<ol>
-<li>레지스터 기계로 계산하기</li>
-</ol>
-<p>5.1 레지스터 기계 설계하기
-5.1.1 레지스터 기계를 묘사하는 언어
-5.1.2 기계 디자인에서의 속 내용 감추기(abstraction)
-5.1.3 서브루틴
-5.1.4 스택(stack)을 이용해 되돌기(recursion) 구현하기
-5.1.5 명령어 정리</p>
-<p>5.2 레지스터 기계 시뮬레이터
-5.2.1 기계 모형
-5.2.2 어셈블러
-5.2.3 명령에 해당하는 실행 프로시저 만들기
-5.2.4 기계 성능 지켜보기</p>
-<p>5.3 메모리 할당(memory allocation)과 재활용(garbage collection)
-5.3.1 벡터로 나타낸 메모리
-5.3.2 무한히 많은 메모리인 양 보이기</p>
-<p>5.4 제어가 다 보이는 실행기
-5.4.1 제어가 다 보이는 실행기의 핵심부
-5.4.2 시퀀스 계산과 꼬리 되돌기(tail recursion)
-5.4.3 조건 식, 덮어쓰기(assignment), 정의
-5.4.4 실행기 돌리기</p>
-<p>5.5 번역(compilation)
-5.5.1 번역기의 구조
-5.5.2 프로그램 식의 번역
-5.5.3 조합 식 번역하기
-5.5.4 명령줄 한데 합치기
-5.5.5 번역된 코드의 예
-5.5.6 텍스트에서 변수의 정의를 파악하기(lexical addressing)
-5.5.7 번역된 코드를 실행기에 연결하기</p>
+                        <h1 id="풀이"><a class="header" href="#풀이">풀이</a></h1>
+<h2 id="chapter-1---building-abstractions-with-procedures"><a class="header" href="#chapter-1---building-abstractions-with-procedures">Chapter 1 - Building Abstractions with Procedures</a></h2>
+<h3 id="11--the-elements-of-programming"><a class="header" href="#11--the-elements-of-programming">1.1 – The Elements of Programming</a></h3>
+<p>1.01	1.02	1.03	1.04	1.05	1.06	1.07	1.08	–	–</p>
+<h3 id="12--procedures-and-the-processes-they-generate"><a class="header" href="#12--procedures-and-the-processes-they-generate">1.2 – Procedures and the Processes They Generate</a></h3>
+<p>1.09	1.10	1.11	1.12	1.13	1.14	1.15	1.16	1.17	1.18
+1.19	1.20	1.21	1.22	1.23	1.24	1.25	1.26	1.27	1.28</p>
+<h3 id="13--formulating-abstractions-with-higher-order-procedures"><a class="header" href="#13--formulating-abstractions-with-higher-order-procedures">1.3 – Formulating Abstractions with Higher-Order Procedures</a></h3>
+<p>1.29	1.30	1.31	1.32	1.33	1.34	1.35	1.36	1.37	1.38
+1.39	1.40	1.41	1.42	1.43	1.44	1.45	1.46	–	–</p>
+<h2 id="chapter-2---building-abstractions-with-data"><a class="header" href="#chapter-2---building-abstractions-with-data">Chapter 2 - Building Abstractions with Data</a></h2>
+<h3 id="21--introduction-to-data-abstraction"><a class="header" href="#21--introduction-to-data-abstraction">2.1 – Introduction to Data Abstraction</a></h3>
+<p>2.01	2.02	2.03	2.04	2.05	2.06	2.07	2.08	2.09	2.10
+2.11	2.12	2.13	2.14	2.15	2.16	–	–	–	–</p>
+<h3 id="22--hierarchical-data-and-the-closure-property"><a class="header" href="#22--hierarchical-data-and-the-closure-property">2.2 – Hierarchical Data and the Closure Property</a></h3>
+<p>2.17	2.18	2.19	2.20	2.21	2.22	2.23	2.24	2.25	2.26
+2.27	2.28	2.29	2.30	2.31	2.32	2.33	2.34	2.35	2.36
+2.37	2.38	2.39	2.40	2.41	2.42	2.43	2.44	2.45	2.46
+2.47	2.48	2.49	2.50	2.51	2.52	–	–	–	–</p>
+<h3 id="23--symbolic-data"><a class="header" href="#23--symbolic-data">2.3 – Symbolic Data</a></h3>
+<p>2.53	2.54	2.55	2.56	2.57	2.58	2.59	2.60	2.61	2.62
+2.63	2.64	2.65	2.66	2.67	2.68	2.69	2.70	2.71	2.72</p>
+<h3 id="24--multiple-representations-for-abstract-data"><a class="header" href="#24--multiple-representations-for-abstract-data">2.4 – Multiple Representations for Abstract Data</a></h3>
+<p>2.73	2.74	2.75	2.76	–	–	–	–	–	–</p>
+<h3 id="25--systems-with-generic-operations"><a class="header" href="#25--systems-with-generic-operations">2.5 – Systems with Generic Operations</a></h3>
+<p>2.77	2.78	2.79	2.80	2.81	2.82	2.83	2.84	2.85	2.86
+2.87	2.88	2.89	2.90	2.91	2.92	2.93	2.94	2.95	2.96
+2.97	–	–	–	–	–	–	–	–	–</p>
+<h2 id="chapter-3---modularity-objects-and-state"><a class="header" href="#chapter-3---modularity-objects-and-state">Chapter 3 - Modularity, Objects, and State</a></h2>
+<h3 id="31--assignment-and-local-state"><a class="header" href="#31--assignment-and-local-state">3.1 – Assignment and Local State</a></h3>
+<p>3.01	3.02	3.03	3.04	3.05	3.06	3.07	3.08	–	–</p>
+<h3 id="32--the-environment-model-of-evaluation"><a class="header" href="#32--the-environment-model-of-evaluation">3.2 – The Environment Model of Evaluation</a></h3>
+<p>3.09	3.10	3.11	–	–	–	–	–	–	–</p>
+<h3 id="33--modeling-with-mutable-data"><a class="header" href="#33--modeling-with-mutable-data">3.3 – Modeling with Mutable Data</a></h3>
+<p>3.12	3.13	3.14	3.15	3.16	3.17	3.18	3.19	3.20	3.21
+3.22	3.23	3.24	3.25	3.26	3.27	3.28	3.29	3.30	3.31
+3.32	3.33	3.34	3.35	3.36	3.37	–	–	–	–</p>
+<h3 id="34--concurrency-time-is-of-the-essence"><a class="header" href="#34--concurrency-time-is-of-the-essence">3.4 – Concurrency: Time Is of the Essence</a></h3>
+<p>3.38	3.39	3.40	3.41	3.42	3.43	3.44	3.45	3.46	3.47
+3.48	3.49	–	–	–	–	–	–	–	–</p>
+<h3 id="35--streams"><a class="header" href="#35--streams">3.5 – Streams</a></h3>
+<p>3.50	3.51	3.52	3.53	3.54	3.55	3.56	3.57	3.58	3.59
+3.60	3.61	3.62	3.63	3.64	3.65	3.66	3.67	3.68	3.69
+3.70	3.71	3.72	3.73	3.74	3.75	3.76	3.77	3.78	3.79
+3.80	3.81	3.82	–	–	–	–	–	–	–</p>
+<h2 id="chapter-4---metalinguistic-abstraction"><a class="header" href="#chapter-4---metalinguistic-abstraction">Chapter 4 - Metalinguistic Abstraction</a></h2>
+<h3 id="41--the-metacircular-evaluator"><a class="header" href="#41--the-metacircular-evaluator">4.1 – The Metacircular Evaluator</a></h3>
+<p>4.01	4.02	4.03	4.04	4.05	4.06	4.07	4.08	4.09	4.10
+4.11	4.12	4.13	4.14	4.15	4.16	4.17	4.18	4.19	4.20
+4.21	4.22	4.23	4.24	–	–	–	–	–	–</p>
+<h3 id="42--variations-on-a-scheme--lazy-evaluation"><a class="header" href="#42--variations-on-a-scheme--lazy-evaluation">4.2 – Variations on a Scheme – Lazy Evaluation</a></h3>
+<p>4.25	4.26	4.27	4.28	4.29	4.30	4.31	4.32	4.33	4.34</p>
+<h3 id="43--variations-on-a-scheme--nondeterministic-computing"><a class="header" href="#43--variations-on-a-scheme--nondeterministic-computing">4.3 – Variations on a Scheme – Nondeterministic Computing</a></h3>
+<p>4.35	4.36	4.37	4.38	4.39	4.40	4.41	4.42	4.43	4.44
+4.45	4.46	4.47	4.48	4.49	4.50	4.51	4.52	4.53	4.54</p>
+<h3 id="44--logic-programming"><a class="header" href="#44--logic-programming">4.4 – Logic Programming</a></h3>
+<p>4.55	4.56	4.57	4.58	4.59	4.60	4.61	4.62	4.63	4.64
+4.65	4.66	4.67	4.68	4.69	4.70	4.71	4.72	4.73	4.74
+4.75	4.76	4.77	4.78	4.79	–	–	–	–	–</p>
+<h2 id="chapter-5---computing-with-register-machines"><a class="header" href="#chapter-5---computing-with-register-machines">Chapter 5 - Computing with Register Machines</a></h2>
+<h3 id="51--designing-register-machines"><a class="header" href="#51--designing-register-machines">5.1 – Designing Register Machines</a></h3>
+<p>5.01	5.02	5.03	5.04	5.05	5.06	–	–	–	–</p>
+<h3 id="52--a-register-machine-simulator"><a class="header" href="#52--a-register-machine-simulator">5.2 – A Register-Machine Simulator</a></h3>
+<p>5.07	5.08	5.09	5.10	5.11	5.12	5.13	5.14	5.15	5.16
+5.17	5.18	5.19	–	–	–	–	–	–	–</p>
+<h3 id="53--storage-allocation-and-garbage-collection"><a class="header" href="#53--storage-allocation-and-garbage-collection">5.3 – Storage Allocation and Garbage Collection</a></h3>
+<p>5.20	5.21	5.22	–	–	–	–	–	–	–</p>
+<h3 id="54--the-explicit-control-evaluator"><a class="header" href="#54--the-explicit-control-evaluator">5.4 – The Explicit-Control Evaluator</a></h3>
+<p>5.23	5.24	5.25	5.26	5.27	5.28	5.29	5.30	–	–</p>
+<h3 id="55--compilation"><a class="header" href="#55--compilation">5.5 – Compilation</a></h3>
+<p>5.31	5.32	5.33	5.34	5.35	5.36	5.37	5.38	5.39	5.40
+5.41	5.42	5.43	5.44	5.45	5.46	5.47	5.48	5.49	5.50
+5.51	5.52	–	–	–	–	–	–</p>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../chapter/ch04.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../chapter/ch05.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../solution/solution_index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../solution/solution_ch01.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -243,11 +276,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../chapter/ch04.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../chapter/ch05.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../solution/solution_index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../solution/solution_ch01.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

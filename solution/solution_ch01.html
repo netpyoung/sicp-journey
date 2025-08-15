@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>연습문제 풀이 01 - SICP 여정</title>
+        <title>풀이 01 - SICP 여정</title>
 
 
         <!-- Custom HTML head -->
@@ -253,6 +253,7 @@
 
 (#%require rackunit)
 (#%require threading)
+(#%require "../helper/my-util.rkt")
 
 ;; a, b, c 를 인자로 받고 가장 큰 두 수의 제곱의 합
 ;; 1.1.4에 나온 sum-of-squares 사용.
@@ -276,9 +277,6 @@
 
 ;; ======================================================================================
 ;; 번외. sequcne(list)와 고차함수를(filter/sort/take)  이용한 방법.
-
-(define first car)
-(define rest cdr)
 
 (define (filter pred? sequence)
   (cond ((null? sequence) '())
@@ -415,7 +413,7 @@
 <h2 id="1_07"><a class="header" href="#1_07">1_07</a></h2>
 <pre><code class="language-lisp">;; file: 1_07.rkt
 (#%require threading)
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
 
 ;; 1.1.7 연습: 뉴튼 법으로 제곱근 찾기
@@ -480,16 +478,44 @@ VERY-SMALL-RADIO
 ;; 아주 큰 수의 제곱근을 잘 구하는가?
 ;; 아주 작은 수 의 제곱근을 잘 구하는가?
 (define COMPARE-EPSILON 0.00000001)
-(check-= (sqrt 0.00000000123456) (racket/sqrt 0.00000000123456) COMPARE-EPSILON)
-(check-= (sqrt 123456789012345) (racket/sqrt 123456789012345) COMPARE-EPSILON)
+(check-= (sqrt 0.00000000123456) (racket:sqrt 0.00000000123456) COMPARE-EPSILON)
+(check-= (sqrt 123456789012345) (racket:sqrt 123456789012345) COMPARE-EPSILON)
 
 
 ;; ref: https://sicp-solutions.net/post/sicp-solution-exercise-1-7/
 </code></pre>
 <h2 id="1_08"><a class="header" href="#1_08">1_08</a></h2>
+<p>$$
+\text{목표: } y = \sqrt[3]{x}
+$$</p>
+<p>$$
+\text{⇒ 양변을 세제곱: } y^3 = x
+$$</p>
+<p>$$
+\text{⇒ 함수로 표현: } f(y) = y^3 - x
+$$</p>
+<p>$$
+\text{⇒ 도함수: } f'(y) = 3y^2
+$$</p>
+<p>$$
+\text{⇒ 뉴튼 방법 일반식: } y_{n+1} = y_n - \frac{f(y_n)}{f'(y_n)}
+$$</p>
+<p>$$
+\text{⇒ 대입: } y_{n+1} = y_n - \frac{y_n^3 - x}{3y_n^2}
+$$</p>
+<p>$$
+= y_n - \frac{1}{3} \left( y_n - \frac{x}{y_n^2} \right)
+$$</p>
+<p>$$
+= \frac{2y_n + \frac{x}{y_n^2}}{3}
+$$</p>
+<p>$$
+\therefore \boxed{
+y_{n+1} = \frac{x/y_n^2 + 2y_n}{3}
+}
+$$</p>
 <pre><code class="language-lisp">;; file: 1_08.rkt
 (#%require threading)
-(#%require (prefix racket/ racket))
 (#%require rackunit)
 
 ;; imporve 가 바뀌고 나머지는sqrt를 구할때와 거의 비슷한 흐름으로 흘러간다.
@@ -546,9 +572,9 @@ VERY-SMALL-RADIO
 ;; (y+ 0 3)
 ;;=&gt; 3
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace x+)
-(trace/trace y+)
+(#%require (prefix trace: racket/trace))
+(trace:trace x+)
+(trace:trace y+)
 
 (display "x+ ==============================\n")
 (x+ 2 1)
@@ -650,9 +676,9 @@ VERY-SMALL-RADIO
         ((= n 0) (C (- m 1) 1))
         (else    (C (- m 1) (C m (- n 1))))))
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace φ)
-(trace/trace C)
+(#%require (prefix trace: racket/trace))
+(trace:trace φ)
+(trace:trace C)
 (φ 1 2 3)
 (C 2 1)
 </code></pre>
@@ -694,9 +720,9 @@ VERY-SMALL-RADIO
 
 
 
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
-(racket/for ([i 20])
+(racket:for ([i 20])
             (check-eq? (f-recur i)(f-iter i)))
 </code></pre>
 <h2 id="1_12"><a class="header" href="#1_12">1_12</a></h2>
@@ -712,11 +738,11 @@ VERY-SMALL-RADIO
 
 
 
-(#%require (prefix racket/ racket))
-(racket/for ([y (racket/in-inclusive-range 0 5)])
+(#%require (prefix racket: racket))
+(racket:for ([y (racket:in-inclusive-range 0 5)])
             (display y)
             (display ": ")
-            (racket/for ([x (racket/in-inclusive-range 0 y)])
+            (racket:for ([x (racket:in-inclusive-range 0 y)])
                         (display (P x y))
                         (display " "))
             (newline))
@@ -911,7 +937,7 @@ VERY-SMALL-RADIO
 ;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
 
 
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require threading)
 (#%require rackunit)
 
@@ -934,17 +960,90 @@ VERY-SMALL-RADIO
         (round-half-up))))
 
 (define (round-half-up x)
-  ;; racket/exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
+  ;; racket:exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
   ;; Round half up은 0.5이상 일때 무조건 올림.
   (cond ((zero? x) 0)
-        ((positive? x) (racket/exact-floor (+ x 0.5)))
-        (else          (racket/exact-floor (- x 0.5)))))
+        ((positive? x) (racket:exact-floor (+ x 0.5)))
+        (else          (racket:exact-floor (- x 0.5)))))
 
-(racket/for ([x (racket/in-inclusive-range 1 75)])
+(racket:for ([x (racket:in-inclusive-range 1 75)])
             ;; 부동소수점 정밀도의 한계로 에러가 발생.
-            (check-eq? (fib x) (fib-binet x) (racket/~a x)))
+            (check-eq? (fib x) (fib-binet x) (racket:~a x)))
 </code></pre>
 <h2 id="1_14"><a class="header" href="#1_14">1_14</a></h2>
+<ul>
+<li>1.2.2에서 나온 count-change 함수가 11 센트(cent)에 맞게 잔돈을 만들어내는 트리를 그려보아라.</li>
+</ul>
+<pre class="mermaid">
+%%{init: {'flowchart' : {'curve' : 'monotoneX'}}}%%
+graph TD
+  cc_11_05_a["(cc 11 5)"] --> cc_11_04_a["(cc 11 4)"]
+  cc_11_04_a --> cc_11_03_a["(cc 11 3)"]
+  cc_11_03_a --> cc_11_02_a["(cc 11 2)"]
+  cc_11_02_a --> cc_11_01_a["(cc 11 1)"]
+  cc_11_01_a --> cc_11_00_a["(cc 11 0)"]
+  cc_11_01_a --> cc_10_01_a["(cc 10 1)"]
+  cc_10_01_a --> cc_10_00_a["(cc 10 0)"]
+  cc_10_01_a --> cc_09_01_a["(cc 9 1)"]
+  cc_09_01_a --> cc_09_00_a["(cc 9 0)"]
+  cc_09_01_a --> cc_08_01_a["(cc 8 1)"]
+  cc_08_01_a --> cc_08_00_a["(cc 8 0)"]
+  cc_08_01_a --> cc_07_01_a["(cc 7 1)"]
+  cc_07_01_a --> cc_07_00_a["(cc 7 0)"]
+  cc_07_01_a --> cc_06_01_a["(cc 6 1)"]
+  cc_06_01_a --> cc_06_00_a["(cc 6 0)"]
+  cc_06_01_a --> cc_05_01_a["(cc 5 1)"]
+  cc_05_01_a --> cc_05_00_a["(cc 5 0)"]
+  cc_05_01_a --> cc_04_01_a["(cc 4 1)"]
+  cc_04_01_a --> cc_04_00_a["(cc 4 0)"]
+  cc_04_01_a --> cc_03_01_a["(cc 3 1)"]
+  cc_03_01_a --> cc_03_00_a["(cc 3 0)"]
+  cc_03_01_a --> cc_02_01_a["(cc 2 1)"]
+  cc_02_01_a --> cc_02_00_a["(cc 2 0)"]
+  cc_02_01_a --> cc_01_01_a["(cc 1 1)"]
+  cc_01_01_a --> cc_01_00_a["(cc 1 0)"]
+  cc_01_01_a --> cc_00_01_a["(cc 0 1)"]
+
+  cc_11_02_a --> cc_06_02_a["(cc 6 2)"]
+  cc_06_02_a --> cc_06_01_b["(cc 6 1)"]
+  cc_06_01_b --> cc_06_00_b["(cc 6 0)"]
+  cc_06_01_b --> cc_05_01_b["(cc 5 1)"]
+  cc_05_01_b --> cc_05_00_b["(cc 5 0)"]
+  cc_05_01_b --> cc_04_01_b["(cc 4 1)"]
+  cc_04_01_b --> cc_04_00_b["(cc 4 0)"]
+  cc_04_01_b --> cc_03_01_b["(cc 3 1)"]
+  cc_03_01_b --> cc_03_00_b["(cc 3 0)"]
+  cc_03_01_b --> cc_02_01_b["(cc 2 1)"]
+  cc_02_01_b --> cc_02_00_b["(cc 2 0)"]
+  cc_02_01_b --> cc_01_01_b["(cc 1 1)"]
+  cc_01_01_b --> cc_01_00_b["(cc 1 0)"]
+  cc_01_01_b --> cc_00_01_b["(cc 0 1)"]
+
+  cc_06_02_a --> cc_01_02_a["(cc 1 2)"]
+  cc_01_02_a --> cc_01_01_c["(cc 1 1)"]
+  cc_01_01_c --> cc_01_00_c["(cc 1 0)"]
+  cc_01_01_c --> cc_00_01_c["(cc 0 1)"]
+  cc_01_02_a --> cc_m4_02["(cc -4 2)"]
+
+  cc_11_03_a --> cc_01_03_a["(cc 1 3)"]
+  cc_01_03_a --> cc_01_02_b["(cc 1 2)"]
+  cc_01_02_b --> cc_01_01_d["(cc 1 1)"]
+  cc_01_01_d --> cc_01_00_d["(cc 1 0)"]
+  cc_01_01_d --> cc_00_01_d["(cc 0 1)"]
+  cc_01_02_b --> cc_m4_02_b["(cc -4 2)"]
+
+  cc_01_03_a --> cc_m9_03["(cc -9 3)"]
+
+  cc_11_04_a --> cc_m14_04["(cc -14 4)"]
+
+  cc_11_05_a --> cc_m39_05["(cc -39 5)"]
+
+  classDef highlightNode fill:#ffcccc,stroke:#cc0000,stroke-width:2px;
+  class cc_00_01_a highlightNode;
+  class cc_00_01_b highlightNode;
+  class cc_00_01_c highlightNode;
+  class cc_00_01_d highlightNode;
+</pre>
 <pre><code class="language-lisp">;; file: 1_14.rkt
 
 ;; 1.2.2: count-change
@@ -970,8 +1069,8 @@ VERY-SMALL-RADIO
 (count-change 100)
 ;;=&gt; 292
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace cc)
+(#%require (prefix trace: racket/trace))
+(trace:trace cc)
 (count-change 11)
 ;;=&gt; 4
 ;;
@@ -1013,9 +1112,9 @@ VERY-SMALL-RADIO
       angle
       (p (sine (/ angle 3.0)))))
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace p)
-(trace/trace sine)
+(#%require (prefix trace: racket/trace))
+(trace:trace p)
+(trace:trace sine)
 
 ;; 1. (sine 12.15)가 호출되면 p가 몇번 호출되나?
 ;; sine에서 angle을 3.0으로 계속 나누고 탈출조건은 |angle| &lt; 0.1이니
@@ -1161,7 +1260,7 @@ VERY-SMALL-RADIO
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../chapter/ch05.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../solution/solution_index.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -1175,7 +1274,7 @@ VERY-SMALL-RADIO
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../chapter/ch05.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../solution/solution_index.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 

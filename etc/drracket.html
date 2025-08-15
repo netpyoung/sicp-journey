@@ -194,13 +194,38 @@
 </ul>
 </li>
 </ul>
+<h2 id="왜-drracket"><a class="header" href="#왜-drracket">왜 DrRacket</a></h2>
+<ul>
+<li>ref: <a href="https://github.com/zv/SICP-guile?tab=readme-ov-file#language">https://github.com/zv/SICP-guile?tab=readme-ov-file#language</a>
+<ul>
+<li>Zetavolt이란 분은 GNU Guile을 추천함.</li>
+</ul>
+</li>
+</ul>
+<div class="table-wrapper"><table><thead><tr><th></th><th>PL</th><th>r5rs</th><th>함수 재정의</th><th>GUI IDE</th></tr></thead><tbody>
+<tr><td>DrRacket</td><td>Racket</td><td>O</td><td>X</td><td>DrRacket</td></tr>
+<tr><td>MITScheme</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
+<tr><td>GNU Guile</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
+<tr><td>CHICKEN Scheme</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
+<tr><td>SBCL</td><td>Common Lisp</td><td>X</td><td>O</td><td>Slt Plugin for JetBrains IDEs</td></tr>
+<tr><td>LispWorks</td><td>Common Lisp</td><td>X</td><td>O</td><td>LispWorks</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>Common Lisp로 하는건 일단 배제하고,</li>
+<li><strong>Emacs 사용이 자유로운 사람</strong>이라면, 함수를 계속 덮어쓰므로 Scheme구현체 중 하나를 선택하면 좋다.</li>
+<li><strong>단점!</strong> 물론 불러온 함수 재정의가 안되는 치명적인 단점과 필요에 따라 추가적인 racket문법을 익혀야 한다는 단점이 있다.</li>
+<li><strong>장점!</strong> 설치도 간편. IDE를 지원하는게 DrRacket이 유일. 디버거도 그럭저럭 쓸만하고, racket 패키지들도 유용하고 문서화가 잘 되어 있다.</li>
+<li>단점도 엄청 치명적이긴 한데 IDE지원이라는 장점이 진입장벽을 낮춤으로써 단점보다 조금 더 낫다고 생각했다.</li>
+</ul>
 <h2 id="흔히-쓰게될-단축키"><a class="header" href="#흔히-쓰게될-단축키">흔히 쓰게될 단축키</a></h2>
-<div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th></tr></thead><tbody>
-<tr><td>파일 실행</td><td>Ctrl + R  / F5</td><td></td></tr>
-<tr><td>코드 정렬</td><td>Ctrl + I</td><td></td></tr>
-<tr><td>코드 &lt;=&gt; Repl 전환</td><td>Ctrl + F6</td><td>shift-focus</td></tr>
-<tr><td>λ 문자 삽입</td><td>Ctrl + \</td><td>insert λ</td></tr>
-<tr><td>자동완성</td><td>Ctrl + /</td><td>Complete Word</td></tr>
+<div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th><th></th></tr></thead><tbody>
+<tr><td>파일 실행</td><td>Ctrl + R  / F5</td><td></td><td></td></tr>
+<tr><td>코드 포맷</td><td>Ctrl + I</td><td></td><td></td></tr>
+<tr><td>코드 &lt;=&gt; Repl 전환</td><td>Ctrl + F6</td><td>shift-focus</td><td></td></tr>
+<tr><td>λ 문자 삽입</td><td>Ctrl + \</td><td>insert λ</td><td>#lang racket에선 lambda대신 λ도 가능</td></tr>
+<tr><td>자동완성</td><td>Ctrl + /</td><td>Complete Word</td><td></td></tr>
+<tr><td>파일 버퍼 되돌리기</td><td>Ctrl + Shift + E</td><td>Revert</td><td>외부 에디터에서 파일을 수정해도 자동으로 버퍼를 갱신하지 않으니 외부에서 파일 수정시 버퍼 초기화 용도</td></tr>
 </tbody></table>
 </div>
 <ul>
@@ -216,6 +241,7 @@
 <li>File &gt; Package Manager... 쪽에서 sicp를 찾아보면 된다
 <ul>
 <li><a href="https://docs.racket-lang.org/sicp-manual/SICP_Language.html">https://docs.racket-lang.org/sicp-manual/SICP_Language.html</a></li>
+<li><a href="https://github.com/sicp-lang/sicp/tree/master">https://github.com/sicp-lang/sicp/tree/master</a></li>
 </ul>
 </li>
 </ul>
@@ -320,14 +346,43 @@
 (#%require rackunit)
 
 (check-equal? (+ 1 2) 3)
+;; (check-equal? &lt;expected&gt; &lt;actual&gt; &lt;message&gt;)
 </code></pre>
 <h3 id="drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면"><a class="header" href="#drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면">DrRacket 디버거 사용이 힘들어 그냥 쉽게 출력해서 보고 싶다면</a></h3>
-<p>https://docs.racket-lang.org/debug/index.html</p>
+<ul>
+<li><a href="https://docs.racket-lang.org/debug/index.html">https://docs.racket-lang.org/debug/index.html</a></li>
+</ul>
 <pre><code class="language-lisp">#lang debug sicp
 (+ 1 2 #R(* 3 4))
 ;;&gt;&gt; {* 3 4} = 12
 ;;=&gt; 15
 </code></pre>
+<h3 id="함수-수행을-따라가-보고-싶다면"><a class="header" href="#함수-수행을-따라가-보고-싶다면">함수 수행을 따라가 보고 싶다면</a></h3>
+<ul>
+<li><a href="https://docs.racket-lang.org/reference/debugging.html">https://docs.racket-lang.org/reference/debugging.html</a></li>
+</ul>
+<pre><code>#lang sicp
+
+(define (f x)
+  (if (zero? x) 0
+      (add1 (f (sub1 x)))))
+
+(#%require (prefix trace: racket/trace))
+(trace:trace f)
+</code></pre>
+<h3 id="todo-errortrace"><a class="header" href="#todo-errortrace">todo errortrace</a></h3>
+<p>"C:\Program Files\Racket\Racket.exe" -l errortrace -t 4_08.rkt</p>
+<ul>
+<li>https://docs.racket-lang.org/errortrace/using-errortrace.html</li>
+</ul>
+<h3 id="todo-pretty-print"><a class="header" href="#todo-pretty-print">todo pretty print</a></h3>
+<ul>
+<li>https://docs.racket-lang.org/reference/pretty-print.html</li>
+</ul>
+<h3 id="todo-sandbox"><a class="header" href="#todo-sandbox">TODO sandbox</a></h3>
+<ul>
+<li>https://docs.racket-lang.org/reference/Sandboxed_Evaluation.html</li>
+</ul>
 <h3 id="기타-문법"><a class="header" href="#기타-문법">기타 문법</a></h3>
 <pre><code class="language-lisp">
 ;; 블록 코맨트( #; )
@@ -336,12 +391,8 @@
 
 ;; TODO 설명 필요
 
-(#%require threading)
-
-(#%require (prefix racket/ racket))
-(racket/provide (racket/all-defined-out))
-
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(#%require (prefix racket: racket))
+(racket:provide (racket:all-defined-out))
 </code></pre>
 
                     </main>

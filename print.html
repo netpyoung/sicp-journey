@@ -191,6 +191,20 @@
 </li>
 <li><a href="https://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs">wikipedia</a></li>
 </ul>
+<h2 id="요구조건"><a class="header" href="#요구조건">요구조건</a></h2>
+<ul>
+<li>엄청난 시간.
+<ul>
+<li>연습문제는 깊이있는 이해를 도와주지만, 손을 대는 순간 타임머신이므로, 탐독할 시간이 적으신 분은 욕심을 내려놓으셔야 합니다.</li>
+</ul>
+</li>
+<li>영어.
+<ul>
+<li>번역서가 있기는 하나, 번역하신 분께는 죄송하나, 원문의 내용을 오해하게 만들거나, 어색하거나 이해하기 어려운 번역이 있어 뭔가 이상하면 원서를 봐야합니다.</li>
+<li>Ai(chatgpt/deepl)나, 번역서비스(google/naver)를 이용 권장. 어쨋든 번역서 만으로 이해하는데 에로사항이 많음.</li>
+</ul>
+</li>
+</ul>
 <h2 id="책"><a class="header" href="#책">책</a></h2>
 <ul>
 <li><a href="https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/index.html">ver. mitp-content)</a>
@@ -257,6 +271,11 @@
 <li>챕터 <a href="https://zv.github.io/sicp-chapter-1">1</a> / <a href="https://zv.github.io/sicp-chapter-2">2</a> / <a href="https://zv.github.o/sicp-chapter-3">3</a> / <a href="https://zv.github.io/sicp-chapter-4">4</a></li>
 </ul>
 </li>
+<li><a href="https://sicp-solutions.net/">https://sicp-solutions.net/</a>
+<ul>
+<li>2장 초반부까지만</li>
+</ul>
+</li>
 <li>by lisp-korea
 <ul>
 <li><a href="https://github.com/lisp-korea/sicp">source 1</a></li>
@@ -269,10 +288,18 @@
 <li><a href="https://github.com/andstudy/afternoon/wiki/2014_SICP">https://github.com/andstudy/afternoon/wiki/2014_SICP</a></li>
 </ul>
 </li>
+<li><a href="https://www.inchmeal.io/sicp/index.html">https://www.inchmeal.io/sicp/index.html</a></li>
+<li><a href="https://github.com/hjcapple/reading-sicp">https://github.com/hjcapple/reading-sicp</a></li>
+<li><a href="https://github.com/ivanjovanovic/sicp">https://github.com/ivanjovanovic/sicp</a></li>
+<li><a href="https://eli.thegreenplace.net/tag/sicp">https://eli.thegreenplace.net/tag/sicp</a></li>
+<li><a href="https://github.com/l0stman/sicp">https://github.com/l0stman/sicp</a></li>
 </ul>
 <h2 id="기타"><a class="header" href="#기타">기타</a></h2>
 <ul>
 <li><a href="https://corecursive.com/039-hal-abelson-sicp/">Language Oriented Design - Discussing SICP with Hal Abelson</a></li>
+<li><a href="https://www.amazon.com/Instructors-Structure-Interpretation-Computer-Programs/dp/0262692201/">Instructor's Manual t/a Structure and Interpretation of Computer Programs</a></li>
+<li><a href="https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/9579/sicm_edition_2.zip/book.html">Structure and Interpretation of Classical Mechanics (SICM) </a></li>
+<li><a href="https://www.amazon.com/Software-Design-Flexibility-Programming-Yourself/dp/0262045494">Software Design for Flexibility</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="들어가며"><a class="header" href="#들어가며">들어가며</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="drracket"><a class="header" href="#drracket">DrRacket</a></h1>
@@ -285,13 +312,38 @@
 </ul>
 </li>
 </ul>
+<h2 id="왜-drracket"><a class="header" href="#왜-drracket">왜 DrRacket</a></h2>
+<ul>
+<li>ref: <a href="https://github.com/zv/SICP-guile?tab=readme-ov-file#language">https://github.com/zv/SICP-guile?tab=readme-ov-file#language</a>
+<ul>
+<li>Zetavolt이란 분은 GNU Guile을 추천함.</li>
+</ul>
+</li>
+</ul>
+<div class="table-wrapper"><table><thead><tr><th></th><th>PL</th><th>r5rs</th><th>함수 재정의</th><th>GUI IDE</th></tr></thead><tbody>
+<tr><td>DrRacket</td><td>Racket</td><td>O</td><td>X</td><td>DrRacket</td></tr>
+<tr><td>MITScheme</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
+<tr><td>GNU Guile</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
+<tr><td>CHICKEN Scheme</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
+<tr><td>SBCL</td><td>Common Lisp</td><td>X</td><td>O</td><td>Slt Plugin for JetBrains IDEs</td></tr>
+<tr><td>LispWorks</td><td>Common Lisp</td><td>X</td><td>O</td><td>LispWorks</td></tr>
+</tbody></table>
+</div>
+<ul>
+<li>Common Lisp로 하는건 일단 배제하고,</li>
+<li><strong>Emacs 사용이 자유로운 사람</strong>이라면, 함수를 계속 덮어쓰므로 Scheme구현체 중 하나를 선택하면 좋다.</li>
+<li><strong>단점!</strong> 물론 불러온 함수 재정의가 안되는 치명적인 단점과 필요에 따라 추가적인 racket문법을 익혀야 한다는 단점이 있다.</li>
+<li><strong>장점!</strong> 설치도 간편. IDE를 지원하는게 DrRacket이 유일. 디버거도 그럭저럭 쓸만하고, racket 패키지들도 유용하고 문서화가 잘 되어 있다.</li>
+<li>단점도 엄청 치명적이긴 한데 IDE지원이라는 장점이 진입장벽을 낮춤으로써 단점보다 조금 더 낫다고 생각했다.</li>
+</ul>
 <h2 id="흔히-쓰게될-단축키"><a class="header" href="#흔히-쓰게될-단축키">흔히 쓰게될 단축키</a></h2>
-<div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th></tr></thead><tbody>
-<tr><td>파일 실행</td><td>Ctrl + R  / F5</td><td></td></tr>
-<tr><td>코드 정렬</td><td>Ctrl + I</td><td></td></tr>
-<tr><td>코드 &lt;=&gt; Repl 전환</td><td>Ctrl + F6</td><td>shift-focus</td></tr>
-<tr><td>λ 문자 삽입</td><td>Ctrl + \</td><td>insert λ</td></tr>
-<tr><td>자동완성</td><td>Ctrl + /</td><td>Complete Word</td></tr>
+<div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th><th></th></tr></thead><tbody>
+<tr><td>파일 실행</td><td>Ctrl + R  / F5</td><td></td><td></td></tr>
+<tr><td>코드 포맷</td><td>Ctrl + I</td><td></td><td></td></tr>
+<tr><td>코드 &lt;=&gt; Repl 전환</td><td>Ctrl + F6</td><td>shift-focus</td><td></td></tr>
+<tr><td>λ 문자 삽입</td><td>Ctrl + \</td><td>insert λ</td><td>#lang racket에선 lambda대신 λ도 가능</td></tr>
+<tr><td>자동완성</td><td>Ctrl + /</td><td>Complete Word</td><td></td></tr>
+<tr><td>파일 버퍼 되돌리기</td><td>Ctrl + Shift + E</td><td>Revert</td><td>외부 에디터에서 파일을 수정해도 자동으로 버퍼를 갱신하지 않으니 외부에서 파일 수정시 버퍼 초기화 용도</td></tr>
 </tbody></table>
 </div>
 <ul>
@@ -307,6 +359,7 @@
 <li>File &gt; Package Manager... 쪽에서 sicp를 찾아보면 된다
 <ul>
 <li><a href="https://docs.racket-lang.org/sicp-manual/SICP_Language.html">https://docs.racket-lang.org/sicp-manual/SICP_Language.html</a></li>
+<li><a href="https://github.com/sicp-lang/sicp/tree/master">https://github.com/sicp-lang/sicp/tree/master</a></li>
 </ul>
 </li>
 </ul>
@@ -411,14 +464,43 @@
 (#%require rackunit)
 
 (check-equal? (+ 1 2) 3)
+;; (check-equal? &lt;expected&gt; &lt;actual&gt; &lt;message&gt;)
 </code></pre>
 <h3 id="drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면"><a class="header" href="#drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면">DrRacket 디버거 사용이 힘들어 그냥 쉽게 출력해서 보고 싶다면</a></h3>
-<p>https://docs.racket-lang.org/debug/index.html</p>
+<ul>
+<li><a href="https://docs.racket-lang.org/debug/index.html">https://docs.racket-lang.org/debug/index.html</a></li>
+</ul>
 <pre><code class="language-lisp">#lang debug sicp
 (+ 1 2 #R(* 3 4))
 ;;&gt;&gt; {* 3 4} = 12
 ;;=&gt; 15
 </code></pre>
+<h3 id="함수-수행을-따라가-보고-싶다면"><a class="header" href="#함수-수행을-따라가-보고-싶다면">함수 수행을 따라가 보고 싶다면</a></h3>
+<ul>
+<li><a href="https://docs.racket-lang.org/reference/debugging.html">https://docs.racket-lang.org/reference/debugging.html</a></li>
+</ul>
+<pre><code>#lang sicp
+
+(define (f x)
+  (if (zero? x) 0
+      (add1 (f (sub1 x)))))
+
+(#%require (prefix trace: racket/trace))
+(trace:trace f)
+</code></pre>
+<h3 id="todo-errortrace"><a class="header" href="#todo-errortrace">todo errortrace</a></h3>
+<p>"C:\Program Files\Racket\Racket.exe" -l errortrace -t 4_08.rkt</p>
+<ul>
+<li>https://docs.racket-lang.org/errortrace/using-errortrace.html</li>
+</ul>
+<h3 id="todo-pretty-print"><a class="header" href="#todo-pretty-print">todo pretty print</a></h3>
+<ul>
+<li>https://docs.racket-lang.org/reference/pretty-print.html</li>
+</ul>
+<h3 id="todo-sandbox"><a class="header" href="#todo-sandbox">TODO sandbox</a></h3>
+<ul>
+<li>https://docs.racket-lang.org/reference/Sandboxed_Evaluation.html</li>
+</ul>
 <h3 id="기타-문법"><a class="header" href="#기타-문법">기타 문법</a></h3>
 <pre><code class="language-lisp">
 ;; 블록 코맨트( #; )
@@ -427,12 +509,8 @@
 
 ;; TODO 설명 필요
 
-(#%require threading)
-
-(#%require (prefix racket/ racket))
-(racket/provide (racket/all-defined-out))
-
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
+(#%require (prefix racket: racket))
+(racket:provide (racket:all-defined-out))
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="1장-함수로-추상화-쌓기"><a class="header" href="#1장-함수로-추상화-쌓기">1장. 함수로 추상화 쌓기</a></h1>
 <ul>
@@ -563,7 +641,23 @@ false
 → 6
 </code></pre>
 <h2 id="일반-재귀-non-tail-recursion와-꼬리-재귀-tail-recursion"><a class="header" href="#일반-재귀-non-tail-recursion와-꼬리-재귀-tail-recursion">일반 재귀 (non-tail recursion)와 꼬리 재귀 (tail recursion)</a></h2>
-<h3 id="일반-재귀-non-tail-recursion"><a class="header" href="#일반-재귀-non-tail-recursion">일반 재귀 (non-tail recursion)</a></h3>
+<ul>
+<li>procedure와 process의 차이를 보여주며, procedure가 만들어내는 process를 상상해 낼 수 있는 능력을 강조.
+<ul>
+<li>procedure
+<ul>
+<li>함수 정의, 계산을 수행하기 위한 명령어 집합 혹은 알고리즘의 규칙</li>
+</ul>
+</li>
+<li>process
+<ul>
+<li>메모리, 시간, 호출 스택 등과 관련된 실행의 구체적인 양상</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="일반-재귀-non-tail-recursion-linear-recursive-process"><a class="header" href="#일반-재귀-non-tail-recursion-linear-recursive-process">일반 재귀 (non-tail recursion) linear recursive process</a></h3>
 <ul>
 <li>내부의 곱셈을 계산하기 위해 함수의 Call 스택이 쌓인다.
 <ul>
@@ -583,7 +677,7 @@ false
 ;; → 3 * (2 * (1 * 1))
 ;; → 6
 </code></pre>
-<h3 id="꼬리-재귀-tail-recursion"><a class="header" href="#꼬리-재귀-tail-recursion">꼬리 재귀 (tail recursion)</a></h3>
+<h3 id="꼬리-재귀-tail-recursion-linear-iterative-process"><a class="header" href="#꼬리-재귀-tail-recursion-linear-iterative-process">꼬리 재귀 (tail recursion) linear iterative process</a></h3>
 <ul>
 <li>스택 프레임 생성 자체를 억제시켜 함수의 Call 스택이지 않는다.
 <ul>
@@ -712,6 +806,22 @@ $$ x_{n+1} = \frac{1}{2} \left( x_n + \frac{S}{x_n} \right) $$</li>
 </code></pre>
 <hr />
 <h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
+<p>ex 1.5 Applicative-Order Evaluation / lazy</p>
+<p>1.17 뉴튼법 제곱근
+ex 1.6 뉴튼 cont if 스페셜폼
+ex 1.7 ** 뉴튼 cont good-enough 최적화
+ex 1.8 뉴튼 cont 세제곱근(cube root) - ** 식이 나와있는데 원레 3제곱에서 유도하는법
+1.3.4 - 뉴튼법 cont</p>
+<p>1.2.1 재귀</p>
+<ul>
+<li>non-tail recursion / tail recursion</li>
+<li>Primitive Recursive Function / or not
+ex 1.9  일반 재귀 (non-tail recursion)와 꼬리 재귀 (tail recursion)
+ex 1.10 에커만 함수 Primitive Recursive Function가 아닌  리커시브함수
+ex 1.11 ** 꼬리 재귀 (tail recursion) 연습 심화
+ex 1.12 파스칼 삼각형 recursion
+ex 1.13 *** 증명  ;; φ = (1+√5)/2 // Fib(n) = (φ^n)/√5 피보나치 수열. 특성방정식. 황금비. Binet 공식. 귀납법(induction)</li>
+</ul>
 <p>expt 거듭제곱
 GDC 유클리드
 소수찾기 페르마 검사
@@ -1083,8 +1193,11 @@ serializer</p>
 프로그래밍 언어를 직접 정의하고 확장하는 추상화 기법이다.</p>
 <hr />
 <h2 id="todo-3"><a class="header" href="#todo-3">TODO</a></h2>
-<p>4.1 lisp로 lisp 인터프리터 만들기.
-4.2 normal-order evaluation</p>
+<p>4.1 lisp로 lisp 인터프리터 만들기.</p>
+<p>저자가 작성한 eval / apply / env / frame 설명
+연습문제로 let / let* / letrec 확장을 볼 수 있다.
+halt problem</p>
+<p>4.2 normal-order evaluation</p>
 <ul>
 <li>3장에서 상태를 덮어쓰기 때문에 생겨나는 여러 복잡한 문제를 피하기 위해 스트림 데이터(lazy sequence)를 사용.</li>
 <li>Scheme(혹은 Racket)은 스트림 프로그램을 짜기에 번거로운 점이 있다
@@ -1226,18 +1339,93 @@ eval</p>
 (extend-environment
 (define-variable!
 (set-variable-value!</p>
-<p>4.1.4 언어 실행기를 보통 프로그램처럼 돌려보기
-4.1.5 프로그램도 데이터처럼
-4.1.6 안쪽 정의(internal definition)
-4.1.7 문법 분석과 실행 과정을 떼어놓기</p>
-<p>4.2 Scheme 바꿔보기 - 제때 계산법
-4.2.1 식의 값을 구하는 차례 - 정의대로 계산법과 인자 먼저 계산법
+<p>eval을 테스트하기 껄끄럽기에 연습문제 4.01 ~ 4.14는 4.1.4 Running the Evaluator as a Program 까지 읽고 풀기.</p>
+<ul>
+<li>개념
+<ul>
+<li>frame
+<ul>
+<li>((symbol-a symbol-b ...) value-a (primitive func-b) ...)</li>
+<li>변수/함수이름 리스트 + 변수/함수들...</li>
+<li>연습문제 4.11에서
+<ul>
+<li>'((변수/함수이름 변수/함수) ...) 식으로 바꿈</li>
+<li>'((symbol-a value-a) (symbol-b (primitive func-b)) ...)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>environment
+<ul>
+<li>(frame-a frame-b)</li>
+<li>프레임 리스트</li>
+<li>(cons new-frame env)</li>
+<li>(cons 'b '(a)) =&gt; (b a) 새로운 frame이 앞에오는 구조</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>4.1.4 언어 실행기를 보통 프로그램처럼 돌려보기</p>
+<p>set-car!
+set-cdr!</p>
+<p>(define (setup-environment)
+(let ((initial-env
+(extend-environment (primitive-procedure-names)
+(primitive-procedure-objects)
+the-empty-environment)))
+(define-variable! 'true true initial-env)
+(define-variable! 'false false initial-env)
+initial-env))</p>
+<p>연습 4.13 ** 문제 make-unbound! 함수를 만들어 env에서 지울 수 있도록 만들자. first-frame에서만 지우면 되는가?</p>
+<p>4.1.5 Data as Programs 프로그램도 데이터처럼</p>
+<p>6 =&gt; factorial =&gt; 720
+The factorial program, viewed as an abstract machine.
+6 =&gt; evaluator =&gt; 720
+evaluator as a very special machine</p>
+<p>evaluator is seen to be a universal machine.</p>
+<ul>
+<li>A Universal Turing machine, often just called a universal machine, is an abstract computational device that can simulate other computational devices.</li>
+<li>UTM https://en.wikipedia.org/wiki/Universal_Turing_machine</li>
+</ul>
+<p>단순하고 자명한 것에서 복잡한것이 나오게 된다.</p>
+<p>GEB( <code>G</code>ödel, <code>E</code>scher, <code>B</code>ach: an Eternal Golden Braid )
+괴델, 에셔, 바흐: 영원한 황금 노끈
+https://de.wikipedia.org/wiki/G%C3%B6del,_Escher,_Bach</p>
+<p>recursion theory ( Computability theory ) "무엇이 계산 가능하고, 무엇이 절대 계산 불가능한가?"
+https://en.wikipedia.org/wiki/Computability_theory</p>
+<p>연습 4.15 ** Halting Problem</p>
+<p>4.1.6 안쪽 정의(internal definition)</p>
+<p>c언어의 전방선언과 비슷한 느낌.</p>
+<p>선언과 할당을 동시에 할때 생기는 문제
+let을 써서(frame 을 하나 더 써서) 풀어보고
+선언 먼저 <code>'*unassigned*</code>로 공간을 만들어주고 그 다음 할당.</p>
+<p>연습문제 4.17 - frame을 쓰지 않고 풀어보고</p>
+<p>연습문제 4.19 ** Sequential Scope Simultaneous Scope lazy evaluation
+연습문제 4.21 ** Z combinator - lambda calculus</p>
+<p>4.1.7 문법 분석과 실행 과정을 떼어놓기</p>
+<ul>
+<li>eval시 analyze과정을 넣어 최적화</li>
+</ul>
+<hr />
+<p>4.2 Scheme 바꿔보기 - 제때 계산법</p>
+<p>lazy evaluation &lt;=&gt; eager evaluation</p>
+<p>(define (try a b)
+(if (= a 0)
+1
+b))</p>
+<p>(try 0 (/ 1 0))
+;=&gt; 1                   // lazy  evaluation
+;!&gt; /: division by zero // eager evaluation</p>
+<p>4.2.1 식의 값을 구하는 차례 - 정의대로 계산법과 인자 먼저 계산법
 4.2.2 제때 계산법을 따르는 실행기
 4.2.3 제때셈 리스트와 스트림</p>
+<hr />
 <p>4.3 Scheme 바꿔보기 - 비결정적 계산
 4.3.1 amb와 찾기
 4.3.2 비결정적 프로그램 짜기
 4.3.3 amb 실행기 구현</p>
+<hr />
 <p>4.4 논리로 프로그램 짜기
 4.4.1 연역식 정보 찾기
 4.4.2 쿼리 시스템의 동작 방식
@@ -1251,6 +1439,10 @@ eval</p>
 4.4.4.6 스트림 연산
 4.4.4.7 쿼리의 문법을 처리하는 프로시저
 4.4.4.8 일람표와 정의</p>
+<p>4.01 cons left right
+4.02 application? 위치
+4.03 data-directed style
+4.04 and? or? 추가</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="5장-레지스터-머신으로-계산"><a class="header" href="#5장-레지스터-머신으로-계산">5장. 레지스터 머신으로 계산</a></h1>
 <hr />
 <h2 id="todo-4"><a class="header" href="#todo-4">TODO</a></h2>
@@ -1291,6 +1483,79 @@ eval</p>
 5.5.5 번역된 코드의 예
 5.5.6 텍스트에서 변수의 정의를 파악하기(lexical addressing)
 5.5.7 번역된 코드를 실행기에 연결하기</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="풀이"><a class="header" href="#풀이">풀이</a></h1>
+<h2 id="chapter-1---building-abstractions-with-procedures"><a class="header" href="#chapter-1---building-abstractions-with-procedures">Chapter 1 - Building Abstractions with Procedures</a></h2>
+<h3 id="11--the-elements-of-programming"><a class="header" href="#11--the-elements-of-programming">1.1 – The Elements of Programming</a></h3>
+<p>1.01	1.02	1.03	1.04	1.05	1.06	1.07	1.08	–	–</p>
+<h3 id="12--procedures-and-the-processes-they-generate"><a class="header" href="#12--procedures-and-the-processes-they-generate">1.2 – Procedures and the Processes They Generate</a></h3>
+<p>1.09	1.10	1.11	1.12	1.13	1.14	1.15	1.16	1.17	1.18
+1.19	1.20	1.21	1.22	1.23	1.24	1.25	1.26	1.27	1.28</p>
+<h3 id="13--formulating-abstractions-with-higher-order-procedures"><a class="header" href="#13--formulating-abstractions-with-higher-order-procedures">1.3 – Formulating Abstractions with Higher-Order Procedures</a></h3>
+<p>1.29	1.30	1.31	1.32	1.33	1.34	1.35	1.36	1.37	1.38
+1.39	1.40	1.41	1.42	1.43	1.44	1.45	1.46	–	–</p>
+<h2 id="chapter-2---building-abstractions-with-data"><a class="header" href="#chapter-2---building-abstractions-with-data">Chapter 2 - Building Abstractions with Data</a></h2>
+<h3 id="21--introduction-to-data-abstraction"><a class="header" href="#21--introduction-to-data-abstraction">2.1 – Introduction to Data Abstraction</a></h3>
+<p>2.01	2.02	2.03	2.04	2.05	2.06	2.07	2.08	2.09	2.10
+2.11	2.12	2.13	2.14	2.15	2.16	–	–	–	–</p>
+<h3 id="22--hierarchical-data-and-the-closure-property"><a class="header" href="#22--hierarchical-data-and-the-closure-property">2.2 – Hierarchical Data and the Closure Property</a></h3>
+<p>2.17	2.18	2.19	2.20	2.21	2.22	2.23	2.24	2.25	2.26
+2.27	2.28	2.29	2.30	2.31	2.32	2.33	2.34	2.35	2.36
+2.37	2.38	2.39	2.40	2.41	2.42	2.43	2.44	2.45	2.46
+2.47	2.48	2.49	2.50	2.51	2.52	–	–	–	–</p>
+<h3 id="23--symbolic-data"><a class="header" href="#23--symbolic-data">2.3 – Symbolic Data</a></h3>
+<p>2.53	2.54	2.55	2.56	2.57	2.58	2.59	2.60	2.61	2.62
+2.63	2.64	2.65	2.66	2.67	2.68	2.69	2.70	2.71	2.72</p>
+<h3 id="24--multiple-representations-for-abstract-data"><a class="header" href="#24--multiple-representations-for-abstract-data">2.4 – Multiple Representations for Abstract Data</a></h3>
+<p>2.73	2.74	2.75	2.76	–	–	–	–	–	–</p>
+<h3 id="25--systems-with-generic-operations"><a class="header" href="#25--systems-with-generic-operations">2.5 – Systems with Generic Operations</a></h3>
+<p>2.77	2.78	2.79	2.80	2.81	2.82	2.83	2.84	2.85	2.86
+2.87	2.88	2.89	2.90	2.91	2.92	2.93	2.94	2.95	2.96
+2.97	–	–	–	–	–	–	–	–	–</p>
+<h2 id="chapter-3---modularity-objects-and-state"><a class="header" href="#chapter-3---modularity-objects-and-state">Chapter 3 - Modularity, Objects, and State</a></h2>
+<h3 id="31--assignment-and-local-state"><a class="header" href="#31--assignment-and-local-state">3.1 – Assignment and Local State</a></h3>
+<p>3.01	3.02	3.03	3.04	3.05	3.06	3.07	3.08	–	–</p>
+<h3 id="32--the-environment-model-of-evaluation"><a class="header" href="#32--the-environment-model-of-evaluation">3.2 – The Environment Model of Evaluation</a></h3>
+<p>3.09	3.10	3.11	–	–	–	–	–	–	–</p>
+<h3 id="33--modeling-with-mutable-data"><a class="header" href="#33--modeling-with-mutable-data">3.3 – Modeling with Mutable Data</a></h3>
+<p>3.12	3.13	3.14	3.15	3.16	3.17	3.18	3.19	3.20	3.21
+3.22	3.23	3.24	3.25	3.26	3.27	3.28	3.29	3.30	3.31
+3.32	3.33	3.34	3.35	3.36	3.37	–	–	–	–</p>
+<h3 id="34--concurrency-time-is-of-the-essence"><a class="header" href="#34--concurrency-time-is-of-the-essence">3.4 – Concurrency: Time Is of the Essence</a></h3>
+<p>3.38	3.39	3.40	3.41	3.42	3.43	3.44	3.45	3.46	3.47
+3.48	3.49	–	–	–	–	–	–	–	–</p>
+<h3 id="35--streams"><a class="header" href="#35--streams">3.5 – Streams</a></h3>
+<p>3.50	3.51	3.52	3.53	3.54	3.55	3.56	3.57	3.58	3.59
+3.60	3.61	3.62	3.63	3.64	3.65	3.66	3.67	3.68	3.69
+3.70	3.71	3.72	3.73	3.74	3.75	3.76	3.77	3.78	3.79
+3.80	3.81	3.82	–	–	–	–	–	–	–</p>
+<h2 id="chapter-4---metalinguistic-abstraction"><a class="header" href="#chapter-4---metalinguistic-abstraction">Chapter 4 - Metalinguistic Abstraction</a></h2>
+<h3 id="41--the-metacircular-evaluator"><a class="header" href="#41--the-metacircular-evaluator">4.1 – The Metacircular Evaluator</a></h3>
+<p>4.01	4.02	4.03	4.04	4.05	4.06	4.07	4.08	4.09	4.10
+4.11	4.12	4.13	4.14	4.15	4.16	4.17	4.18	4.19	4.20
+4.21	4.22	4.23	4.24	–	–	–	–	–	–</p>
+<h3 id="42--variations-on-a-scheme--lazy-evaluation"><a class="header" href="#42--variations-on-a-scheme--lazy-evaluation">4.2 – Variations on a Scheme – Lazy Evaluation</a></h3>
+<p>4.25	4.26	4.27	4.28	4.29	4.30	4.31	4.32	4.33	4.34</p>
+<h3 id="43--variations-on-a-scheme--nondeterministic-computing"><a class="header" href="#43--variations-on-a-scheme--nondeterministic-computing">4.3 – Variations on a Scheme – Nondeterministic Computing</a></h3>
+<p>4.35	4.36	4.37	4.38	4.39	4.40	4.41	4.42	4.43	4.44
+4.45	4.46	4.47	4.48	4.49	4.50	4.51	4.52	4.53	4.54</p>
+<h3 id="44--logic-programming"><a class="header" href="#44--logic-programming">4.4 – Logic Programming</a></h3>
+<p>4.55	4.56	4.57	4.58	4.59	4.60	4.61	4.62	4.63	4.64
+4.65	4.66	4.67	4.68	4.69	4.70	4.71	4.72	4.73	4.74
+4.75	4.76	4.77	4.78	4.79	–	–	–	–	–</p>
+<h2 id="chapter-5---computing-with-register-machines"><a class="header" href="#chapter-5---computing-with-register-machines">Chapter 5 - Computing with Register Machines</a></h2>
+<h3 id="51--designing-register-machines"><a class="header" href="#51--designing-register-machines">5.1 – Designing Register Machines</a></h3>
+<p>5.01	5.02	5.03	5.04	5.05	5.06	–	–	–	–</p>
+<h3 id="52--a-register-machine-simulator"><a class="header" href="#52--a-register-machine-simulator">5.2 – A Register-Machine Simulator</a></h3>
+<p>5.07	5.08	5.09	5.10	5.11	5.12	5.13	5.14	5.15	5.16
+5.17	5.18	5.19	–	–	–	–	–	–	–</p>
+<h3 id="53--storage-allocation-and-garbage-collection"><a class="header" href="#53--storage-allocation-and-garbage-collection">5.3 – Storage Allocation and Garbage Collection</a></h3>
+<p>5.20	5.21	5.22	–	–	–	–	–	–	–</p>
+<h3 id="54--the-explicit-control-evaluator"><a class="header" href="#54--the-explicit-control-evaluator">5.4 – The Explicit-Control Evaluator</a></h3>
+<p>5.23	5.24	5.25	5.26	5.27	5.28	5.29	5.30	–	–</p>
+<h3 id="55--compilation"><a class="header" href="#55--compilation">5.5 – Compilation</a></h3>
+<p>5.31	5.32	5.33	5.34	5.35	5.36	5.37	5.38	5.39	5.40
+5.41	5.42	5.43	5.44	5.45	5.46	5.47	5.48	5.49	5.50
+5.51	5.52	–	–	–	–	–	–</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-01"><a class="header" href="#연습문제-풀이-01">연습문제 풀이 01</a></h1>
 <ul>
 <li><a href="https://github.com/netpyoung/sicp-journey/tree/main/source/solution_01">https://github.com/netpyoung/sicp-journey/tree/main/source/solution_01</a></li>
@@ -1360,6 +1625,7 @@ eval</p>
 
 (#%require rackunit)
 (#%require threading)
+(#%require "../helper/my-util.rkt")
 
 ;; a, b, c 를 인자로 받고 가장 큰 두 수의 제곱의 합
 ;; 1.1.4에 나온 sum-of-squares 사용.
@@ -1383,9 +1649,6 @@ eval</p>
 
 ;; ======================================================================================
 ;; 번외. sequcne(list)와 고차함수를(filter/sort/take)  이용한 방법.
-
-(define first car)
-(define rest cdr)
 
 (define (filter pred? sequence)
   (cond ((null? sequence) '())
@@ -1522,7 +1785,7 @@ eval</p>
 <h2 id="1_07"><a class="header" href="#1_07">1_07</a></h2>
 <pre><code class="language-lisp">;; file: 1_07.rkt
 (#%require threading)
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
 
 ;; 1.1.7 연습: 뉴튼 법으로 제곱근 찾기
@@ -1587,16 +1850,44 @@ VERY-SMALL-RADIO
 ;; 아주 큰 수의 제곱근을 잘 구하는가?
 ;; 아주 작은 수 의 제곱근을 잘 구하는가?
 (define COMPARE-EPSILON 0.00000001)
-(check-= (sqrt 0.00000000123456) (racket/sqrt 0.00000000123456) COMPARE-EPSILON)
-(check-= (sqrt 123456789012345) (racket/sqrt 123456789012345) COMPARE-EPSILON)
+(check-= (sqrt 0.00000000123456) (racket:sqrt 0.00000000123456) COMPARE-EPSILON)
+(check-= (sqrt 123456789012345) (racket:sqrt 123456789012345) COMPARE-EPSILON)
 
 
 ;; ref: https://sicp-solutions.net/post/sicp-solution-exercise-1-7/
 </code></pre>
 <h2 id="1_08"><a class="header" href="#1_08">1_08</a></h2>
+<p>$$
+\text{목표: } y = \sqrt[3]{x}
+$$</p>
+<p>$$
+\text{⇒ 양변을 세제곱: } y^3 = x
+$$</p>
+<p>$$
+\text{⇒ 함수로 표현: } f(y) = y^3 - x
+$$</p>
+<p>$$
+\text{⇒ 도함수: } f'(y) = 3y^2
+$$</p>
+<p>$$
+\text{⇒ 뉴튼 방법 일반식: } y_{n+1} = y_n - \frac{f(y_n)}{f'(y_n)}
+$$</p>
+<p>$$
+\text{⇒ 대입: } y_{n+1} = y_n - \frac{y_n^3 - x}{3y_n^2}
+$$</p>
+<p>$$
+= y_n - \frac{1}{3} \left( y_n - \frac{x}{y_n^2} \right)
+$$</p>
+<p>$$
+= \frac{2y_n + \frac{x}{y_n^2}}{3}
+$$</p>
+<p>$$
+\therefore \boxed{
+y_{n+1} = \frac{x/y_n^2 + 2y_n}{3}
+}
+$$</p>
 <pre><code class="language-lisp">;; file: 1_08.rkt
 (#%require threading)
-(#%require (prefix racket/ racket))
 (#%require rackunit)
 
 ;; imporve 가 바뀌고 나머지는sqrt를 구할때와 거의 비슷한 흐름으로 흘러간다.
@@ -1653,9 +1944,9 @@ VERY-SMALL-RADIO
 ;; (y+ 0 3)
 ;;=&gt; 3
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace x+)
-(trace/trace y+)
+(#%require (prefix trace: racket/trace))
+(trace:trace x+)
+(trace:trace y+)
 
 (display "x+ ==============================\n")
 (x+ 2 1)
@@ -1757,9 +2048,9 @@ VERY-SMALL-RADIO
         ((= n 0) (C (- m 1) 1))
         (else    (C (- m 1) (C m (- n 1))))))
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace φ)
-(trace/trace C)
+(#%require (prefix trace: racket/trace))
+(trace:trace φ)
+(trace:trace C)
 (φ 1 2 3)
 (C 2 1)
 </code></pre>
@@ -1801,9 +2092,9 @@ VERY-SMALL-RADIO
 
 
 
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
-(racket/for ([i 20])
+(racket:for ([i 20])
             (check-eq? (f-recur i)(f-iter i)))
 </code></pre>
 <h2 id="1_12"><a class="header" href="#1_12">1_12</a></h2>
@@ -1819,11 +2110,11 @@ VERY-SMALL-RADIO
 
 
 
-(#%require (prefix racket/ racket))
-(racket/for ([y (racket/in-inclusive-range 0 5)])
+(#%require (prefix racket: racket))
+(racket:for ([y (racket:in-inclusive-range 0 5)])
             (display y)
             (display ": ")
-            (racket/for ([x (racket/in-inclusive-range 0 y)])
+            (racket:for ([x (racket:in-inclusive-range 0 y)])
                         (display (P x y))
                         (display " "))
             (newline))
@@ -2018,7 +2309,7 @@ VERY-SMALL-RADIO
 ;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
 
 
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require threading)
 (#%require rackunit)
 
@@ -2041,17 +2332,90 @@ VERY-SMALL-RADIO
         (round-half-up))))
 
 (define (round-half-up x)
-  ;; racket/exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
+  ;; racket:exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
   ;; Round half up은 0.5이상 일때 무조건 올림.
   (cond ((zero? x) 0)
-        ((positive? x) (racket/exact-floor (+ x 0.5)))
-        (else          (racket/exact-floor (- x 0.5)))))
+        ((positive? x) (racket:exact-floor (+ x 0.5)))
+        (else          (racket:exact-floor (- x 0.5)))))
 
-(racket/for ([x (racket/in-inclusive-range 1 75)])
+(racket:for ([x (racket:in-inclusive-range 1 75)])
             ;; 부동소수점 정밀도의 한계로 에러가 발생.
-            (check-eq? (fib x) (fib-binet x) (racket/~a x)))
+            (check-eq? (fib x) (fib-binet x) (racket:~a x)))
 </code></pre>
 <h2 id="1_14"><a class="header" href="#1_14">1_14</a></h2>
+<ul>
+<li>1.2.2에서 나온 count-change 함수가 11 센트(cent)에 맞게 잔돈을 만들어내는 트리를 그려보아라.</li>
+</ul>
+<pre class="mermaid">
+%%{init: {'flowchart' : {'curve' : 'monotoneX'}}}%%
+graph TD
+  cc_11_05_a["(cc 11 5)"] --> cc_11_04_a["(cc 11 4)"]
+  cc_11_04_a --> cc_11_03_a["(cc 11 3)"]
+  cc_11_03_a --> cc_11_02_a["(cc 11 2)"]
+  cc_11_02_a --> cc_11_01_a["(cc 11 1)"]
+  cc_11_01_a --> cc_11_00_a["(cc 11 0)"]
+  cc_11_01_a --> cc_10_01_a["(cc 10 1)"]
+  cc_10_01_a --> cc_10_00_a["(cc 10 0)"]
+  cc_10_01_a --> cc_09_01_a["(cc 9 1)"]
+  cc_09_01_a --> cc_09_00_a["(cc 9 0)"]
+  cc_09_01_a --> cc_08_01_a["(cc 8 1)"]
+  cc_08_01_a --> cc_08_00_a["(cc 8 0)"]
+  cc_08_01_a --> cc_07_01_a["(cc 7 1)"]
+  cc_07_01_a --> cc_07_00_a["(cc 7 0)"]
+  cc_07_01_a --> cc_06_01_a["(cc 6 1)"]
+  cc_06_01_a --> cc_06_00_a["(cc 6 0)"]
+  cc_06_01_a --> cc_05_01_a["(cc 5 1)"]
+  cc_05_01_a --> cc_05_00_a["(cc 5 0)"]
+  cc_05_01_a --> cc_04_01_a["(cc 4 1)"]
+  cc_04_01_a --> cc_04_00_a["(cc 4 0)"]
+  cc_04_01_a --> cc_03_01_a["(cc 3 1)"]
+  cc_03_01_a --> cc_03_00_a["(cc 3 0)"]
+  cc_03_01_a --> cc_02_01_a["(cc 2 1)"]
+  cc_02_01_a --> cc_02_00_a["(cc 2 0)"]
+  cc_02_01_a --> cc_01_01_a["(cc 1 1)"]
+  cc_01_01_a --> cc_01_00_a["(cc 1 0)"]
+  cc_01_01_a --> cc_00_01_a["(cc 0 1)"]
+
+  cc_11_02_a --> cc_06_02_a["(cc 6 2)"]
+  cc_06_02_a --> cc_06_01_b["(cc 6 1)"]
+  cc_06_01_b --> cc_06_00_b["(cc 6 0)"]
+  cc_06_01_b --> cc_05_01_b["(cc 5 1)"]
+  cc_05_01_b --> cc_05_00_b["(cc 5 0)"]
+  cc_05_01_b --> cc_04_01_b["(cc 4 1)"]
+  cc_04_01_b --> cc_04_00_b["(cc 4 0)"]
+  cc_04_01_b --> cc_03_01_b["(cc 3 1)"]
+  cc_03_01_b --> cc_03_00_b["(cc 3 0)"]
+  cc_03_01_b --> cc_02_01_b["(cc 2 1)"]
+  cc_02_01_b --> cc_02_00_b["(cc 2 0)"]
+  cc_02_01_b --> cc_01_01_b["(cc 1 1)"]
+  cc_01_01_b --> cc_01_00_b["(cc 1 0)"]
+  cc_01_01_b --> cc_00_01_b["(cc 0 1)"]
+
+  cc_06_02_a --> cc_01_02_a["(cc 1 2)"]
+  cc_01_02_a --> cc_01_01_c["(cc 1 1)"]
+  cc_01_01_c --> cc_01_00_c["(cc 1 0)"]
+  cc_01_01_c --> cc_00_01_c["(cc 0 1)"]
+  cc_01_02_a --> cc_m4_02["(cc -4 2)"]
+
+  cc_11_03_a --> cc_01_03_a["(cc 1 3)"]
+  cc_01_03_a --> cc_01_02_b["(cc 1 2)"]
+  cc_01_02_b --> cc_01_01_d["(cc 1 1)"]
+  cc_01_01_d --> cc_01_00_d["(cc 1 0)"]
+  cc_01_01_d --> cc_00_01_d["(cc 0 1)"]
+  cc_01_02_b --> cc_m4_02_b["(cc -4 2)"]
+
+  cc_01_03_a --> cc_m9_03["(cc -9 3)"]
+
+  cc_11_04_a --> cc_m14_04["(cc -14 4)"]
+
+  cc_11_05_a --> cc_m39_05["(cc -39 5)"]
+
+  classDef highlightNode fill:#ffcccc,stroke:#cc0000,stroke-width:2px;
+  class cc_00_01_a highlightNode;
+  class cc_00_01_b highlightNode;
+  class cc_00_01_c highlightNode;
+  class cc_00_01_d highlightNode;
+</pre>
 <pre><code class="language-lisp">;; file: 1_14.rkt
 
 ;; 1.2.2: count-change
@@ -2077,8 +2441,8 @@ VERY-SMALL-RADIO
 (count-change 100)
 ;;=&gt; 292
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace cc)
+(#%require (prefix trace: racket/trace))
+(trace:trace cc)
 (count-change 11)
 ;;=&gt; 4
 ;;
@@ -2120,9 +2484,9 @@ VERY-SMALL-RADIO
       angle
       (p (sine (/ angle 3.0)))))
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace p)
-(trace/trace sine)
+(#%require (prefix trace: racket/trace))
+(trace:trace p)
+(trace:trace sine)
 
 ;; 1. (sine 12.15)가 호출되면 p가 몇번 호출되나?
 ;; sine에서 angle을 3.0으로 계속 나누고 탈출조건은 |angle| &lt; 0.1이니
@@ -2927,9 +3291,10 @@ VERY-SMALL-RADIO
 <p>Exercise 2.73</p>
 <pre><code class="language-lisp">;; file: 4_03.rkt
 
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require "../allcode/ch3-3.3.3.rkt")
-(#%require rackunit)
 
 ;; eval을 data-directed style 로 고쳐라
 ;; 그 후 Exercise 2.73 와 비교해보자
@@ -2981,9 +3346,6 @@ VERY-SMALL-RADIO
 ;;
 ;; 그리고 각 함수들에 대해 (tagged-func-name&gt; exp env) 이런 식으로 정규화를 시켜줘야 한다.
 
-(define first car)
-(define rest cdr)
-
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
@@ -3023,14 +3385,13 @@ VERY-SMALL-RADIO
 <h2 id="4_04"><a class="header" href="#4_04">4_04</a></h2>
 <pre><code class="language-lisp">;; file: 4_04.rkt
 
-(#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require rackunit)
+(#%require (prefix racket: racket))
+(#%require "../helper/my-util.rkt")
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; Install and and or as new special forms
 ;;
-(define first car)
-(define rest cdr)
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
@@ -3159,17 +3520,12 @@ VERY-SMALL-RADIO
 <h2 id="4_05"><a class="header" href="#4_05">4_05</a></h2>
 <pre><code class="language-lisp">;; file: 4_05.rkt
 
-(#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require rackunit)
+(#%require (prefix racket: racket))
+(#%require "../helper/my-util.rkt")
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; expand-clauses의 (sequence-&gt;exp (cond-actions first)) 부분을 수정하면 된다.
-
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
-
 (define (cond-&gt;if exp)
   (expand-clauses (cond-clauses exp)))
  
@@ -3269,18 +3625,15 @@ VERY-SMALL-RADIO
 ;; 4_22
 
 
-(#%require (prefix racket/ racket))
 (#%require rackunit)
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 
-(racket/provide
+(racket:provide
  let?
  let-&gt;combination)
 
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
 
 ;; let-&gt;combination 구현 ------------------------------
 ;; 중첩 let을 생각안하면 4_07에서 오류를 맞이할거임.
@@ -3340,9 +3693,10 @@ VERY-SMALL-RADIO
 ;; 4_06 cont
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
-(racket/provide
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+(racket:provide
  make-let
  let*?
  let*-&gt;nested-lets)
@@ -3360,12 +3714,6 @@ VERY-SMALL-RADIO
 ;;       (* x z)))))
 ;;
 ;; 1-2. let*-&gt;nested-lets 를 작성해라.
-
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
-
 (define (make-let binding body)
   ;; (make-let '((a 1)) '(1 2 3))
   ;; =&gt; (let ((a 1)) 1 2 3)
@@ -3459,16 +3807,16 @@ VERY-SMALL-RADIO
 (define-variable! '+ (list 'primitive +) env2)
 (define-variable! '* (list 'primitive *) env2)
 
-(#%require (prefix  r5rs/ r5rs))
+(#%require (prefix r5rs: r5rs))
 (define expression '(let* ((x 3)
                            (y (+ x 2))
                            (z (+ x y 5)))
                       (* x z)))
 
-(#%require (prefix trace/ racket/trace))
+(#%require (prefix trace: racket/trace))
 
 (check-equal? (eval expression env2)
-              (r5rs/eval expression (scheme-report-environment 5)))
+              (r5rs:eval expression (scheme-report-environment 5)))
 
 (override-eval! origin/eval)
 </code></pre>
@@ -3478,6 +3826,14 @@ VERY-SMALL-RADIO
 ;; file: 4_08.rkt
 ;; 4_06 cont
 
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "4_06.rkt" let-&gt;combination-normal let-&gt;combination))
+
+(racket:provide
+ make-define
+ let-&gt;combination)
 
 ;; 기존 let-&gt;combination
 ;; 
@@ -3496,16 +3852,6 @@ VERY-SMALL-RADIO
 ;;      (+ a b))
 ;;    (hello 1 2)))
 ;;
-(#%require (prefix racket/ racket))
-(#%require (rename "4_06.rkt" let-&gt;combination-normal let-&gt;combination))
-(#%require rackunit)
-(racket/provide
- make-define
- let-&gt;combination)
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
 
 (define (make-define func-name args body)
   (append (list 'define (append (list func-name) args)) body))
@@ -3593,6 +3939,20 @@ VERY-SMALL-RADIO
 <pre><code class="language-lisp">;; file: 4_09.rkt
 ;; 4_06 4_07 cont
 
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require threading)
+(#%require (prefix racket: racket))
+(#%require (prefix r5rs/ r5rs))
+(racket:provide
+ do?
+ while?
+ until?
+ do-&gt;expand
+ while-&gt;do
+ until-&gt;do)
+
+
 ;;  do / for / while / until 를 derived expression으로 구현해라
 ;; ref:
 ;; guile - do - https://www.gnu.org/software/guile/manual/html_node/while-do.html
@@ -3614,24 +3974,6 @@ VERY-SMALL-RADIO
 ;;
 ;; - cond는 if로 변환하여 계산됨
 ;;   -cond는 if로부터 파생된(derived) 표현식임)
-
-(#%require (prefix racket/ racket))
-(#%require (prefix  r5rs/ r5rs))
-(#%require rackunit)
-(#%require threading)
-(racket/provide
- do?
- while?
- until?
- do-&gt;expand
- while-&gt;do
- until-&gt;do)
-
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
-
 (define (second-or-nil expr)
   (let ((x  (rest expr)))
     (if (null? x)
@@ -3928,7 +4270,7 @@ VERY-SMALL-RADIO
 
 (#%require rackunit)
 (#%require threading)
-
+(#%require "../helper/my-util.rkt")
 ;; - 현재 frame형태
 ;;   - '((symbol-a symbol-b ...) value-a (primitive func-b) ...)
 ;; - 바꾸고자 하는 frame형태
@@ -3940,24 +4282,20 @@ VERY-SMALL-RADIO
 ;; - frame-variables
 ;; - frame-values
 
-(#%require (prefix old/ "../allcode/ch4-4.1.1-mceval.rkt"))
-(define frame1 (old/make-frame '(a b) '(1 2)))
+(#%require (prefix old: "../allcode/ch4-4.1.1-mceval.rkt"))
+(define frame1 (old:make-frame '(a b) '(1 2)))
 (check-equal? frame1
               '((a b) 1 2))
-(old/add-binding-to-frame! 'c 3 frame1)
+(old:add-binding-to-frame! 'c 3 frame1)
 (check-equal? frame1
               '((c a b) 3 1 2))
-(check-equal? (~&gt; (old/make-frame '(a b) '(1 2))
-                  (old/frame-variables))
+(check-equal? (~&gt; (old:make-frame '(a b) '(1 2))
+                  (old:frame-variables))
               '(a b))
 
-(check-equal? (~&gt; (old/make-frame '(a b) '(1 2))
-                  (old/frame-values))
+(check-equal? (~&gt; (old:make-frame '(a b) '(1 2))
+                  (old:frame-values))
               '(1 2))
-
-(define first car)
-(define rest cdr)
-(define second cadr)
 (define (make-frame variables values)
   (map list variables values))
 
@@ -4002,17 +4340,16 @@ VERY-SMALL-RADIO
 
 (#%require rackunit)
 (#%require threading)
-(#%require (prefix racket/ racket))
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
 
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (define-variable! origin/define-variable!)
                                   (set-variable-value! origin/set-variable-value!)
                                   (lookup-variable-value origin/lookup-variable-value)))
-(racket/provide
+(racket:provide
  lookup-variable-values)
 ;; =======================================
-(define first car)
-
 (define (lookup-variable-values var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.
   (define (env-loop env)
@@ -4089,12 +4426,9 @@ VERY-SMALL-RADIO
 
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(racket/require "../allcode/ch4-4.1.1-mceval.rkt")
-
-(define first car)
-(define second cadr)
-(define rest cdr)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 (define (lookup-variable-vars-vals var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.
@@ -4164,10 +4498,10 @@ VERY-SMALL-RADIO
 
 (#%require rackunit)
 (#%require threading)
-(#%require (prefix racket/ racket))
-(#%require (prefix  r5rs/ r5rs))
+(#%require (prefix racket: racket))
+(#%require (prefix r5rs: r5rs))
 
-(racket/require "../allcode/ch4-4.1.1-mceval.rkt")
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 ;;
 ;; 1. Eva Lu Ator은 map의 정의를 직접 입력해서 평가하는 방식.
 ;; 2. Louis Reasoner는 map을 primitive-procedures에 넣어 버리는 방식.
@@ -4198,9 +4532,9 @@ VERY-SMALL-RADIO
 (define-variable! 'map (list 'primitive map) env2) ; 아니면 primitive-procedures를 직접 수정.
 
 (check-exn
- racket/exn:fail?
+ racket:exn:fail?
  (lambda ()
-   ;; (r5rs/apply map (list (list 'primitive car) '((a 1) (b 2) (c 3)))) 와 같음.
+   ;; (r5rs:apply map (list (list 'primitive car) '((a 1) (b 2) (c 3)))) 와 같음.
    ;; application: not a procedure;
    ;;  expected a procedure that can be applied to arguments
    ;;   given: (primitive #&lt;procedure:mcar&gt;)
@@ -4252,15 +4586,15 @@ VERY-SMALL-RADIO
 ;; 4_06 / 4_18 cont
 
 (#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
 
-(#%require (prefix racket/ racket))
-(#%require (prefix trace/ racket/trace))
-
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_lookup-variable-value origin/lookup-variable-value)
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
-(racket/provide
+(racket:provide
  lookup-variable-value
  scan-out-defines)
 ;;
@@ -4334,9 +4668,6 @@ VERY-SMALL-RADIO
   ;; =&gt; (let ((a 1)) (+ a 2))
   (append (list 'let bindings) body))
 
-(define first car)
-(define rest cdr)
-
 (define (scan-out-defines body)
   (let ((defs (filter definition? body)))
     (if (null? defs)
@@ -4401,7 +4732,7 @@ VERY-SMALL-RADIO
 ;;           "Unknown procedure type -- APPLY" procedure))))
 
 ;; 수정한다면,
-(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
 (define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
@@ -4591,9 +4922,9 @@ VERY-SMALL-RADIO
 ;;
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(#%require (prefix trace/ racket/trace))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
 (define (filter predicate sequence)
@@ -4635,7 +4966,7 @@ VERY-SMALL-RADIO
                 (+ u v x)))
 
 
-(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
 (define third caddr)
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
@@ -4687,11 +5018,11 @@ VERY-SMALL-RADIO
 ;; 4_06 / 4_16 / 4_20 cont
 
 (#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
 
-(#%require (prefix racket/ racket))
-(#%require (prefix trace/ racket/trace))
-
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
 
@@ -4771,9 +5102,6 @@ VERY-SMALL-RADIO
   ;; =&gt; (let ((a 1)) (+ a 2))
   (append (list 'let bindings) body))
 
-(define first car)
-(define rest cdr)
-
 (define (scan-out-defines-4_18 body)
   (let ((defs (filter definition? body)))
     (if (null? defs)
@@ -4806,8 +5134,8 @@ VERY-SMALL-RADIO
 
 
 
-(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
-(racket/require (racket/prefix-in ex4_16/ "4_16.rkt"))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_16/ "4_16.rkt"))
 (define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
@@ -4904,8 +5232,9 @@ VERY-SMALL-RADIO
 ;; 4_17 / 4_18 / 4_21
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 
 
 ;; | 구문       | 바인딩 생성 방식                  | 앞 변수 참조 | 상호/자기 참조 |
@@ -4921,11 +5250,6 @@ VERY-SMALL-RADIO
 ;;
 (#%require (only "4_06.rkt" let? let-&gt;combination))
 (#%require (only "4_07.rkt" make-let ))
-
-
-(define first car)
-(define second cadr)
-(define rest cdr)
 
 (define (letrec-&gt;let expr)
   (let* ((bindings (second expr))
@@ -5331,13 +5655,13 @@ VERY-SMALL-RADIO
 </code></pre>
 <h2 id="4_22"><a class="header" href="#4_22">4_22</a></h2>
 <pre><code class="language-lisp">;; file: 4_22.rkt
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
-(racket/require "4_06.rkt")
-(racket/require (racket/except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
+(racket:require "4_06.rkt")
+(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
 
-(racket/provide
+(racket:provide
  analyze-let
  )
 ;; 4_06 참고. let을 처리 할 수 있도록 확장.
@@ -5372,12 +5696,12 @@ VERY-SMALL-RADIO
 </code></pre>
 <h2 id="4_23"><a class="header" href="#4_23">4_23</a></h2>
 <pre><code class="language-lisp">;; file: 4_23.rkt
-(#%require (prefix racket/ racket))
-(#%require (prefix trace/ racket/trace))
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
 (#%require rackunit)
-(racket/require "4_06.rkt")
-(racket/require (racket/except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
+(racket:require "4_06.rkt")
+(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
                                   (_analyze origin/analyze)
                                   (_analyze-sequence origin/analyze-sequence)))
 ;;
@@ -5458,10 +5782,10 @@ VERY-SMALL-RADIO
 ;; 이전 버전의 evaluator와 이번 단락에서 소개한 버전(analyze)을 속도 측면에서 비교하기 위한 몇 가지 실험을 설계하고 수행하라.
 ;; 그 결과를 이용하여, 다양한 프로시저에 대해 분석 단계와 실행 단계 각각에 소요되는 시간의 비율을 추정하라.
 (#%require profile)
-(#%require (prefix racket/ racket))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_eval origin/eval)))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
                                   (eval next/eval)))
 
 ;; profile-thunk
@@ -5509,16 +5833,78 @@ VERY-SMALL-RADIO
    )
  #:repeat 99)
 
-(racket/time (eval '(fib 5000) env3))
+(racket:time (eval '(fib 5000) env3))
 </code></pre>
 <h2 id="4_25"><a class="header" href="#4_25">4_25</a></h2>
-<pre><code class="language-lisp">;; file: 4_25.rkt
+<pre><code class="language-lisp">{{#include ../../../source/solution_04/4_25.rkt:2:}}
 </code></pre>
 <h2 id="4_26"><a class="header" href="#4_26">4_26</a></h2>
 <pre><code class="language-lisp">;; file: 4_26.rkt
+;; 4_06
+
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+;; lazy evaluation &lt;=&gt; eager evaluation
+
+
+(define (unless condition usual-value exceptional-value)
+  (if condition
+      exceptional-value
+      usual-value))
+
+;; Ben Bitdidle
+;;  - lazy evaluation의 중요성에 공감 못함. 그냥 eager evaluation환경에서 unless를 스페셜 폼으로 구현하면 된다.
+;;
+;; unless 를 (앞선 cond 혹은 let 처럼) derived expression 구현
+;;
+(define (unless-&gt;if expr)
+  (let ((condition (second expr))
+        (usual-value (third expr))
+        (exceptional-value (fourth expr)))
+    (list 'if condition
+          exceptional-value
+          usual-value)))
+
+(check-equal?
+ (unless-&gt;if '(unless (= 1 0)
+                10
+                20))
+ '(if (= 1 0)
+      20
+      10))
+
+;; Alyssa P. Hacker
+;; - 그렇게 하면 함수를 인자나 반환값으로 사용하는 high-order procedure에서 사용 못한다.
+;;
+;; unless가 procedure로 사용되면 유용한 예.
+;;
+
+(check-equal? (map unless (list true false true) '(1 1 1) '(2 2 2))
+              '(2 1 2))
 </code></pre>
 <h2 id="4_27"><a class="header" href="#4_27">4_27</a></h2>
 <pre><code class="language-lisp">;; file: 4_27.rkt
+(#%require (prefix racket: racket))
+
+(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  eval
+                                  input-prompt
+                                  primitive-procedures
+                                  ;;driver-loop
+                                  apply
+                                  eval-if
+                                  output-prompt))
+#;(racket:require "../allcode/ch4-4.2.2-leval.rkt")
+
+;; lazy evaluator( 제때 실행기  WTF )
+
+(define count 0)
+(define (id x)
+  (set! count (+ count 1))
+  x)
+
+(define w (id (id 10)))
 </code></pre>
 <h2 id="4_28"><a class="header" href="#4_28">4_28</a></h2>
 <pre><code class="language-lisp">;; file: 4_28.rkt
