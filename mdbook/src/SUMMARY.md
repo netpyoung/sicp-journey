@@ -13,9 +13,9 @@
 - [5장. 레지스터 머신으로 계산](./chapter/ch05.md)
 
 # 연습문제
-
-- [연습문제 풀이 01](./solution/solution_ch01.md)
-- [연습문제 풀이 02](./solution/solution_ch02.md)
-- [연습문제 풀이 03](./solution/solution_ch03.md)
-- [연습문제 풀이 04](./solution/solution_ch04.md)
-- [연습문제 풀이 05](./solution/solution_ch05.md)
+- [연습문제](./solution/solution_index.md)
+  - [풀이 01](./solution/solution_ch01.md)
+  - [풀이 02](./solution/solution_ch02.md)
+  - [풀이 03](./solution/solution_ch03.md)
+  - [풀이 04](./solution/solution_ch04.md)
+  - [풀이 05](./solution/solution_ch05.md)
