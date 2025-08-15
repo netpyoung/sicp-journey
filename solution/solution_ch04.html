@@ -642,6 +642,7 @@
 <h2 id="4_06"><a class="header" href="#4_06">4_06</a></h2>
 <pre><code class="language-lisp">;; file: 4_06.rkt
 ;; 4_07 / 4_08 / 4_09 / 4_16 / 4_17 / 4_18
+;; 4_22
 
 
 (#%require (prefix racket/ racket))
@@ -2396,8 +2397,8 @@
      ;; (f 5)
      ;; f 호출 환경 (x = 5)
      ;; ┌─────────────────────────────┐
-     ;; │ f-frame                      │
-     ;; │ x → 5                        │
+     ;; │ f-frame                     │
+     ;; │ x → 5                       │
      ;; └─────────────────────────────┘
      ;; 
      ;; let-frame
@@ -2476,15 +2477,415 @@
 </code></pre>
 <h2 id="4_21"><a class="header" href="#4_21">4_21</a></h2>
 <pre><code class="language-lisp">;; file: 4_21.rkt
+
+;; Stoy 1977 for details on the λ-calculus,
+;;Gabriel 1988 for an exposition of the  Y operator in Scheme
+
+;; lambda calculus 람다 대수.
+;; - https://en.wikipedia.org/wiki/Lambda_calculus
+;; - [Lambda Calculus - Fundamentals of Lambda Calculus &amp; Functional Programming in JavaScript](https://www.youtube.com/watch?v=3VQ382QG-y4)
+;; - 모든 기계적인 계산은 람다 대수로 표현할 수 있다
+;; - turing completeness 만족.
+;;   - 어떤 프로그래밍 언어나 추상 기계가 튜링 기계와 동일한 계산 능력을 가진다는 의미
+;;
+;; Application
+;; f x       = (f x)
+;; f x y     = ((f x) y) = (f x) y
+;; f (x y)   = (f (x y))
+;;
+;; λ Lambda
+;; λparameter.return
+;; λx.a       = (λ (x) a)          | x =&gt; a
+;; λx.a b     = (λ (x) (a x))      | x =&gt; (a x)
+;; λx.λy.a    = (λ (x) (λ (y) a))  | x =&gt; y =&gt; a
+;; (λx. a) b  = ((λ (x) a) b)      | (x =&gt; a)(b)
+;; 
+;; α-equivalence 동치. 변수 이름이 다른 두 람다 표현식이 구조상 같을때.
+;; λx.x     와  λy.y
+;; (f (x) x) 와 (f (y) y)
+;; α-conversion  변환. 변수 이름 바꾸기(이름 충돌 방지).
+;; λx.(λx.x)         =&gt; λx.(λy.y)
+;; (f (x) (f (x) x)) =&gt; (f (x) (f (y) y)) 
+;; β-reduction   축소. 함수 적용 후 변수 치환
+;; ((λx.M) N)          =&gt; M
+;; ((λ (x) (+ x 1)) 3) =&gt; (+ 3 1) =&gt; 4
+;; η-conversion  변환. 불필요한 래핑 제거
+;; (Η η eta /ˈiːtə, ˈeɪtə/ 이터 / 에이터)
+;; λx.(fx)       =&gt; f
+;; (λ (x) (f x)) =&gt; f
+;;
+;; Church encoding
+;; https://en.wikipedia.org/wiki/Church_encoding
+;;
+;; TRUE  = λt. λf. t = (λ (t) (λ (f) t)) // 첫 번째 인자만 고르는 함수
+;; FALSE = λt. λf. f = (λ (t) (λ (f) f)) // 두 번째 인자만 고르는 함수
+;; ...
+;;
+;; Combinator: free variable이 없는 함수.
+;; (λ (x) x) : 함수이면서, free variable이 없어 combinator.
+;; (λ (x) a) : 함수이지만, free variable a가 있어 combinator가 아님.
+;;
+;; Fixed-point combinator (고정점 결합자)
+;; - https://en.wikipedia.org/wiki/Fixed-point_combinator
+;; - 함수의 재귀적 자기 참조를 가능하게 하는 함수
+;; - 함수 f의 고정점 x는 f(x) = x가 성립하는 x입니다.
+;;     (f x)     = x
+;;     (f (f x)) = x
+;; -  Y Combinator, Z Combinator 등 다양한 형태가 가능
+;;
+;; Y Combinator.
+;; - λ-계산에서는 함수에 자기 자신을 직접 호출 할 수 없음.
+;; - 하지만 함수를 인자를 받아 활용하면  재귀적인 동작이 가능함.
+;; - 이 재귀적인 동작을 가능케하는 함수가 바로 Y Combinator.
+;; - 단일 인자 함수에 대해 재귀를 가능하게 함
+;;
+;; Y = λf.(λx.f(x x))(λx.f(x x))
+;;   = (λ (f)
+;;       ((λ (x) (f (x x)))
+;;        (λ (x) (f (x x)))))
+;; (Y a) = (a (Y a))
+;;       풀어쓰면 햇갈리니 두번째 (λ (x) (f (x x)))를 (λ (y) (f (y y))로 α-conversion
+;;         = ((λ (f)
+;;              ((λ (x) (f (x x)))
+;;               (λ (y) (f (y y)))))
+;;            a)
+;; f에 a를 넣으면 (β-reduction)
+;;         = ((λ (x) (a (x x)))
+;;            (λ (y) (a (y y))))
+;; x에 (λ (y) (a (y y)))를 넣으면 (β-reduction)
+;;         = (a ( (λ (y) (a (y y)))
+;;                (λ (y) (a (y y))) ) )
+;; a를 다시 빼주면 ( α-conversion )
+;;         = (a ((λ (f)
+;;                 ((λ (y) (f (y y)))
+;;                  (λ (y) (f (y y))))) a))
+;;다시 (λ (y) (f (y y)))를 (λ (x) (f (x x)))로 변경시켜주고  α-conversion 
+;;         = (a ((λ (f)
+;;               ((λ (x) (f (x x)))
+;;                (λ (x) (f (x x))))) a))
+;; Y = (λ (f) ((λ (x) (f (x x))) (λ (x) (f (x x))))) 이므로
+;;         = (a (Y a))
+;;         = (Y a)
+;; 즉 Y에 a를 넣으면 a가 재귀적으로 계속 호출됨.
+;;
+;; Z Combinator
+;; Z = λf.(λx.f(λv. xxv))(λx.f(λv. xxv))
+;;   = (λ (f)
+;;      ((λ (x)
+;;         (f (λ (v) ((x x) v))))
+;;       (λ (x)
+;;         (f (λ (v) ((x x) v))))))
+;;
+
+
+
+;; letrec을 쓰지 않고도 재귀 프로시져를 만들 수 있음.
+(#%require rackunit)
+(#%require (only racket λ))
+
+(define Y
+  (λ (f)
+    ((λ (x)
+       (f (x x)))
+     (λ (x)
+       (f (x x))))))
+
+(define Z
+  (λ (f)
+    ((λ (x)
+       (f (λ (v) ((x x) v))))
+     (λ (x)
+       (f (λ (v) ((x x) v)))))))
+
+(check-eq? ((Z
+             (lambda (fact)
+               (lambda (n)
+                 (if (= n 0)
+                     1
+                     (* n (fact (- n 1)))))))
+            10)
+           3628800)
+
+(check-eq? ((λ (n)
+              ((λ (x)
+                 (x x 0 n))
+               (λ (iter acc y)
+                 (if (= y 0)
+                     acc
+                     (iter iter (+ acc y) (- y 1))))))
+            10)
+           55)
+
+;; 1-1. 표현식을 평가하여 factorial이 돌아가는지 확인.
+(check-eq? ((lambda (n)
+              ((lambda (fact)
+                 (fact fact n))
+               (lambda (ft k)
+                 (if (= k 1)
+                     1
+                     (* k (ft ft (- k 1)))))))
+            10)
+           3628800)
+
+;; 1-2. 피보나치 수를 구하는 함수 작성.
+
+(check-eq? (let ()
+             (define (fib n)
+               (cond ((= n 0) 0)
+                     ((= n 1) 1)
+                     (else
+                      (+ (fib (- n 1))
+                         (fib (- n 2))))))
+             (fib 10))
+           55)
+
+(check-eq? ((lambda (n)
+              ((lambda (fibo)
+                 (fibo fibo n))
+               (lambda (fb n)
+                 (cond ((= n 0) 0)
+                       ((= n 1) 1)
+                       (else
+                        (+ (fb fb (- n 1))
+                           (fb fb (- n 2))))))))
+            10)
+           55)
+
+(check-eq? ((Z
+             (lambda (fibo)
+               (lambda (n)
+                 (cond ((= n 0) 0)
+                       ((= n 1) 1)
+                       (else
+                        (+ (fibo (- n 1))
+                           (fibo (- n 2))))))))
+            10)
+           55)
+
+;; 2. 빈칸을 체워서 다음과 같은 함수와 동일한 함수 작성.
+;; (define (f x)
+;;   ((lambda (new-even? new-odd?)
+;;      (new-even? new-even? new-odd? x))
+;;    (lambda (ev? od? n)
+;;      (if (= n 0) 
+;;          true 
+;;          (od? &lt;??&gt; &lt;??&gt; &lt;??&gt;)))
+;;    (lambda (ev? od? n)
+;;      (if (= n 0) 
+;;          false 
+;;          (ev? &lt;??&gt; &lt;??&gt; &lt;??&gt;)))))
+
+(define (f x)
+  (define (new-even? n)
+    (if (= n 0)
+        true
+        (new-odd? (- n 1))))
+  (define (new-odd? n)
+    (if (= n 0)
+        false
+        (new-even? (- n 1))))
+  (new-even? x))
+(check-eq? (f 5) false)
+(check-eq? (f 6) true)
+
+
+
+(define (f2 x)
+  ((lambda (new-even? new-odd?)
+     (new-even? new-even? new-odd? x))
+   (lambda (ev? od? n)
+     (if (= n 0) 
+         true 
+         (od? ev? od? (- n 1))))
+   (lambda (ev? od? n)
+     (if (= n 0) 
+         false 
+         (ev? ev? od? (- n 1))))))
+
+(check-eq? (f2 5) false)
+(check-eq? (f2 6) true)
 </code></pre>
 <h2 id="4_22"><a class="header" href="#4_22">4_22</a></h2>
 <pre><code class="language-lisp">;; file: 4_22.rkt
+(#%require (prefix racket/ racket))
+(#%require rackunit)
+(racket/require "4_06.rkt")
+(racket/require (racket/except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
+
+(racket/provide
+ analyze-let
+ )
+;; 4_06 참고. let을 처리 할 수 있도록 확장.
+
+(define (analyze-let exp)
+  (analyze (let-&gt;combination exp)))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp) 
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond-&gt;if exp)))
+        ((let? exp) (analyze-let exp)) ;; &lt;----- 4_22 추가됨.
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))
+
+(override-analyze! analyze)
+
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(check-equal? ((analyze '(let ((a 1) (b 2)) (+ a b))) env2)
+              3)
+
+(override-analyze! origin/analyze)
 </code></pre>
 <h2 id="4_23"><a class="header" href="#4_23">4_23</a></h2>
 <pre><code class="language-lisp">;; file: 4_23.rkt
+(#%require (prefix racket/ racket))
+(#%require (prefix trace/ racket/trace))
+(#%require rackunit)
+(racket/require "4_06.rkt")
+(racket/require (racket/except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
+                                  (_analyze origin/analyze)
+                                  (_analyze-sequence origin/analyze-sequence)))
+;;
+;; Q. analyze-sequence의 본문 버전과, Alyssa의 버전을 비교. expr가 2개인 경우, 1개인 경우 어떻게 돌아가는지 비교해라.
+;;
+;; ver. Original
+(define (analyze-sequence-original exps)
+  (define (sequentially proc1 proc2)
+    (lambda (env)
+      (proc1 env)
+      (proc2 env)))
+  (define (loop first-proc rest-procs)
+    (if (null? rest-procs)
+        first-proc
+        (loop (sequentially first-proc (car rest-procs))
+              (cdr rest-procs))))
+  (let ((procs (map analyze exps)))
+    (if (null? procs)
+        (error "Empty sequence -- ANALYZE"))
+    (loop (car procs) (cdr procs))))
+
+;; ver. Alyssa P. Hacker
+(define (analyze-sequence-alyssa exps)
+  (define (execute-sequence procs env)
+    (cond ((null? (cdr procs))
+           ((car procs) env))
+          (else
+           ((car procs) env)
+           (execute-sequence (cdr procs) env))))
+  (let ((procs (map analyze exps)))
+    (if (null? procs)
+        (error "Empty sequence -- ANALYZE"))
+    (lambda (env)
+      (execute-sequence procs env))))
+
+
+;; 2개 버전, 1개 버전을 비교하라 했지만, 2개 보다 3개가 좀 더 알기 편할꺼임.
+;;
+;; 3개버전이라고 하면 procs가 (a1 a2 a3)가 되고
+;;
+;; ver. Original
+;; procs의 리스트 순회를 미리 해버림 없음. lambda로 펼쳐져 있게됨.
+;; (lambda (env)
+;;   ((lambda (env)
+;;      (a1 env)
+;;      (a2 env))
+;;    env)
+;;  (a3 env))
+;;
+;; ver. Alyssa P. Hacker
+;; execute-sequence를 통한 procs 리스트 순회를 하게됨.
+;; (lambda (env)
+;;   처음꺼 꺼내오고(execute-sequence)
+;;   (a1 env)
+;;   다음꺼 꺼내오고(execute-sequence)
+;;   (a2 env)
+;;   다음꺼 꺼내오고(execute-sequence)
+;;   (a3 env)
+;;   )
+;;
+;; 1개버전이라고 하면 procs가 (a1)가 되고
+;;
+;; ver. Original
+;; 1개인 경우 그냥 원래것이 빠져나오게 됨.
+;; a1
+;;
+;; ver. Alyssa P. Hacker
+;; execute-sequence를 통한 procs 리스트 순회를 하게됨.
+;; (lambda (env)
+;;   처음꺼 꺼내오고(execute-sequence)
+;;   (a1 env)
+;;   )
+
 </code></pre>
 <h2 id="4_24"><a class="header" href="#4_24">4_24</a></h2>
 <pre><code class="language-lisp">;; file: 4_24.rkt
+
+;; 이전 버전의 evaluator와 이번 단락에서 소개한 버전(analyze)을 속도 측면에서 비교하기 위한 몇 가지 실험을 설계하고 수행하라.
+;; 그 결과를 이용하여, 다양한 프로시저에 대해 분석 단계와 실행 단계 각각에 소요되는 시간의 비율을 추정하라.
+(#%require profile)
+(#%require (prefix racket/ racket))
+(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_eval origin/eval)))
+(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
+                                  (eval next/eval)))
+
+;; profile-thunk
+;; https://docs.racket-lang.org/profile/index.html#%28def._%28%28lib._profile%2Fmain..rkt%29._profile-thunk%29%29
+
+;; time - https://docs.racket-lang.org/reference/time.html#%28form._%28%28lib._racket%2Fprivate%2Fmore-scheme..rkt%29._time%29%29
+
+;; current-inexact-monotonic-milliseconds - https://docs.racket-lang.org/reference/time.html#%28def._%28%28quote._~23~25kernel%29._current-inexact-monotonic-milliseconds%29%29
+;; current-inexact-milliseconds
+;; current-monotonic-nanoseconds -  https://docs.racket-lang.org/monotonic/index.html
+
+(define expr
+  
+  '(define (fib n)
+     (define (fib-iter a b count)
+       (if (= count 0)
+           b
+           (fib-iter (+ a b) a (- count 1))))
+     (fib-iter 1 0 n))
+
+  )
+
+(override-eval! origin/eval)
+(define env2 (setup-environment))
+(define-variable! '+ (list 'primitive +) env2)
+(define-variable! '- (list 'primitive -) env2)
+(define-variable! '= (list 'primitive =) env2)
+(eval expr env2)
+(profile-thunk
+ (lambda ()
+   
+   (eval '(fib 5000) env2)
+   )
+ #:repeat 99)
+
+(override-eval! next/eval)
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env3)
+(define-variable! '- (list 'primitive -) env3)
+(define-variable! '= (list 'primitive =) env3)
+(eval expr env3) 
+(profile-thunk
+ (lambda ()
+   (eval '(fib 5000) env3)
+   )
+ #:repeat 99)
+
+(racket/time (eval '(fib 5000) env3))
 </code></pre>
 <h2 id="4_25"><a class="header" href="#4_25">4_25</a></h2>
 <pre><code class="language-lisp">;; file: 4_25.rkt
