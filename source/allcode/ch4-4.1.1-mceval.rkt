@@ -361,4 +361,19 @@
 (define-overridable the-global-environment (setup-environment))
 ;;(driver-loop)
 
+
+;;===
+(define (reset!)
+  (override-eval! _eval)
+  (override-apply! _apply)
+  (override-eval-if! _eval-if)
+  (override-make-procedure! _make-procedure)
+  (override-procedure-body! _procedure-body)
+  (override-lookup-variable-value! _lookup-variable-value)
+  (override-primitive-procedures! _primitive-procedures)
+  (override-input-prompt! _input-prompt)
+  (override-output-prompt! _output-prompt)
+  (override-driver-loop! _driver-loop)
+  (override-the-global-environment! _the-global-environment))
+
 'METACIRCULAR-EVALUATOR-LOADED

@@ -11,7 +11,8 @@
                                   apply
                                   eval-if
                                   output-prompt
-                                  driver-loop))
+                                  driver-loop
+                                  reset!))
 (racket:require "../allcode/ch4-4.2.2-leval.rkt")
 
 ;; lazy evaluator는 eval후 force it을 적용.

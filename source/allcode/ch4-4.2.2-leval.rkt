@@ -121,10 +121,6 @@
       (actual-value (thunk-exp obj) (thunk-env obj))
       obj))
 
-(define force-it force-it-non-memoizing)
-(define (override-force-it! func)
-  (set! force-it func))
-
 ;; thunks
 
 (define (delay-it exp env)
@@ -188,13 +184,21 @@
                                   driver-loop
                                   eval-if
                                   output-prompt))
-                                  
-(override-eval! eval)
-(override-apply! apply)
-(override-input-prompt! input-prompt)
-(override-primitive-procedures! primitive-procedures)
-(override-driver-loop! driver-loop)
-(override-eval-if! eval-if)
-(override-output-prompt! output-prompt)
-(override-the-global-environment! (setup-environment))
+
+(define force-it force-it-non-memoizing)
+(define (override-force-it! func)
+  (set! force-it func))
+
+(define (reset!)
+  (override-eval! eval)
+  (override-apply! apply)
+  (override-input-prompt! input-prompt)
+  (override-primitive-procedures! primitive-procedures)
+  (override-driver-loop! driver-loop)
+  (override-eval-if! eval-if)
+  (override-output-prompt! output-prompt)
+  (override-the-global-environment! (setup-environment)))
+ 
+ (reset!)
+
 'LAZY-EVALUATOR-LOADED
