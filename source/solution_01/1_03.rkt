@@ -3,6 +3,7 @@
 
 (#%require rackunit)
 (#%require threading)
+(#%require "../helper/my-util.rkt")
 
 ;; a, b, c 를 인자로 받고 가장 큰 두 수의 제곱의 합
 ;; 1.1.4에 나온 sum-of-squares 사용.
@@ -26,9 +27,6 @@
 
 ;; ======================================================================================
 ;; 번외. sequcne(list)와 고차함수를(filter/sort/take)  이용한 방법.
-
-(define first car)
-(define rest cdr)
 
 (define (filter pred? sequence)
   (cond ((null? sequence) '())

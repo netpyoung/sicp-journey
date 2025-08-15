@@ -36,7 +36,7 @@
 
 
 
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
-(racket/for ([i 20])
+(racket:for ([i 20])
             (check-eq? (f-recur i)(f-iter i)))

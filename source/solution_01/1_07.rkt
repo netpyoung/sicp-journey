@@ -1,7 +1,7 @@
 #lang sicp
 ;; file: 1_07.rkt
 (#%require threading)
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
 
 ;; 1.1.7 연습: 뉴튼 법으로 제곱근 찾기
@@ -66,8 +66,8 @@ VERY-SMALL-RADIO
 ;; 아주 큰 수의 제곱근을 잘 구하는가?
 ;; 아주 작은 수 의 제곱근을 잘 구하는가?
 (define COMPARE-EPSILON 0.00000001)
-(check-= (sqrt 0.00000000123456) (racket/sqrt 0.00000000123456) COMPARE-EPSILON)
-(check-= (sqrt 123456789012345) (racket/sqrt 123456789012345) COMPARE-EPSILON)
+(check-= (sqrt 0.00000000123456) (racket:sqrt 0.00000000123456) COMPARE-EPSILON)
+(check-= (sqrt 123456789012345) (racket:sqrt 123456789012345) COMPARE-EPSILON)
 
 
 ;; ref: https://sicp-solutions.net/post/sicp-solution-exercise-1-7/

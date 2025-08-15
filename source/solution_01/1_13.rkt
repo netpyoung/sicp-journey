@@ -182,7 +182,7 @@
 ;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
 
 
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require threading)
 (#%require rackunit)
 
@@ -205,12 +205,12 @@
         (round-half-up))))
 
 (define (round-half-up x)
-  ;; racket/exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
+  ;; racket:exact-floor는 IEEE-754 방식(일명 "round half to even" 또는 bankers' rounding)을 사용
   ;; Round half up은 0.5이상 일때 무조건 올림.
   (cond ((zero? x) 0)
-        ((positive? x) (racket/exact-floor (+ x 0.5)))
-        (else          (racket/exact-floor (- x 0.5)))))
+        ((positive? x) (racket:exact-floor (+ x 0.5)))
+        (else          (racket:exact-floor (- x 0.5)))))
 
-(racket/for ([x (racket/in-inclusive-range 1 75)])
+(racket:for ([x (racket:in-inclusive-range 1 75)])
             ;; 부동소수점 정밀도의 한계로 에러가 발생.
-            (check-eq? (fib x) (fib-binet x) (racket/~a x)))
+            (check-eq? (fib x) (fib-binet x) (racket:~a x)))

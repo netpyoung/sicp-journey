@@ -11,11 +11,11 @@
 
 
 
-(#%require (prefix racket/ racket))
-(racket/for ([y (racket/in-inclusive-range 0 5)])
+(#%require (prefix racket: racket))
+(racket:for ([y (racket:in-inclusive-range 0 5)])
             (display y)
             (display ": ")
-            (racket/for ([x (racket/in-inclusive-range 0 y)])
+            (racket:for ([x (racket:in-inclusive-range 0 y)])
                         (display (P x y))
                         (display " "))
             (newline))

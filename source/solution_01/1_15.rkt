@@ -13,9 +13,9 @@
       angle
       (p (sine (/ angle 3.0)))))
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace p)
-(trace/trace sine)
+(#%require (prefix trace: racket/trace))
+(trace:trace p)
+(trace:trace sine)
 
 ;; 1. (sine 12.15)가 호출되면 p가 몇번 호출되나?
 ;; sine에서 angle을 3.0으로 계속 나누고 탈출조건은 |angle| < 0.1이니

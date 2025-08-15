@@ -1,7 +1,6 @@
 #lang sicp
 ;; file: 1_08.rkt
 (#%require threading)
-(#%require (prefix racket/ racket))
 (#%require rackunit)
 
 ;; imporve 가 바뀌고 나머지는sqrt를 구할때와 거의 비슷한 흐름으로 흘러간다.

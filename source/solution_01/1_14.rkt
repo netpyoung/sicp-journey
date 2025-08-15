@@ -24,8 +24,8 @@
 (count-change 100)
 ;;=> 292
 
-(#%require (prefix trace/ racket/trace))
-(trace/trace cc)
+(#%require (prefix trace: racket/trace))
+(trace:trace cc)
 (count-change 11)
 ;;=> 4
 ;;
