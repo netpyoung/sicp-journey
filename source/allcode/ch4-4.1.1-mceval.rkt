@@ -13,16 +13,16 @@
 ;;;;  interface, due to renamings of apply).
 
 ;;;from section 4.1.4 -- must precede def of metacircular apply
+(#%require "./helper/my-util.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+(racket:provide (racket:all-defined-out))
 
-(#%require (prefix  r5rs/ r5rs))
-(#%require (prefix racket/ racket))
-(racket/provide (racket/all-defined-out))
-
-(define apply-in-underlying-scheme r5rs/apply)
+(define apply-in-underlying-scheme r5rs:apply)
 
 ;;;SECTION 4.1.1
 
-(define (_eval exp env)
+(define-overridable (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -41,11 +41,8 @@
                 (list-of-values (operands exp) env)))
         (else
          (error "Unknown expression type -- EVAL" exp))))
-(define eval _eval) ;; modified for override: eval
-(define (override-eval! func)
-  (set! eval func))
 
-(define (_apply procedure arguments)
+(define-overridable (apply procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
@@ -58,9 +55,6 @@
         (else
          (error
           "Unknown procedure type -- APPLY" procedure))))
-(define apply _apply)  ;; modified for override: apply
-(define (override-apply! func)
-  (set! apply func))
 
 (define (list-of-values exps env)
   (if (no-operands? exps)
@@ -68,7 +62,7 @@
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
-(define (eval-if exp env)
+(define-overridable (eval-if exp env)
   (if (true? (eval (if-predicate exp) env))
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
@@ -217,11 +211,8 @@
   (eq? x false))
 
 
-(define (_make-procedure parameters body env)
+(define-overridable (make-procedure parameters body env)
   (list 'procedure parameters body env))
-(define make-procedure _make-procedure)  ;; modified for override: make-procedure
-(define (override-make-procedure! func)
-  (set! make-procedure func))
 
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
@@ -229,10 +220,7 @@
 
 (define (procedure-parameters p) (cadr p))
 
-(define (_procedure-body p) (caddr p))
-(define procedure-body _procedure-body)  ;; modified for override: procedure-body
-(define (override-procedure-body! func)
-  (set! procedure-body func))
+(define-overridable (procedure-body p) (caddr p))
 
 (define (procedure-environment p) (cadddr p))
 
@@ -260,7 +248,7 @@
           (error "Too many arguments supplied" vars vals)
           (error "Too few arguments supplied" vars vals))))
 
-(define (_lookup-variable-value var env)
+(define-overridable (lookup-variable-value var env)
   (define (env-loop env)
     (define (scan vars vals)
       (cond ((null? vars)
@@ -274,11 +262,6 @@
           (scan (frame-variables frame)
                 (frame-values frame)))))
   (env-loop env))
-(define lookup-variable-value _lookup-variable-value) ;; modified for override: lookup-variable-value
-(define (override-lookup-variable-value! func)
-  (set! lookup-variable-value func))
-
-
 
 (define (set-variable-value! var val env)
   (define (env-loop env)
@@ -324,7 +307,7 @@
 
 (define (primitive-implementation proc) (cadr proc))
 
-(define primitive-procedures
+(define-overridable primitive-procedures
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
@@ -348,10 +331,10 @@
 
 
 
-(define input-prompt ";;; M-Eval input:")
-(define output-prompt ";;; M-Eval value:")
+(define-overridable input-prompt ";;; M-Eval input:")
+(define-overridable output-prompt ";;; M-Eval value:")
 
-(define (driver-loop)
+(define-overridable (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))
     (let ((output (eval input the-global-environment)))

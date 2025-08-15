@@ -23,16 +23,17 @@
 ;; of eval overrides the definition from 4.1.1
 
 #;(load "ch4-mceval.scm")
+(#%require "./helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
-(#%require (prefix racket/ racket))
-(racket/provide (racket/all-defined-out))
+(#%require (prefix racket: racket))
+(racket:provide (racket:all-defined-out))
 
 ;;;SECTION 4.1.7
 
 (define (eval exp env)
   ((analyze exp) env))
 
-(define (_analyze exp)
+(define-overridable (analyze exp)
   (cond ((self-evaluating? exp) 
          (analyze-self-evaluating exp))
         ((quoted? exp) (analyze-quoted exp))
@@ -46,10 +47,6 @@
         ((application? exp) (analyze-application exp))
         (else
          (error "Unknown expression type -- ANALYZE" exp))))
-
-(define analyze _analyze)
-(define (override-analyze! func)
-  (set! analyze func))
 
 (define (analyze-self-evaluating exp)
   (lambda (env) exp))
@@ -89,7 +86,7 @@
         (bproc (analyze-sequence (lambda-body exp))))
     (lambda (env) (make-procedure vars bproc env))))
 
-(define (_analyze-sequence exps)
+(define-overridable (analyze-sequence exps)
   (define (sequentially proc1 proc2)
     (lambda (env) (proc1 env) (proc2 env)))
   (define (loop first-proc rest-procs)
@@ -101,10 +98,6 @@
     (if (null? procs)
         (error "Empty sequence -- ANALYZE"))
     (loop (car procs) (cdr procs))))
-
-(define analyze-sequence _analyze-sequence)
-(define (override-analyze-sequence! func)
-  (set! analyze-sequence func))
   
 (define (analyze-application exp)
   (let ((fproc (analyze (operator exp)))
@@ -126,5 +119,14 @@
          (error
           "Unknown procedure type -- EXECUTE-APPLICATION"
           proc))))
+
+;; ========================================================
+;; !!!!! override
+#;(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  eval))
+
+(override-eval! eval)
+(override-analyze! analyze)
+(override-analyze-sequence! analyze-sequence)
 
 'ANALYZING-METACIRCULAR-EVALUATOR-LOADED

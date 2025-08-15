@@ -1,6 +1,6 @@
 #lang sicp
-(#%require (prefix racket/ racket))
-(racket/provide (racket/all-defined-out))
+(#%require (prefix racket: racket))
+(racket:provide (racket:all-defined-out))
 
 ;; two-dimensional
 (define (lookup key-1 key-2 table)
