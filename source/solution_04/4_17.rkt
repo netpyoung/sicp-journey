@@ -107,9 +107,9 @@
 ;;
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(#%require (prefix trace/ racket/trace))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
 (define (filter predicate sequence)
@@ -151,7 +151,7 @@
                 (+ u v x)))
 
 
-(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
 (define third caddr)
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)

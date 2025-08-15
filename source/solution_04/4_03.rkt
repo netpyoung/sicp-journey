@@ -1,9 +1,10 @@
 #lang sicp
 ;; file: 4_03.rkt
 
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require "../allcode/ch3-3.3.3.rkt")
-(#%require rackunit)
 
 ;; eval을 data-directed style 로 고쳐라
 ;; 그 후 Exercise 2.73 와 비교해보자
@@ -54,9 +55,6 @@
 ;;   ))
 ;;
 ;; 그리고 각 함수들에 대해 (tagged-func-name> exp env) 이런 식으로 정규화를 시켜줘야 한다.
-
-(define first car)
-(define rest cdr)
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)

@@ -4,18 +4,15 @@
 ;; 4_22
 
 
-(#%require (prefix racket/ racket))
 (#%require rackunit)
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 
-(racket/provide
+(racket:provide
  let?
  let->combination)
 
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
 
 ;; let->combination 구현 ------------------------------
 ;; 중첩 let을 생각안하면 4_07에서 오류를 맞이할거임.

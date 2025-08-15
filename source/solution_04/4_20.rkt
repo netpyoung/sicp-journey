@@ -3,8 +3,9 @@
 ;; 4_17 / 4_18 / 4_21
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 
 
 ;; | 구문       | 바인딩 생성 방식                  | 앞 변수 참조 | 상호/자기 참조 |
@@ -20,11 +21,6 @@
 ;;
 (#%require (only "4_06.rkt" let? let->combination))
 (#%require (only "4_07.rkt" make-let ))
-
-
-(define first car)
-(define second cadr)
-(define rest cdr)
 
 (define (letrec->let expr)
   (let* ((bindings (second expr))

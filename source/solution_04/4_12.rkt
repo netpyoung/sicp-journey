@@ -16,17 +16,16 @@
 
 (#%require rackunit)
 (#%require threading)
-(#%require (prefix racket/ racket))
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
 
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (define-variable! origin/define-variable!)
                                   (set-variable-value! origin/set-variable-value!)
                                   (lookup-variable-value origin/lookup-variable-value)))
-(racket/provide
+(racket:provide
  lookup-variable-values)
 ;; =======================================
-(define first car)
-
 (define (lookup-variable-values var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.
   (define (env-loop env)

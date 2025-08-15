@@ -3,15 +3,15 @@
 ;; 4_06 / 4_18 cont
 
 (#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
 
-(#%require (prefix racket/ racket))
-(#%require (prefix trace/ racket/trace))
-
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_lookup-variable-value origin/lookup-variable-value)
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
-(racket/provide
+(racket:provide
  lookup-variable-value
  scan-out-defines)
 ;;
@@ -85,9 +85,6 @@
   ;; => (let ((a 1)) (+ a 2))
   (append (list 'let bindings) body))
 
-(define first car)
-(define rest cdr)
-
 (define (scan-out-defines body)
   (let ((defs (filter definition? body)))
     (if (null? defs)
@@ -152,7 +149,7 @@
 ;;           "Unknown procedure type -- APPLY" procedure))))
 
 ;; 수정한다면,
-(racket/require (racket/prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
 (define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))

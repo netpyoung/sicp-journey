@@ -1,17 +1,12 @@
 #lang sicp
 ;; file: 4_05.rkt
 
-(#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require rackunit)
+(#%require (prefix racket: racket))
+(#%require "../helper/my-util.rkt")
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; expand-clauses의 (sequence->exp (cond-actions first)) 부분을 수정하면 된다.
-
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
-
 (define (cond->if exp)
   (expand-clauses (cond-clauses exp)))
  

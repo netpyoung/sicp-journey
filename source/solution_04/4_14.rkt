@@ -3,10 +3,10 @@
 
 (#%require rackunit)
 (#%require threading)
-(#%require (prefix racket/ racket))
-(#%require (prefix  r5rs/ r5rs))
+(#%require (prefix racket: racket))
+(#%require (prefix r5rs: r5rs))
 
-(racket/require "../allcode/ch4-4.1.1-mceval.rkt")
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 ;;
 ;; 1. Eva Lu Ator은 map의 정의를 직접 입력해서 평가하는 방식.
 ;; 2. Louis Reasoner는 map을 primitive-procedures에 넣어 버리는 방식.
@@ -37,9 +37,9 @@
 (define-variable! 'map (list 'primitive map) env2) ; 아니면 primitive-procedures를 직접 수정.
 
 (check-exn
- racket/exn:fail?
+ racket:exn:fail?
  (lambda ()
-   ;; (r5rs/apply map (list (list 'primitive car) '((a 1) (b 2) (c 3)))) 와 같음.
+   ;; (r5rs:apply map (list (list 'primitive car) '((a 1) (b 2) (c 3)))) 와 같음.
    ;; application: not a procedure;
    ;;  expected a procedure that can be applied to arguments
    ;;   given: (primitive #<procedure:mcar>)

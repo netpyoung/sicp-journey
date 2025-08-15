@@ -1,12 +1,12 @@
 #lang sicp
 ;; file: 4_22.rkt
-(#%require (prefix racket/ racket))
+(#%require (prefix racket: racket))
 (#%require rackunit)
-(racket/require "4_06.rkt")
-(racket/require (racket/except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
+(racket:require "4_06.rkt")
+(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
 
-(racket/provide
+(racket:provide
  analyze-let
  )
 ;; 4_06 참고. let을 처리 할 수 있도록 확장.

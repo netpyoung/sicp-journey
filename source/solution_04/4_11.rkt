@@ -3,7 +3,7 @@
 
 (#%require rackunit)
 (#%require threading)
-
+(#%require "../helper/my-util.rkt")
 ;; - 현재 frame형태
 ;;   - '((symbol-a symbol-b ...) value-a (primitive func-b) ...)
 ;; - 바꾸고자 하는 frame형태
@@ -15,24 +15,20 @@
 ;; - frame-variables
 ;; - frame-values
 
-(#%require (prefix old/ "../allcode/ch4-4.1.1-mceval.rkt"))
-(define frame1 (old/make-frame '(a b) '(1 2)))
+(#%require (prefix old: "../allcode/ch4-4.1.1-mceval.rkt"))
+(define frame1 (old:make-frame '(a b) '(1 2)))
 (check-equal? frame1
               '((a b) 1 2))
-(old/add-binding-to-frame! 'c 3 frame1)
+(old:add-binding-to-frame! 'c 3 frame1)
 (check-equal? frame1
               '((c a b) 3 1 2))
-(check-equal? (~> (old/make-frame '(a b) '(1 2))
-                  (old/frame-variables))
+(check-equal? (~> (old:make-frame '(a b) '(1 2))
+                  (old:frame-variables))
               '(a b))
 
-(check-equal? (~> (old/make-frame '(a b) '(1 2))
-                  (old/frame-values))
+(check-equal? (~> (old:make-frame '(a b) '(1 2))
+                  (old:frame-values))
               '(1 2))
-
-(define first car)
-(define rest cdr)
-(define second cadr)
 (define (make-frame variables values)
   (map list variables values))
 

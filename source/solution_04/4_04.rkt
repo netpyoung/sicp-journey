@@ -1,14 +1,13 @@
 #lang sicp
 ;; file: 4_04.rkt
 
-(#%require (prefix racket/ racket))
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require rackunit)
+(#%require (prefix racket: racket))
+(#%require "../helper/my-util.rkt")
+(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; Install and and or as new special forms
 ;;
-(define first car)
-(define rest cdr)
 
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)

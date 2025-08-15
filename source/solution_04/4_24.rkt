@@ -4,10 +4,10 @@
 ;; 이전 버전의 evaluator와 이번 단락에서 소개한 버전(analyze)을 속도 측면에서 비교하기 위한 몇 가지 실험을 설계하고 수행하라.
 ;; 그 결과를 이용하여, 다양한 프로시저에 대해 분석 단계와 실행 단계 각각에 소요되는 시간의 비율을 추정하라.
 (#%require profile)
-(#%require (prefix racket/ racket))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_eval origin/eval)))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
+(racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
                                   (eval next/eval)))
 
 ;; profile-thunk
@@ -55,4 +55,4 @@
    )
  #:repeat 99)
 
-(racket/time (eval '(fib 5000) env3))
+(racket:time (eval '(fib 5000) env3))

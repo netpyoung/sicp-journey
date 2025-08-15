@@ -2,6 +2,20 @@
 ;; file: 4_09.rkt
 ;; 4_06 4_07 cont
 
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require threading)
+(#%require (prefix racket: racket))
+(#%require (prefix r5rs/ r5rs))
+(racket:provide
+ do?
+ while?
+ until?
+ do->expand
+ while->do
+ until->do)
+
+
 ;;  do / for / while / until 를 derived expression으로 구현해라
 ;; ref:
 ;; guile - do - https://www.gnu.org/software/guile/manual/html_node/while-do.html
@@ -23,24 +37,6 @@
 ;;
 ;; - cond는 if로 변환하여 계산됨
 ;;   -cond는 if로부터 파생된(derived) 표현식임)
-
-(#%require (prefix racket/ racket))
-(#%require (prefix  r5rs/ r5rs))
-(#%require rackunit)
-(#%require threading)
-(racket/provide
- do?
- while?
- until?
- do->expand
- while->do
- until->do)
-
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
-
 (define (second-or-nil expr)
   (let ((x  (rest expr)))
     (if (null? x)

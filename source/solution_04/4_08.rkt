@@ -4,6 +4,14 @@
 ;; file: 4_08.rkt
 ;; 4_06 cont
 
+(#%require rackunit)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "4_06.rkt" let->combination-normal let->combination))
+
+(racket:provide
+ make-define
+ let->combination)
 
 ;; 기존 let->combination
 ;; 
@@ -22,16 +30,6 @@
 ;;      (+ a b))
 ;;    (hello 1 2)))
 ;;
-(#%require (prefix racket/ racket))
-(#%require (rename "4_06.rkt" let->combination-normal let->combination))
-(#%require rackunit)
-(racket/provide
- make-define
- let->combination)
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
 
 (define (make-define func-name args body)
   (append (list 'define (append (list func-name) args)) body))

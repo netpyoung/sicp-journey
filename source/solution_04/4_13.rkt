@@ -22,12 +22,9 @@
 
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(racket/require "../allcode/ch4-4.1.1-mceval.rkt")
-
-(define first car)
-(define second cadr)
-(define rest cdr)
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 (define (lookup-variable-vars-vals var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.

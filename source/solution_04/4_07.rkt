@@ -3,9 +3,10 @@
 ;; 4_06 cont
 
 (#%require rackunit)
-(#%require (prefix racket/ racket))
-(racket/require (racket/rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
-(racket/provide
+(#%require "../helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
+(racket:provide
  make-let
  let*?
  let*->nested-lets)
@@ -23,12 +24,6 @@
 ;;       (* x z)))))
 ;;
 ;; 1-2. let*->nested-lets 를 작성해라.
-
-(define first car)
-(define rest cdr)
-(define second cadr)
-(define third caddr)
-
 (define (make-let binding body)
   ;; (make-let '((a 1)) '(1 2 3))
   ;; => (let ((a 1)) 1 2 3)
@@ -122,15 +117,15 @@
 (define-variable! '+ (list 'primitive +) env2)
 (define-variable! '* (list 'primitive *) env2)
 
-(#%require (prefix  r5rs/ r5rs))
+(#%require (prefix r5rs: r5rs))
 (define expression '(let* ((x 3)
                            (y (+ x 2))
                            (z (+ x y 5)))
                       (* x z)))
 
-(#%require (prefix trace/ racket/trace))
+(#%require (prefix trace: racket/trace))
 
 (check-equal? (eval expression env2)
-              (r5rs/eval expression (scheme-report-environment 5)))
+              (r5rs:eval expression (scheme-report-environment 5)))
 
 (override-eval! origin/eval)
