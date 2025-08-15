@@ -196,5 +196,5 @@
 (override-driver-loop! driver-loop)
 (override-eval-if! eval-if)
 (override-output-prompt! output-prompt)
-
+(override-the-global-environment! (setup-environment))
 'LAZY-EVALUATOR-LOADED
