@@ -3,7 +3,9 @@
 
 (#%require rackunit)
 (#%require threading)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix old: "../allcode/ch4-4.1.1-mceval.rkt"))
+
 ;; - 현재 frame형태
 ;;   - '((symbol-a symbol-b ...) value-a (primitive func-b) ...)
 ;; - 바꾸고자 하는 frame형태
@@ -15,7 +17,6 @@
 ;; - frame-variables
 ;; - frame-values
 
-(#%require (prefix old: "../allcode/ch4-4.1.1-mceval.rkt"))
 (define frame1 (old:make-frame '(a b) '(1 2)))
 (check-equal? frame1
               '((a b) 1 2))

@@ -2,6 +2,11 @@
 ;; file: 4_13.rkt
 ;; 4_12
 
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
+
 ;; scheme에서 define해서 정의한 변수를 지울 수 없음.
 ;;
 ;; 1-1. make-unbound! 함수를 만들어 env에서 지울 수 있도록 만들자.
@@ -20,11 +25,6 @@
 ;; 초판 2002년: TaPL Types and Programming Languages by Benjamin C. Pierce - https://www.cis.upenn.edu/~bcpierce/tapl/index.html
 ;;  etc. https://softwarefoundations.cis.upenn.edu/
 
-
-(#%require rackunit)
-(#%require "../helper/my-util.rkt")
-(#%require (prefix racket: racket))
-(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 (define (lookup-variable-vars-vals var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.

@@ -2,6 +2,9 @@
 ;; file: 4_10.rkt
 
 (#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
+
 ;; 기존 eval과 apply 코드는 그대로 두고 Scheme의 새로운 문법(syntax) 을 설계하고 구현하라.
 ;; define의 문법을 clojure 처럼 def / defn으로 변경.
 ;; -- scheme
@@ -14,9 +17,6 @@
 ;; (defn foo [a b c]
 ;;   (* a b c))
 
-(define rest cdr)
-(define second cadr)
-(define third caddr)
 
 (define (definition? exp)
   (or 
@@ -68,7 +68,6 @@
   'ok)
 
 ;; racket모듈 특성상 동일한 코드를 다시 override할 필요가 있음.
-(#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))

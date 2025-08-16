@@ -3,16 +3,6 @@
 (#%require rackunit)
 (#%require threading)
 (#%require (prefix racket: racket))
-
-(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  eval
-                                  input-prompt
-                                  primitive-procedures
-                                  apply
-                                  eval-if
-                                  output-prompt
-                                  driver-loop
-                                  reset!))
 (racket:require "../allcode/ch4-4.2.2-leval.rkt")
 
 ;; lazy evaluator는 eval후 force it을 적용.

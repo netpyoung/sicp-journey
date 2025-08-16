@@ -1,5 +1,9 @@
 #lang sicp
 ;; file: 4_01.rkt
+(#%require rackunit)
+(#%require (prefix racket: racket))
+
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; 여기서의 cons는 left평가후 right를 평가한다.
 (cons
@@ -27,16 +31,16 @@
 
 ;; list-of-values 를 다시 작성하면
 ;; before
-#;(define (list-of-values exps env)
-    (if (no-operands? exps)
-        '()
-        (cons (eval (first-operand exps) env)
-              (list-of-values (rest-operand exps) env))))
+'(define (list-of-values exps env)
+   (if (no-operands? exps)
+       '()
+       (cons (eval (first-operand exps) env)
+             (list-of-values (rest-operand exps) env))))
 
 ;; after
 (define (list-of-values exps env)
   (if (no-operands? exps)
       '()
       (let* ((left (eval (first-operand exps) env))
-             (right (list-of-values (rest-operand exps) env)))
+             (right (list-of-values (rest-operands exps) env)))
         (cons left right))))

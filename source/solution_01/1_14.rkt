@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 1_14.rkt
+(#%require (prefix trace: racket/trace))
 
 ;; 1.2.2: count-change
 (define (count-change amount)
@@ -24,7 +25,6 @@
 (count-change 100)
 ;;=> 292
 
-(#%require (prefix trace: racket/trace))
 (trace:trace cc)
 (count-change 11)
 ;;=> 4

@@ -1,7 +1,14 @@
 #lang sicp
 ;; file: 4_17.rkt
 ;; 4_06 cont
-
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_make-procedure origin/make-procedure)
+                                  (_procedure-body origin/procedure-body)))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
 ;; 본문에 나온 <e3>을 평가할때의 environment를 다이어그램으로 그려라
 ;;
 ;; 첫번째 방식
@@ -27,7 +34,6 @@
 ;;              +------------------+
 ;;                   |
 ;;       e3: (+ u v x)  ; lookup all in F1
-
 
 ;;
 ;; 두번째 방식(변환된 방식)
@@ -106,12 +112,6 @@
 ;;       e3: (+ u v x)  ; lookup all in F1
 ;;
 
-(#%require rackunit)
-(#%require (prefix racket: racket))
-(#%require (prefix trace: racket/trace))
-(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  (_make-procedure origin/make-procedure)
-                                  (_procedure-body origin/procedure-body)))
 (define (filter predicate sequence)
   (cond ((null? sequence) nil)
         ((predicate (car sequence))
@@ -150,9 +150,6 @@
                 (set! v 2)
                 (+ u v x)))
 
-
-(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
-(define third caddr)
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
 

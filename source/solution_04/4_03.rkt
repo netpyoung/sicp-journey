@@ -2,7 +2,7 @@
 ;; file: 4_03.rkt
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require "../allcode/ch3-3.3.3.rkt")
 

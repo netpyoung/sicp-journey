@@ -3,7 +3,7 @@
 
 (#%require rackunit)
 (#%require threading)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 
 ;; a, b, c 를 인자로 받고 가장 큰 두 수의 제곱의 합
 ;; 1.1.4에 나온 sum-of-squares 사용.

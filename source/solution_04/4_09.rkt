@@ -3,7 +3,7 @@
 ;; 4_06 4_07 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require threading)
 (#%require (prefix racket: racket))
 (#%require (prefix r5rs/ r5rs))

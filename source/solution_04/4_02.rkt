@@ -1,5 +1,9 @@
 #lang sicp
 ;; file: 4_02.rkt
+(#%require rackunit)
+(#%require (prefix racket: racket))
+(#%require "../allcode/helper/my-util.rkt")
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; a) eval의 cond절에서
 ;;    assignment 혹은 definition보다
@@ -51,7 +55,7 @@
 
 
 ;; 단순 pair?로 체크하는걸 'call로 시작하는 리스트를 확인하는걸로 바꾸고
-;;(define (application? exp)
+;(define (application? exp)
 ;;  (pair? exp))
 (define (application? exp)
   (tagged-list? exp 'call))

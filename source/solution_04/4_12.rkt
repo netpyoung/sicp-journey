@@ -1,6 +1,17 @@
 #lang sicp
 ;; file: 4_12.rkt
 ;; 4_13
+(#%require rackunit)
+(#%require threading)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (define-variable! origin/define-variable!)
+                                  (set-variable-value! origin/set-variable-value!)
+                                  (lookup-variable-value origin/lookup-variable-value)))
+(racket:provide
+ lookup-variable-values)
 
 ;; 주어진 함수들의 공통된 점을 묶어 추상화하고, 그 추상화를 이용하여 다시 정의하라.
 ;;
@@ -14,17 +25,6 @@
 ;;
 ;; 기타. env 는 [frame1 frame2 ..] 이다.
 
-(#%require rackunit)
-(#%require threading)
-(#%require "../helper/my-util.rkt")
-(#%require (prefix racket: racket))
-
-(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  (define-variable! origin/define-variable!)
-                                  (set-variable-value! origin/set-variable-value!)
-                                  (lookup-variable-value origin/lookup-variable-value)))
-(racket:provide
- lookup-variable-values)
 ;; =======================================
 (define (lookup-variable-values var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.

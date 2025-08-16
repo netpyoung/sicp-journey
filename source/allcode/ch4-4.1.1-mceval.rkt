@@ -56,7 +56,7 @@
          (error
           "Unknown procedure type -- APPLY" procedure))))
 
-(define (list-of-values exps env)
+(define-overridable (list-of-values exps env)
   (if (no-operands? exps)
       '()
       (cons (eval (first-operand exps) env)
@@ -367,6 +367,7 @@
   (override-eval! _eval)
   (override-apply! _apply)
   (override-eval-if! _eval-if)
+  (override-list-of-values! _list-of-values)
   (override-make-procedure! _make-procedure)
   (override-procedure-body! _procedure-body)
   (override-lookup-variable-value! _lookup-variable-value)

@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 1_15.rkt
+(#%require (prefix trace: racket/trace))
 
 (define (cube x)
   (* x x x))
@@ -13,7 +14,6 @@
       angle
       (p (sine (/ angle 3.0)))))
 
-(#%require (prefix trace: racket/trace))
 (trace:trace p)
 (trace:trace sine)
 

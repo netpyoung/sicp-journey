@@ -24,9 +24,11 @@
 
 #;(load "ch4-mceval.scm")
 (#%require "./helper/my-util.rkt")
-(#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require (prefix racket: racket))
+(racket:require (racket:combine-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                   (racket:prefix-in mceval: "../allcode/ch4-4.1.1-mceval.rkt")))
 (racket:provide (racket:all-defined-out))
+(racket:provide (racket:all-from-out "../allcode/ch4-4.1.1-mceval.rkt"))
 
 ;;;SECTION 4.1.7
 
@@ -123,10 +125,11 @@
 ;; ========================================================
 ;; !!!!! override
 #;(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  eval))
-
-(override-eval! eval)
-(override-analyze! analyze)
-(override-analyze-sequence! analyze-sequence)
+                                    eval))
+(define (reset!)
+  (override-eval! _eval)
+  (override-analyze! _analyze)
+  (override-analyze-sequence! _analyze-sequence)
+  (mceval:override-eval! _eval))
 
 'ANALYZING-METACIRCULAR-EVALUATOR-LOADED

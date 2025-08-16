@@ -1,5 +1,6 @@
 #lang debug sicp
 ;; file: 1_09.rkt
+(#%require (prefix trace: racket/trace))
 
 (define (x+ a b)
   (if (= a 0)
@@ -23,7 +24,6 @@
 ;; (y+ 0 3)
 ;;=> 3
 
-(#%require (prefix trace: racket/trace))
 (trace:trace x+)
 (trace:trace y+)
 

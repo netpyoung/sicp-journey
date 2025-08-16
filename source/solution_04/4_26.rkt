@@ -3,7 +3,7 @@
 ;; 4_06
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 ;; lazy evaluation <=> eager evaluation
 

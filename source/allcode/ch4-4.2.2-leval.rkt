@@ -29,18 +29,19 @@
 (#%require "./helper/my-util.rkt")
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
+
+(racket:require (racket:combine-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                   (racket:prefix-in mceval: "../allcode/ch4-4.1.1-mceval.rkt")))
+
+
 (racket:provide (racket:all-defined-out))
-
-(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
-
-(racket:provide (racket:all-defined-out))
-
+(racket:provide (racket:all-from-out "../allcode/ch4-4.1.1-mceval.rkt"))
 
 ;;;SECTION 4.2.2
 
 ;;; Modifying the evaluator
 
-(define (eval exp env)
+(define-overridable (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -64,7 +65,7 @@
 (define (actual-value exp env)
   (force-it (eval exp env)))
 
-(define (apply procedure arguments env)
+(define-overridable (apply procedure arguments env)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
@@ -94,15 +95,15 @@
             (list-of-delayed-args (rest-operands exps)
                                   env))))
 
-(define (eval-if exp env)
+(define-overridable (eval-if exp env)
   (if (true? (actual-value (if-predicate exp) env))
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
 
-(define input-prompt ";;; L-Eval input:")
-(define output-prompt ";;; L-Eval value:")
+(define-overridable input-prompt ";;; L-Eval input:")
+(define-overridable output-prompt ";;; L-Eval value:")
 
-(define (driver-loop)
+(define-overridable (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))
     (let ((output
@@ -158,7 +159,7 @@
 ;; A longer list of primitives -- suitable for running everything in 4.2
 ;; Overrides the list in ch4-mceval.scm
 
-(define primitive-procedures
+(define-overridable primitive-procedures
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
@@ -171,34 +172,42 @@
         (list '= =)
         (list 'newline newline)
         (list 'display display)
-;;      more primitives
+        ;;      more primitives
         ))
 
 ;; ========================================================
 ;; !!!!! override
 #;(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  eval
-                                  apply
-                                  input-prompt
-                                  primitive-procedures
-                                  driver-loop
-                                  eval-if
-                                  output-prompt))
+                                    eval
+                                    apply
+                                    input-prompt
+                                    primitive-procedures
+                                    driver-loop
+                                    eval-if
+                                    output-prompt))
 
 (define force-it force-it-non-memoizing)
 (define (override-force-it! func)
   (set! force-it func))
 
 (define (reset!)
-  (override-eval! eval)
-  (override-apply! apply)
-  (override-input-prompt! input-prompt)
-  (override-primitive-procedures! primitive-procedures)
-  (override-driver-loop! driver-loop)
-  (override-eval-if! eval-if)
-  (override-output-prompt! output-prompt)
-  (override-the-global-environment! (setup-environment)))
+  (override-eval! _eval)
+  (override-apply! _apply)
+  (override-primitive-procedures! _primitive-procedures)
+  (override-driver-loop! _driver-loop)
+  (override-eval-if! _eval-if)
+  (override-input-prompt! _input-prompt)
+  (override-output-prompt! _output-prompt)
+  
+  (mceval:override-eval! _eval)
+  (mceval:override-apply! _apply)
+  (mceval:override-primitive-procedures! _primitive-procedures)
+  (mceval:override-driver-loop! _driver-loop)
+  (mceval:override-eval-if! _eval-if)
+  (mceval:override-input-prompt! _input-prompt)
+  (mceval:override-output-prompt! _output-prompt)
+  (mceval:override-the-global-environment! (setup-environment)))
  
- (reset!)
+(reset!)
 
 'LAZY-EVALUATOR-LOADED

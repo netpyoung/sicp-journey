@@ -3,7 +3,7 @@
 
 (#%require rackunit)
 (#%require (prefix racket: racket))
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; Install and and or as new special forms

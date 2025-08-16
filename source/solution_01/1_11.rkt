@@ -1,5 +1,7 @@
 #lang sicp
 ;; file: 1_11.rkt
+(#%require (prefix racket: racket))
+(#%require rackunit)
 
 ;; n <  3 : f(n) = n                        
 ;; n >= 3 : f(n) = f(n-1) + 2f(n-2) + 3f(n-3)   
@@ -34,9 +36,5 @@
       n
       (iter 3 n 2 1 0)))
 
-
-
-(#%require (prefix racket: racket))
-(#%require rackunit)
 (racket:for ([i 20])
             (check-eq? (f-recur i)(f-iter i)))

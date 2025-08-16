@@ -1,6 +1,10 @@
 #lang sicp
 ;; file: 1_13.rkt
 
+(#%require (prefix racket: racket))
+(#%require threading)
+(#%require rackunit)
+
 ;; ==============================================================
 ;; - 특성방정식(Characteristic equation)
 ;;   - https://en.wikipedia.org/wiki/Characteristic_equation_(calculus)
@@ -182,9 +186,6 @@
 ;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
 
 
-(#%require (prefix racket: racket))
-(#%require threading)
-(#%require rackunit)
 
 
 

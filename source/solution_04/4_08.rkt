@@ -5,9 +5,9 @@
 ;; 4_06 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
-(racket:require (racket:rename-in "4_06.rkt" let->combination-normal let->combination))
+(racket:require (racket:rename-in "4_06.rkt" (let->combination let->combination-normal)))
 
 (racket:provide
  make-define

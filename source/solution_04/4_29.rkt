@@ -2,11 +2,8 @@
 ;; file: 4_29.rkt
 (#%require rackunit)
 (#%require threading)
+(#%require profile)
 (#%require (prefix racket: racket))
-
-(racket:require (racket:only-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                setup-environment
-                                define-variable!))
 (racket:require (racket:prefix-in lazy: "../allcode/ch4-4.2.2-leval.rkt"))
 
 ;;
@@ -37,7 +34,7 @@
 
 ;; non-memoizing 버전
 (lazy:override-force-it! lazy:force-it-non-memoizing)
-(define env1 (setup-environment))
+(define env1 (lazy:setup-environment))
 (~> '(define count 0)
     (lazy:actual-value env1)
     (check-eq? 'ok))
@@ -65,7 +62,7 @@
 
 ;; memoizing 버전
 (lazy:override-force-it! lazy:force-it-memoizing)
-(define env2 (setup-environment))
+(define env2 (lazy:setup-environment))
 (~> '(define count 0)
     (lazy:actual-value env2)
     (check-eq? 'ok))

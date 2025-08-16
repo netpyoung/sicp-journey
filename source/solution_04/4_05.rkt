@@ -3,7 +3,7 @@
 
 (#%require rackunit)
 (#%require (prefix racket: racket))
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; expand-clauses의 (sequence->exp (cond-actions first)) 부분을 수정하면 된다.

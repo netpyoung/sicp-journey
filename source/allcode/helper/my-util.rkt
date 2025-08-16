@@ -1,47 +1,15 @@
-#lang racket
+#lang sicp
 
-(provide (all-defined-out))
+(#%require (prefix racket: racket))
+(racket:provide (racket:all-defined-out))
+(racket:require "my-macro.rkt")
+(racket:provide (racket:all-from-out "my-macro.rkt"))
 
 (define first car)
 (define rest cdr)
 (define second cadr)
 (define third caddr)
 (define fourth cadddr)
-
-(define-syntax (define-overridable stx)
-  (syntax-case stx ()
-    ;; 함수 정의
-    [(_ (fname arg ...) body ...)
-     (let* ([fname-sym (syntax->datum #'fname)]
-            [internal-name (datum->syntax stx (string->symbol (string-append "_" (symbol->string fname-sym))) #'fname)]
-            [override-name (datum->syntax stx (string->symbol (string-append "override-" (symbol->string fname-sym) "!")) #'fname)])
-       (with-syntax ([iname internal-name]
-                     [oname override-name])
-         #'(begin
-             (define (iname arg ...) body ...)
-             (define fname iname)
-             (define (oname func) (set! fname func)))))]
-
-    ;; 값 정의
-    [(_ fname value)
-     (let* ([fname-sym (syntax->datum #'fname)]
-            [internal-name (datum->syntax stx (string->symbol (string-append "_" (symbol->string fname-sym))) #'fname)]
-            [override-name (datum->syntax stx (string->symbol (string-append "override-" (symbol->string fname-sym) "!")) #'fname)])
-       (with-syntax ([iname internal-name]
-                     [oname override-name])
-         #'(begin
-             (define iname value)
-             (define fname iname)
-             (define (oname new-value) (set! fname new-value)))))]))
-
-;; (define-overridable (hello x)
-;;   (+ x 1))
-;; ==>
-;; (define (_hello x)
-;;   (+ x 1)
-;; (define hello _hello)
-;; (define (override-hello! func)
-;;   (set! hello func))
 
 
 ;; TODO - naming

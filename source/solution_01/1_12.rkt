@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 1_12.rkt
+(#%require (prefix racket: racket))
 
 ;; 파스칼 삼각형
 
@@ -10,8 +11,6 @@
                       (P (- x 1) (- y 1))))))
 
 
-
-(#%require (prefix racket: racket))
 (racket:for ([y (racket:in-inclusive-range 0 5)])
             (display y)
             (display ": ")

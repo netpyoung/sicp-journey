@@ -3,13 +3,15 @@
 ;; 4_06 / 4_16 / 4_20 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (#%require (prefix trace: racket/trace))
 
 (racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_16/ "4_16.rkt"))
 
 ;; - before
 ;; (lambda <vars>
@@ -119,9 +121,6 @@
 
 
 
-(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
-(racket:require (racket:prefix-in ex4_16/ "4_16.rkt"))
-(define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)

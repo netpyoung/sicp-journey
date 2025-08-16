@@ -3,7 +3,6 @@
 (#%require (prefix racket: racket))
 (#%require rackunit)
 (racket:require "4_06.rkt")
-(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
 (racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
 
 (racket:provide

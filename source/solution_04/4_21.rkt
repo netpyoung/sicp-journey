@@ -1,6 +1,9 @@
 #lang sicp
 ;; file: 4_21.rkt
 
+(#%require rackunit)
+(#%require (only racket λ))
+
 ;; Stoy 1977 for details on the λ-calculus,
 ;;Gabriel 1988 for an exposition of the  Y operator in Scheme
 
@@ -103,8 +106,6 @@
 
 
 ;; letrec을 쓰지 않고도 재귀 프로시져를 만들 수 있음.
-(#%require rackunit)
-(#%require (only racket λ))
 
 (define Y
   (λ (f)

@@ -3,7 +3,7 @@
 ;; 4_06 / 4_18 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (#%require (prefix trace: racket/trace))
 
@@ -11,6 +11,8 @@
                                   (_lookup-variable-value origin/lookup-variable-value)
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
+
 (racket:provide
  lookup-variable-value
  scan-out-defines)
@@ -149,8 +151,6 @@
 ;;           "Unknown procedure type -- APPLY" procedure))))
 
 ;; 수정한다면,
-(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
-(define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
@@ -201,7 +201,16 @@
 (around
  (begin
    (define (procedure-body p)
-     (scan-out-defines (third p)))
+     ;; 4_06에서 ((let? exp) (eval (let->combination exp) env)) 을
+     ;; 추가 했다면.
+     ;; (scan-out-defines (third p))
+     ;;
+     ;; 추가하지 않았다면,
+     (map (lambda (x)
+            (if (ex4_06/let? x)
+                (ex4_06/let->combination x)
+                x))
+          (scan-out-defines (third p))))
    (override-make-procedure! origin/make-procedure)
    (override-procedure-body! procedure-body))
  

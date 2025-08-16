@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 1_10.rkt
+(#%require (prefix trace: racket/trace))
 
 (define (A x y)
   ;; A(x, 0) = 0
@@ -81,7 +82,6 @@
         ((= n 0) (C (- m 1) 1))
         (else    (C (- m 1) (C m (- n 1))))))
 
-(#%require (prefix trace: racket/trace))
 (trace:trace φ)
 (trace:trace C)
 (φ 1 2 3)
