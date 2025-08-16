@@ -190,6 +190,10 @@
 </ul>
 <h2 id="4_01"><a class="header" href="#4_01">4_01</a></h2>
 <pre><code class="language-lisp">;; file: 4_01.rkt
+(#%require rackunit)
+(#%require (prefix racket: racket))
+
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; 여기서의 cons는 left평가후 right를 평가한다.
 (cons
@@ -217,22 +221,26 @@
 
 ;; list-of-values 를 다시 작성하면
 ;; before
-#;(define (list-of-values exps env)
-    (if (no-operands? exps)
-        '()
-        (cons (eval (first-operand exps) env)
-              (list-of-values (rest-operand exps) env))))
+'(define (list-of-values exps env)
+   (if (no-operands? exps)
+       '()
+       (cons (eval (first-operand exps) env)
+             (list-of-values (rest-operand exps) env))))
 
 ;; after
 (define (list-of-values exps env)
   (if (no-operands? exps)
       '()
       (let* ((left (eval (first-operand exps) env))
-             (right (list-of-values (rest-operand exps) env)))
+             (right (list-of-values (rest-operands exps) env)))
         (cons left right))))
 </code></pre>
 <h2 id="4_02"><a class="header" href="#4_02">4_02</a></h2>
 <pre><code class="language-lisp">;; file: 4_02.rkt
+(#%require rackunit)
+(#%require (prefix racket: racket))
+(#%require "../allcode/helper/my-util.rkt")
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; a) eval의 cond절에서
 ;;    assignment 혹은 definition보다
@@ -284,7 +292,7 @@
 
 
 ;; 단순 pair?로 체크하는걸 'call로 시작하는 리스트를 확인하는걸로 바꾸고
-;;(define (application? exp)
+;(define (application? exp)
 ;;  (pair? exp))
 (define (application? exp)
   (tagged-list? exp 'call))
@@ -304,7 +312,7 @@
 <pre><code class="language-lisp">;; file: 4_03.rkt
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 (#%require "../allcode/ch3-3.3.3.rkt")
 
@@ -399,7 +407,7 @@
 
 (#%require rackunit)
 (#%require (prefix racket: racket))
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; Install and and or as new special forms
@@ -534,7 +542,7 @@
 
 (#%require rackunit)
 (#%require (prefix racket: racket))
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require "../allcode/ch4-4.1.1-mceval.rkt")
 
 ;; expand-clauses의 (sequence-&gt;exp (cond-actions first)) 부분을 수정하면 된다.
@@ -638,7 +646,7 @@
 
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 
@@ -705,7 +713,7 @@
 ;; 4_06 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 (racket:provide
@@ -839,9 +847,9 @@
 ;; 4_06 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
-(racket:require (racket:rename-in "4_06.rkt" let-&gt;combination-normal let-&gt;combination))
+(racket:require (racket:rename-in "4_06.rkt" (let-&gt;combination let-&gt;combination-normal)))
 
 (racket:provide
  make-define
@@ -952,7 +960,7 @@
 ;; 4_06 4_07 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require threading)
 (#%require (prefix racket: racket))
 (#%require (prefix r5rs/ r5rs))
@@ -1172,6 +1180,9 @@
 <pre><code class="language-lisp">;; file: 4_10.rkt
 
 (#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
+
 ;; 기존 eval과 apply 코드는 그대로 두고 Scheme의 새로운 문법(syntax) 을 설계하고 구현하라.
 ;; define의 문법을 clojure 처럼 def / defn으로 변경.
 ;; -- scheme
@@ -1184,9 +1195,6 @@
 ;; (defn foo [a b c]
 ;;   (* a b c))
 
-(define rest cdr)
-(define second cadr)
-(define third caddr)
 
 (define (definition? exp)
   (or 
@@ -1238,7 +1246,6 @@
   'ok)
 
 ;; racket모듈 특성상 동일한 코드를 다시 override할 필요가 있음.
-(#%require (all-except "../allcode/ch4-4.1.1-mceval.rkt" eval))
 (define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
@@ -1282,7 +1289,9 @@
 
 (#%require rackunit)
 (#%require threading)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix old: "../allcode/ch4-4.1.1-mceval.rkt"))
+
 ;; - 현재 frame형태
 ;;   - '((symbol-a symbol-b ...) value-a (primitive func-b) ...)
 ;; - 바꾸고자 하는 frame형태
@@ -1294,7 +1303,6 @@
 ;; - frame-variables
 ;; - frame-values
 
-(#%require (prefix old: "../allcode/ch4-4.1.1-mceval.rkt"))
 (define frame1 (old:make-frame '(a b) '(1 2)))
 (check-equal? frame1
               '((a b) 1 2))
@@ -1337,6 +1345,17 @@
 <h2 id="4_12"><a class="header" href="#4_12">4_12</a></h2>
 <pre><code class="language-lisp">;; file: 4_12.rkt
 ;; 4_13
+(#%require rackunit)
+(#%require threading)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (define-variable! origin/define-variable!)
+                                  (set-variable-value! origin/set-variable-value!)
+                                  (lookup-variable-value origin/lookup-variable-value)))
+(racket:provide
+ lookup-variable-values)
 
 ;; 주어진 함수들의 공통된 점을 묶어 추상화하고, 그 추상화를 이용하여 다시 정의하라.
 ;;
@@ -1350,17 +1369,6 @@
 ;;
 ;; 기타. env 는 [frame1 frame2 ..] 이다.
 
-(#%require rackunit)
-(#%require threading)
-(#%require "../helper/my-util.rkt")
-(#%require (prefix racket: racket))
-
-(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  (define-variable! origin/define-variable!)
-                                  (set-variable-value! origin/set-variable-value!)
-                                  (lookup-variable-value origin/lookup-variable-value)))
-(racket:provide
- lookup-variable-values)
 ;; =======================================
 (define (lookup-variable-values var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.
@@ -1418,6 +1426,11 @@
 <pre><code class="language-lisp">;; file: 4_13.rkt
 ;; 4_12
 
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
+
 ;; scheme에서 define해서 정의한 변수를 지울 수 없음.
 ;;
 ;; 1-1. make-unbound! 함수를 만들어 env에서 지울 수 있도록 만들자.
@@ -1436,11 +1449,6 @@
 ;; 초판 2002년: TaPL Types and Programming Languages by Benjamin C. Pierce - https://www.cis.upenn.edu/~bcpierce/tapl/index.html
 ;;  etc. https://softwarefoundations.cis.upenn.edu/
 
-
-(#%require rackunit)
-(#%require "../helper/my-util.rkt")
-(#%require (prefix racket: racket))
-(racket:require "../allcode/ch4-4.1.1-mceval.rkt")
 
 (define (lookup-variable-vars-vals var env)
   ;; 함수 모양이 맘에 안들지만, 일단 기존 코드 모양의 수정을 최소화하겠다.
@@ -1598,7 +1606,7 @@
 ;; 4_06 / 4_18 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (#%require (prefix trace: racket/trace))
 
@@ -1606,6 +1614,8 @@
                                   (_lookup-variable-value origin/lookup-variable-value)
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
+
 (racket:provide
  lookup-variable-value
  scan-out-defines)
@@ -1744,8 +1754,6 @@
 ;;           "Unknown procedure type -- APPLY" procedure))))
 
 ;; 수정한다면,
-(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
-(define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
@@ -1796,7 +1804,16 @@
 (around
  (begin
    (define (procedure-body p)
-     (scan-out-defines (third p)))
+     ;; 4_06에서 ((let? exp) (eval (let-&gt;combination exp) env)) 을
+     ;; 추가 했다면.
+     ;; (scan-out-defines (third p))
+     ;;
+     ;; 추가하지 않았다면,
+     (map (lambda (x)
+            (if (ex4_06/let? x)
+                (ex4_06/let-&gt;combination x)
+                x))
+          (scan-out-defines (third p))))
    (override-make-procedure! origin/make-procedure)
    (override-procedure-body! procedure-body))
  
@@ -1828,7 +1845,14 @@
 <h2 id="4_17"><a class="header" href="#4_17">4_17</a></h2>
 <pre><code class="language-lisp">;; file: 4_17.rkt
 ;; 4_06 cont
-
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require (prefix trace: racket/trace))
+(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
+                                  (_make-procedure origin/make-procedure)
+                                  (_procedure-body origin/procedure-body)))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
 ;; 본문에 나온 &lt;e3&gt;을 평가할때의 environment를 다이어그램으로 그려라
 ;;
 ;; 첫번째 방식
@@ -1854,7 +1878,6 @@
 ;;              +------------------+
 ;;                   |
 ;;       e3: (+ u v x)  ; lookup all in F1
-
 
 ;;
 ;; 두번째 방식(변환된 방식)
@@ -1933,12 +1956,6 @@
 ;;       e3: (+ u v x)  ; lookup all in F1
 ;;
 
-(#%require rackunit)
-(#%require (prefix racket: racket))
-(#%require (prefix trace: racket/trace))
-(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  (_make-procedure origin/make-procedure)
-                                  (_procedure-body origin/procedure-body)))
 (define (filter predicate sequence)
   (cond ((null? sequence) nil)
         ((predicate (car sequence))
@@ -1977,9 +1994,6 @@
                 (set! v 2)
                 (+ u v x)))
 
-
-(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
-(define third caddr)
 (define env2 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
 
@@ -2030,13 +2044,15 @@
 ;; 4_06 / 4_16 / 4_20 cont
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (#%require (prefix trace: racket/trace))
 
 (racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
                                   (_make-procedure origin/make-procedure)
                                   (_procedure-body origin/procedure-body)))
+(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
+(racket:require (racket:prefix-in ex4_16/ "4_16.rkt"))
 
 ;; - before
 ;; (lambda &lt;vars&gt;
@@ -2146,9 +2162,6 @@
 
 
 
-(racket:require (racket:prefix-in ex4_06/ "4_06.rkt"))
-(racket:require (racket:prefix-in ex4_16/ "4_16.rkt"))
-(define third caddr)
 (define env2 (setup-environment))
 (define env3 (setup-environment))
 (define-variable! '+ (list 'primitive +) env2)
@@ -2244,7 +2257,7 @@
 ;; 4_17 / 4_18 / 4_21
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt" (_eval origin/eval)))
 
@@ -2438,6 +2451,9 @@
 <h2 id="4_21"><a class="header" href="#4_21">4_21</a></h2>
 <pre><code class="language-lisp">;; file: 4_21.rkt
 
+(#%require rackunit)
+(#%require (only racket λ))
+
 ;; Stoy 1977 for details on the λ-calculus,
 ;;Gabriel 1988 for an exposition of the  Y operator in Scheme
 
@@ -2540,8 +2556,6 @@
 
 
 ;; letrec을 쓰지 않고도 재귀 프로시져를 만들 수 있음.
-(#%require rackunit)
-(#%require (only racket λ))
 
 (define Y
   (λ (f)
@@ -2670,7 +2684,6 @@
 (#%require (prefix racket: racket))
 (#%require rackunit)
 (racket:require "4_06.rkt")
-(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
 (racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt" (_analyze origin/analyze)))
 
 (racket:provide
@@ -2712,7 +2725,6 @@
 (#%require (prefix trace: racket/trace))
 (#%require rackunit)
 (racket:require "4_06.rkt")
-(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt" eval))
 (racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
                                   (_analyze origin/analyze)
                                   (_analyze-sequence origin/analyze-sequence)))
@@ -2790,15 +2802,13 @@
 </code></pre>
 <h2 id="4_24"><a class="header" href="#4_24">4_24</a></h2>
 <pre><code class="language-lisp">;; file: 4_24.rkt
+(#%require profile)
+(#%require (prefix racket: racket))
+(racket:require (racket:prefix-in mceval: "../allcode/ch4-4.1.1-mceval.rkt"))
+(racket:require (racket:prefix-in analyzing: "../allcode/ch4-4.1.7-analyzingmceval.rkt"))
 
 ;; 이전 버전의 evaluator와 이번 단락에서 소개한 버전(analyze)을 속도 측면에서 비교하기 위한 몇 가지 실험을 설계하고 수행하라.
 ;; 그 결과를 이용하여, 다양한 프로시저에 대해 분석 단계와 실행 단계 각각에 소요되는 시간의 비율을 추정하라.
-(#%require profile)
-(#%require (prefix racket: racket))
-(racket:require (racket:rename-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  (_eval origin/eval)))
-(racket:require (racket:rename-in "../allcode/ch4-4.1.7-analyzingmceval.rkt"
-                                  (eval next/eval)))
 
 ;; profile-thunk
 ;; https://docs.racket-lang.org/profile/index.html#%28def._%28%28lib._profile%2Fmain..rkt%29._profile-thunk%29%29
@@ -2820,32 +2830,28 @@
 
   )
 
-(override-eval! origin/eval)
-(define env2 (setup-environment))
-(define-variable! '+ (list 'primitive +) env2)
-(define-variable! '- (list 'primitive -) env2)
-(define-variable! '= (list 'primitive =) env2)
-(eval expr env2)
+(define env2 (mceval:setup-environment))
+(mceval:define-variable! '+ (list 'primitive +) env2)
+(mceval:define-variable! '- (list 'primitive -) env2)
+(mceval:define-variable! '= (list 'primitive =) env2)
+(mceval:eval expr env2)
 (profile-thunk
  (lambda ()
    
-   (eval '(fib 5000) env2)
+   (mceval:eval '(fib 5000) env2)
    )
  #:repeat 99)
 
-(override-eval! next/eval)
-(define env3 (setup-environment))
-(define-variable! '+ (list 'primitive +) env3)
-(define-variable! '- (list 'primitive -) env3)
-(define-variable! '= (list 'primitive =) env3)
-(eval expr env3) 
+(define env3 (analyzing:setup-environment))
+(analyzing:define-variable! '+ (list 'primitive +) env3)
+(analyzing:define-variable! '- (list 'primitive -) env3)
+(analyzing:define-variable! '= (list 'primitive =) env3)
+(analyzing:eval expr env3) 
 (profile-thunk
  (lambda ()
-   (eval '(fib 5000) env3)
+   (analyzing:eval '(fib 5000) env3)
    )
  #:repeat 99)
-
-(racket:time (eval '(fib 5000) env3))
 </code></pre>
 <h2 id="4_25"><a class="header" href="#4_25">4_25</a></h2>
 <pre><code class="language-lisp">{{#include ../../../source/solution_04/4_25.rkt:2:}}
@@ -2855,7 +2861,7 @@
 ;; 4_06
 
 (#%require rackunit)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 (#%require (prefix racket: racket))
 ;; lazy evaluation &lt;=&gt; eager evaluation
 
@@ -2897,32 +2903,214 @@
 </code></pre>
 <h2 id="4_27"><a class="header" href="#4_27">4_27</a></h2>
 <pre><code class="language-lisp">;; file: 4_27.rkt
+(#%require rackunit)
+(#%require threading)
 (#%require (prefix racket: racket))
+(racket:require "../allcode/ch4-4.2.2-leval.rkt")
 
-(racket:require (racket:except-in "../allcode/ch4-4.1.1-mceval.rkt"
-                                  eval
-                                  input-prompt
-                                  primitive-procedures
-                                  ;;driver-loop
-                                  apply
-                                  eval-if
-                                  output-prompt))
-#;(racket:require "../allcode/ch4-4.2.2-leval.rkt")
+;; lazy evaluator는 eval후 force it을 적용.
+;; (driver-loop) 후 입력해도 됨.
+;;
+;; (define (actual-value exp env)
+;;   (force-it (eval exp env)))
+;;
 
-;; lazy evaluator( 제때 실행기  WTF )
+(define env1 (setup-environment))
+(~&gt; '(define count 0)
+    (actual-value env1)
+    (check-eq? 'ok))
 
-(define count 0)
-(define (id x)
-  (set! count (+ count 1))
-  x)
+(~&gt; '(define (id x)
+       (set! count (+ count 1))
+       x)
+    (actual-value env1)
+    (check-eq? 'ok))
 
-(define w (id (id 10)))
+(~&gt; '(define w (id (id 10)))
+    (actual-value env1)
+    (check-eq? 'ok))
+
+(~&gt; 'count
+    (actual-value env1)
+    (check-eq? 1))
+
+(~&gt; 'w
+    (actual-value env1)
+    (check-eq? 10))
+
+(~&gt; 'count
+    (actual-value env1)
+    (check-eq? 2))
 </code></pre>
 <h2 id="4_28"><a class="header" href="#4_28">4_28</a></h2>
 <pre><code class="language-lisp">;; file: 4_28.rkt
+
+;;
+;; 예전에는 그냥 eval했는데 왜 이젠 actual-value로 쓰는가?
+;;
+;; ch4-4.1.1-mceval
+'(define (eval exp env)
+   (cond (...
+          ((application? exp)
+           (apply (eval (operator exp) env)
+                  (list-of-values (operands exp) env)))
+          ...)))
+'(define (list-of-values exps env)
+   (if (no-operands? exps)
+       '()
+       (cons (eval (first-operand exps) env)
+             (list-of-values (rest-operands exps) env))))
+
+'(define (apply procedure arguments)
+   (cond ((primitive-procedure? procedure)
+          (apply-primitive-procedure procedure arguments))
+         ((compound-procedure? procedure)
+          (eval-sequence
+           (procedure-body procedure)
+           (extend-environment
+            (procedure-parameters procedure)
+            arguments
+            (procedure-environment procedure))))
+         (else
+          (error
+           "Unknown procedure type -- APPLY" procedure))))
+;; (+ 1 2 3)
+;; apply (eval + env) ((eval 1 env) (eval 2 env) (eval 3 env)) 이런 식
+;; r5rs:apply + (1 2 3)
+
+;; ch4-4.2.2-leval
+'(define (eval exp env)
+   (cond (...
+          ((application? exp)             ; clause from book
+           (apply (actual-value (operator exp) env)
+                  (operands exp)
+                  env))
+          ...)))
+
+'(define (actual-value exp env)
+   (force-it (eval exp env)))
+
+'(define (apply procedure arguments env)
+   (cond ((primitive-procedure? procedure)
+          (apply-primitive-procedure
+           procedure
+           (list-of-arg-values arguments env))) ; changed
+         ((compound-procedure? procedure)
+          (eval-sequence
+           (procedure-body procedure)
+           (extend-environment
+            (procedure-parameters procedure)
+            (list-of-delayed-args arguments env) ; changed
+            (procedure-environment procedure))))
+         (else
+          (error
+           "Unknown procedure type -- APPLY" procedure))))
+
+'(define (list-of-arg-values exps env)
+   (if (no-operands? exps)
+       '()
+       (cons (actual-value (first-operand exps) env)
+             (list-of-arg-values (rest-operands exps)
+                                 env))))
+
+'(define (list-of-delayed-args exps env)
+   (if (no-operands? exps)
+       '()
+       (cons (delay-it (first-operand exps) env)
+             (list-of-delayed-args (rest-operands exps)
+                                   env))))
+;; (+ 1 2 3)
+;; apply (actual-value + env) (1 2 3)
+;; r5rs:apply (actual-value + env) ((actual-value 1 env) (actual-value 2 env) (actual-value 3 env))
 </code></pre>
 <h2 id="4_29"><a class="header" href="#4_29">4_29</a></h2>
 <pre><code class="language-lisp">;; file: 4_29.rkt
+(#%require rackunit)
+(#%require threading)
+(#%require profile)
+(#%require (prefix racket: racket))
+(racket:require (racket:prefix-in lazy: "../allcode/ch4-4.2.2-leval.rkt"))
+
+;;
+;; count/id는 4_27에서 정의된것.
+;;
+;; non-memoizing버전과 memoizing 버전의 결과값을 비교해라.
+;;
+
+;; non-memoizing 버전에서는 (thunk exp env) 들만 있고, 매 force-it시 thunk에서 값을 계산을 한다.
+'(define (force-it-non-memoizing obj)
+   (if (thunk? obj)
+       (actual-value (thunk-exp obj) (thunk-env obj))
+       obj))
+
+;; 반면 memoizing버전에서는 (evaluated-thunk result) 라는게 있어, (thunk exp env) 를 한번 계산하고 캐쉬비슷하게 저장해서 다시 쓴다.
+'(define (force-it-memoizing obj)
+   (cond ((thunk? obj)
+          (let ((result (actual-value
+                         (thunk-exp obj)
+                         (thunk-env obj))))
+            (set-car! obj 'evaluated-thunk)
+            (set-car! (cdr obj) result)  ; replace exp with its value
+            (set-cdr! (cdr obj) '())     ; forget unneeded env
+            result))
+         ((evaluated-thunk? obj)
+          (thunk-value obj))
+         (else obj)))
+
+;; non-memoizing 버전
+(lazy:override-force-it! lazy:force-it-non-memoizing)
+(define env1 (lazy:setup-environment))
+(~&gt; '(define count 0)
+    (lazy:actual-value env1)
+    (check-eq? 'ok))
+
+(~&gt; '(define (id x)
+       (set! count (+ count 1))
+       x)
+    (lazy:actual-value env1)
+    (check-eq? 'ok))
+
+(~&gt; '(define (square x)
+       (* x x))
+    (lazy:actual-value env1)
+    (check-eq? 'ok))
+
+;; non-memoizing에서는 (id 10)이 캐쉬되지 안아 square에서 2번 호출되어 count수도 두번 증가한다.
+(~&gt; '(square (id 10))          
+    (lazy:actual-value env1)
+    (check-eq? 100))
+
+(~&gt; 'count
+    (lazy:actual-value env1)
+    (check-eq? 2))
+
+
+;; memoizing 버전
+(lazy:override-force-it! lazy:force-it-memoizing)
+(define env2 (lazy:setup-environment))
+(~&gt; '(define count 0)
+    (lazy:actual-value env2)
+    (check-eq? 'ok))
+
+(~&gt; '(define (id x)
+       (set! count (+ count 1))
+       x)
+    (lazy:actual-value env2)
+    (check-eq? 'ok))
+
+(~&gt; '(define (square x)
+       (* x x))
+    (lazy:actual-value env2)
+    (check-eq? 'ok))
+
+;; memoizing에서는 (id 10)이 한번 호출되어 캐쉬되어 square에서 (* x x)라도 count수는 한번만 증가한다.
+(~&gt; '(square (id 10))
+    (lazy:actual-value env2)
+    (check-eq? 100))
+
+(~&gt; 'count
+    (lazy:actual-value env2)
+    (check-eq? 1))
 </code></pre>
 <h2 id="4_30"><a class="header" href="#4_30">4_30</a></h2>
 <pre><code class="language-lisp">;; file: 4_30.rkt

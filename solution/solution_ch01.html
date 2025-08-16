@@ -253,7 +253,7 @@
 
 (#%require rackunit)
 (#%require threading)
-(#%require "../helper/my-util.rkt")
+(#%require "../allcode/helper/my-util.rkt")
 
 ;; a, b, c 를 인자로 받고 가장 큰 두 수의 제곱의 합
 ;; 1.1.4에 나온 sum-of-squares 사용.
@@ -549,6 +549,7 @@ $$</p>
 </code></pre>
 <h2 id="1_09"><a class="header" href="#1_09">1_09</a></h2>
 <pre><code class="language-lisp">;; file: 1_09.rkt
+(#%require (prefix trace: racket/trace))
 
 (define (x+ a b)
   (if (= a 0)
@@ -572,7 +573,6 @@ $$</p>
 ;; (y+ 0 3)
 ;;=&gt; 3
 
-(#%require (prefix trace: racket/trace))
 (trace:trace x+)
 (trace:trace y+)
 
@@ -595,6 +595,7 @@ $$</p>
 </code></pre>
 <h2 id="1_10"><a class="header" href="#1_10">1_10</a></h2>
 <pre><code class="language-lisp">;; file: 1_10.rkt
+(#%require (prefix trace: racket/trace))
 
 (define (A x y)
   ;; A(x, 0) = 0
@@ -676,7 +677,6 @@ $$</p>
         ((= n 0) (C (- m 1) 1))
         (else    (C (- m 1) (C m (- n 1))))))
 
-(#%require (prefix trace: racket/trace))
 (trace:trace φ)
 (trace:trace C)
 (φ 1 2 3)
@@ -684,6 +684,8 @@ $$</p>
 </code></pre>
 <h2 id="1_11"><a class="header" href="#1_11">1_11</a></h2>
 <pre><code class="language-lisp">;; file: 1_11.rkt
+(#%require (prefix racket: racket))
+(#%require rackunit)
 
 ;; n &lt;  3 : f(n) = n                        
 ;; n &gt;= 3 : f(n) = f(n-1) + 2f(n-2) + 3f(n-3)   
@@ -718,15 +720,12 @@ $$</p>
       n
       (iter 3 n 2 1 0)))
 
-
-
-(#%require (prefix racket: racket))
-(#%require rackunit)
 (racket:for ([i 20])
             (check-eq? (f-recur i)(f-iter i)))
 </code></pre>
 <h2 id="1_12"><a class="header" href="#1_12">1_12</a></h2>
 <pre><code class="language-lisp">;; file: 1_12.rkt
+(#%require (prefix racket: racket))
 
 ;; 파스칼 삼각형
 
@@ -737,8 +736,6 @@ $$</p>
                       (P (- x 1) (- y 1))))))
 
 
-
-(#%require (prefix racket: racket))
 (racket:for ([y (racket:in-inclusive-range 0 5)])
             (display y)
             (display ": ")
@@ -755,6 +752,10 @@ $$</p>
 </code></pre>
 <h2 id="1_13"><a class="header" href="#1_13">1_13</a></h2>
 <pre><code class="language-lisp">;; file: 1_13.rkt
+
+(#%require (prefix racket: racket))
+(#%require threading)
+(#%require rackunit)
 
 ;; ==============================================================
 ;; - 특성방정식(Characteristic equation)
@@ -937,9 +938,6 @@ $$</p>
 ;; 기저 사례와 귀납 단계를 통해 Fib(n) = (φ^n – ψ^n)/√5 이다.
 
 
-(#%require (prefix racket: racket))
-(#%require threading)
-(#%require rackunit)
 
 
 
@@ -1045,6 +1043,7 @@ graph TD
   class cc_00_01_d highlightNode;
 </pre>
 <pre><code class="language-lisp">;; file: 1_14.rkt
+(#%require (prefix trace: racket/trace))
 
 ;; 1.2.2: count-change
 (define (count-change amount)
@@ -1069,7 +1068,6 @@ graph TD
 (count-change 100)
 ;;=&gt; 292
 
-(#%require (prefix trace: racket/trace))
 (trace:trace cc)
 (count-change 11)
 ;;=&gt; 4
@@ -1099,6 +1097,7 @@ graph TD
 </code></pre>
 <h2 id="1_15"><a class="header" href="#1_15">1_15</a></h2>
 <pre><code class="language-lisp">;; file: 1_15.rkt
+(#%require (prefix trace: racket/trace))
 
 (define (cube x)
   (* x x x))
@@ -1112,7 +1111,6 @@ graph TD
       angle
       (p (sine (/ angle 3.0)))))
 
-(#%require (prefix trace: racket/trace))
 (trace:trace p)
 (trace:trace sine)
 
