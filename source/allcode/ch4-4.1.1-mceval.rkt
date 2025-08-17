@@ -67,7 +67,7 @@
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
 
-(define (eval-sequence exps env)
+(define-overridable (eval-sequence exps env)
   (cond ((last-exp? exps) (eval (first-exp exps) env))
         (else (eval (first-exp exps) env)
               (eval-sequence (rest-exps exps) env))))
@@ -367,6 +367,7 @@
   (override-eval! _eval)
   (override-apply! _apply)
   (override-eval-if! _eval-if)
+  (override-eval-sequence! _eval-sequence)
   (override-list-of-values! _list-of-values)
   (override-make-procedure! _make-procedure)
   (override-procedure-body! _procedure-body)

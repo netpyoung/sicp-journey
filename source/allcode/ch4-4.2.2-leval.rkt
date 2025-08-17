@@ -37,6 +37,8 @@
 (racket:provide (racket:all-defined-out))
 (racket:provide (racket:all-from-out "../allcode/ch4-4.1.1-mceval.rkt"))
 
+;; (racket:provide (racket:all-defined-out) (racket:all-from-out "../allcode/ch4-4.1.1-mceval.rkt"))
+
 ;;;SECTION 4.2.2
 
 ;;; Modifying the evaluator

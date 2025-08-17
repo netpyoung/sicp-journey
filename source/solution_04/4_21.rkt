@@ -102,6 +102,7 @@
 ;;       (λ (x)
 ;;         (f (λ (v) ((x x) v))))))
 ;;
+;; -ref: Lambda-Calculus and Combinators : An Introduction
 
 
 

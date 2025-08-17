@@ -12,6 +12,8 @@
 ;;   (force-it (eval exp env)))
 ;;
 
+(override-force-it! force-it-non-memoizing)
+;; (override-force-it! force-it-memoizing)
 (define env1 (setup-environment))
 (~> '(define count 0)
     (actual-value env1)
@@ -34,7 +36,9 @@
 (~> 'w
     (actual-value env1)
     (check-eq? 10))
-
+#;(~> 'w
+    (actual-value env1)
+    (check-eq? 10))
 (~> 'count
     (actual-value env1)
     (check-eq? 2))

@@ -1,80 +1,61 @@
 #lang sicp
 ;; file: 4_28.rkt
+(#%require rackunit)
+(#%require threading)
+(#%require (prefix racket: racket))
+(racket:require "../allcode/ch4-4.2.2-leval.rkt")
 
+;; Q. 예전에는 operator를 apply 에 넘겨주게 전에 그냥 eval했는데 왜 이젠 actual-value를 쓰는가?
 ;;
-;; 예전에는 그냥 eval했는데 왜 이젠 actual-value로 쓰는가?
-;;
-;; ch4-4.1.1-mceval
-'(define (eval exp env)
-   (cond (...
-          ((application? exp)
-           (apply (eval (operator exp) env)
-                  (list-of-values (operands exp) env)))
-          ...)))
-'(define (list-of-values exps env)
-   (if (no-operands? exps)
-       '()
-       (cons (eval (first-operand exps) env)
-             (list-of-values (rest-operands exps) env))))
+;; ch4-4.2.2-leval 에서는 apply시 operator에 actual-value적용
+;; 
+;; actual-value는 eval + force-it임.
+;; 그럼 operator에 왜 추가적으로 force-it을 하는가. operator로 thunk가 올 수 있기 때문.
 
-'(define (apply procedure arguments)
-   (cond ((primitive-procedure? procedure)
-          (apply-primitive-procedure procedure arguments))
-         ((compound-procedure? procedure)
-          (eval-sequence
-           (procedure-body procedure)
-           (extend-environment
-            (procedure-parameters procedure)
-            arguments
-            (procedure-environment procedure))))
-         (else
-          (error
-           "Unknown procedure type -- APPLY" procedure))))
-;; (+ 1 2 3)
-;; apply (eval + env) ((eval 1 env) (eval 2 env) (eval 3 env)) 이런 식
-;; r5rs:apply + (1 2 3)
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp) (text-of-quotation exp))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond->if exp) env))
+        ((application? exp)
+         ;;  기존 leval코드는  operator에 actual-value적용.
+         ;; (apply (actual-value (operator exp) env)
+         ;;          (operands exp)
+         ;;          env)
 
-;; ch4-4.2.2-leval
-'(define (eval exp env)
-   (cond (...
-          ((application? exp)             ; clause from book
-           (apply (actual-value (operator exp) env)
-                  (operands exp)
-                  env))
-          ...)))
+         (apply (eval (operator exp) env)
+                (operands exp)
+                env))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
 
-'(define (actual-value exp env)
-   (force-it (eval exp env)))
 
-'(define (apply procedure arguments env)
-   (cond ((primitive-procedure? procedure)
-          (apply-primitive-procedure
-           procedure
-           (list-of-arg-values arguments env))) ; changed
-         ((compound-procedure? procedure)
-          (eval-sequence
-           (procedure-body procedure)
-           (extend-environment
-            (procedure-parameters procedure)
-            (list-of-delayed-args arguments env) ; changed
-            (procedure-environment procedure))))
-         (else
-          (error
-           "Unknown procedure type -- APPLY" procedure))))
+(override-eval! eval)
+(define env1 (setup-environment))
 
-'(define (list-of-arg-values exps env)
-   (if (no-operands? exps)
-       '()
-       (cons (actual-value (first-operand exps) env)
-             (list-of-arg-values (rest-operands exps)
-                                 env))))
+(~> '(define (id x) x)
+    (actual-value env1)
+    (check-eq? 'ok))
 
-'(define (list-of-delayed-args exps env)
-   (if (no-operands? exps)
-       '()
-       (cons (delay-it (first-operand exps) env)
-             (list-of-delayed-args (rest-operands exps)
-                                   env))))
-;; (+ 1 2 3)
-;; apply (actual-value + env) (1 2 3)
-;; r5rs:apply (actual-value + env) ((actual-value 1 env) (actual-value 2 env) (actual-value 3 env))
+(~> '(define op (id +))
+    (actual-value env1)
+    (check-eq? 'ok))
+
+(~> 'op
+    (lookup-variable-value env1)
+    (thunk?)
+    (check-true))
+
+(check-exn #rx"Unknown procedure type"
+           (lambda ()
+             (~> '(op 1 2)
+                 (actual-value env1))))

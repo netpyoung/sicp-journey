@@ -25,6 +25,7 @@
 #;(load "ch4-mceval.scm")
 (#%require "./helper/my-util.rkt")
 (#%require (prefix racket: racket))
+(#%require racket/trace)
 (racket:require (racket:combine-in "../allcode/ch4-4.1.1-mceval.rkt"
                                    (racket:prefix-in mceval: "../allcode/ch4-4.1.1-mceval.rkt")))
 (racket:provide (racket:all-defined-out))
