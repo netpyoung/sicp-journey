@@ -11,7 +11,6 @@
 (racket:require (racket:rename-in "../allcode/ch4-4.2.2-leval.rkt"
                                   (_eval-sequence lazy:eval-sequence)))
 
-;; TODO
 ;; define 문법을 확장하여, 바로 평가할지, lazy-evalution인지, lazy evaluation + memoize인지 설정할 수 있도록 만들어라.
 
 ;; |---|--------------------------|
