@@ -131,6 +131,8 @@
   (override-eval! _eval)
   (override-analyze! _analyze)
   (override-analyze-sequence! _analyze-sequence)
+  
+  (mceval:reset!)
   (mceval:override-eval! _eval))
 
 'ANALYZING-METACIRCULAR-EVALUATOR-LOADED

@@ -218,7 +218,7 @@
   (tagged-list? p 'procedure))
 
 
-(define (procedure-parameters p) (cadr p))
+(define-overridable (procedure-parameters p) (cadr p))
 
 (define-overridable (procedure-body p) (caddr p))
 
@@ -370,6 +370,7 @@
   (override-eval-sequence! _eval-sequence)
   (override-list-of-values! _list-of-values)
   (override-make-procedure! _make-procedure)
+  (override-procedure-body! _procedure-parameters)
   (override-procedure-body! _procedure-body)
   (override-lookup-variable-value! _lookup-variable-value)
   (override-primitive-procedures! _primitive-procedures)

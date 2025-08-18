@@ -201,6 +201,7 @@
   (override-input-prompt! _input-prompt)
   (override-output-prompt! _output-prompt)
   
+  (mceval:reset!)
   (mceval:override-eval! _eval)
   (mceval:override-apply! _apply)
   (mceval:override-primitive-procedures! _primitive-procedures)
