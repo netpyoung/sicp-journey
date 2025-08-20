@@ -3227,7 +3227,6 @@
 (racket:require (racket:rename-in "../allcode/ch4-4.2.2-leval.rkt"
                                   (_eval-sequence lazy:eval-sequence)))
 
-;; TODO
 ;; define 문법을 확장하여, 바로 평가할지, lazy-evalution인지, lazy evaluation + memoize인지 설정할 수 있도록 만들어라.
 
 ;; |---|--------------------------|
@@ -3430,9 +3429,18 @@
 (racket:require (racket:rename-in "../allcode/ch4-4.2.2-leval.rkt"
                                   (_eval-sequence lazy:eval-sequence)))
 
-;; TODO
 ;; 3장에서 다룬 **스트림**과 이 섹션에서 설명한 "더 게으른" **지연 리스트**의 차이점을 보여주는 몇 가지 예제를 제시해라.
 ;; 이 추가적인 laziness 어떻게 활용할 수 있는가?
+;; 
+;; (provide cons-stream)
+;; (define-syntax cons-stream
+;;   (syntax-rules ()
+;;     [(_ A B) (r5rs:cons A (r5rs:delay B))]))
+;;
+;; |------------|------------------------|----------------------------------------|
+;; | 스트림     | car의 즉시 평가.       | 순차적 접근과 무한 리스트 처리에 적합. |
+;; | 지연 리스트| car와 cdr 모두를 지연. | 비순차적 접근에서 더 유연              |
+
 
 (override-force-it! force-it-memoizing) ; memoizing없이는 solve를 푸는데 한참걸림.
 (define env1 (setup-environment))
@@ -3502,6 +3510,22 @@
 (~&gt; '(list-ref (solve (lambda (x) x) 1 0.001) 1000)
     (actual-value env1)
     (check-= 2.716924 SMALL-RADIO))
+
+
+(~&gt; '(define (run-forever)
+       (run-forever))
+    (actual-value env1)
+    (check-equal? 'ok))
+
+(~&gt; '(begin
+       (cons (run-forever) 2)
+       1)
+    (actual-value env1)
+    (check-equal? 1))
+
+(~&gt; '(list-ref (cons (run-forever) (cons 'helloworld nil)) 1)
+    (actual-value env1)
+    (check-equal? 'helloworld))
 </code></pre>
 <h2 id="4_33"><a class="header" href="#4_33">4_33</a></h2>
 <pre><code class="language-lisp">;; file: 4_33.rkt
@@ -3513,12 +3537,128 @@
 (#%require (prefix racket: racket))
 (racket:require (racket:rename-in "../allcode/ch4-4.2.2-leval.rkt"
                                   (_eval-sequence lazy:eval-sequence)))
+;; leval에서 '(car '(a b c))를 처리할 수 없는데 처리할 수 있도록 고쳐라.
+
+;;
+;; before
+;; car의 정의에 따라 풀면 ('(a b c) (lambda (p q) p)) 이런식이 되는데, 이러면 당연히 에러가 날 것이다.
+;;
+(define env1 (setup-environment))
+(~&gt; '(begin
+       (define (cons x y)
+         (lambda (m)
+           (m x y)))
+       (define (car z)
+         (z
+          (lambda (p q) p)))
+       (define (cdr z)
+         (z
+          (lambda (p q) q))))
+    (actual-value env1)
+    (check-equal? 'ok))
+(check-exn
+ #rx"Unknown procedure type -- APPLY \\(a b c\\)"
+ (lambda ()
+   (~&gt;'(car '(a b c))
+      (actual-value env1))))
+
+;;
+;; after
+;; '(a b c)를 lazy list로 풀면 (cons (quote a) (cons (quote b) (cons (quote c) nil))) 잘 동작할 것이다.
+;;
+
+(define (handle-quoted expr)
+  (define (quoted-list lst)
+    ;; (quoted-list '(a b c))
+    ;;=&gt; (cons (quote a) (cons (quote b) (cons (quote c) ())))
+    (define (iter acc xs)
+      (if (null? xs)
+          acc
+          (iter (list 'cons (list 'quote (first xs)) acc) (rest xs))))
+    (iter '() (reverse lst)))
+  (define (quoted-cons pair)
+    ;; (quoted-cons '(a . b)
+    ;;=&gt; '(cons (quote a) (quote b)))
+    (list 'cons
+          (list 'quote (first pair))
+          (list 'quote (rest pair))))
+  (cond ((list? expr)
+         (quoted-list expr))
+        ((pair? expr)
+         (quoted-cons expr))
+        (else
+         expr)))
+
+(check-equal? (handle-quoted '(a . b))
+              '(cons (quote a) (quote b)))
+(check-equal? (handle-quoted '(a b c))
+              '(cons (quote a) (cons (quote b) (cons (quote c) ()))))
+(check-equal? (handle-quoted 'a)
+              'a)
+
+(define (eval-quoted expr env)
+  (let ((q (handle-quoted expr)))
+    (if (pair? q)
+        (eval q env)
+        q)))
+
+(define (eval exp env)
+  (cond ((self-evaluating? exp) exp)
+        ((variable? exp) (lookup-variable-value exp env))
+        ((quoted? exp)
+         (eval-quoted (text-of-quotation exp) env))
+        ((assignment? exp) (eval-assignment exp env))
+        ((definition? exp) (eval-definition exp env))
+        ((if? exp) (eval-if exp env))
+        ((lambda? exp)
+         (make-procedure (lambda-parameters exp)
+                         (lambda-body exp)
+                         env))
+        ((begin? exp) 
+         (eval-sequence (begin-actions exp) env))
+        ((cond? exp) (eval (cond-&gt;if exp) env))
+        ((application? exp)             ; clause from book
+         (apply (actual-value (operator exp) env)
+                (operands exp)
+                env))
+        (else
+         (error "Unknown expression type -- EVAL" exp))))
+
+(override-eval! eval)
+(define env2 (setup-environment))
+(~&gt; '(begin
+       (define (cons x y)
+         (lambda (m)
+           (m x y)))
+       (define (car z)
+         (z
+          (lambda (p q) p)))
+       (define (cdr z)
+         (z
+          (lambda (p q) q))))
+    (actual-value env2)
+    (check-equal? 'ok))
+(~&gt;'(car '(a b c))
+   (actual-value env2)
+   (check-equal? 'a))
+</code></pre>
+<h2 id="4_34"><a class="header" href="#4_34">4_34</a></h2>
+<pre><code class="language-lisp">;; file: 4_34.rkt
+(#%require rackunit)
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/helper/my-util.rkt")
+
+(#%require (prefix racket: racket))
+(racket:require (racket:rename-in "../allcode/ch4-4.2.2-leval.rkt"
+                                  (_eval-sequence lazy:eval-sequence)))
 
 ;; TODO
+;; driver loop를 수정하여 lazy pair / lazy list를 보기 좋게 출력해라.(무한 리스트는 어떻게 다룰 것인가?)
+;; evaluator가 lazy pairs를 잘 인식하여 출력하도록, lazy pairs를 내부적으로 어떻게 다를 것인지에 대해 수정해야 할 지도 모른다.
 
-(override-force-it! force-it-memoizing)
 (define env1 (setup-environment))
-(~&gt; '(begin 
+(~&gt; '(begin
        (define (cons x y)
          (lambda (m)
            (m x y)))
@@ -3531,32 +3671,654 @@
     (actual-value env1)
     (check-equal? 'ok))
 
-(check-exn
- #rx"Unknown procedure type"
- (lambda ()
-   (~&gt;'(car '(a b c))
-      (actual-value env1))))
-</code></pre>
-<h2 id="4_34"><a class="header" href="#4_34">4_34</a></h2>
-<pre><code class="language-lisp">;; file: 4_34.rkt
+(~&gt; '(cons nil nil)
+    (actual-value env1))
+
+#;(~&gt; '(cons 1 (cons 2 '()))
+    (actual-value env1))
 </code></pre>
 <h2 id="4_35"><a class="header" href="#4_35">4_35</a></h2>
 <pre><code class="language-lisp">;; file: 4_35.rkt
+;; 4_36, 4_37
+
+(#%require rackunit)
+(#%require threading)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; 정해진 범위에서 정수 하나를 골라내는 프로시저 an-integer-between을 정의하라.
+
+(define env2 (setup-environment))
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env2)
+    (check-equal? 'ok))
+
+(~&gt; '(begin
+       (define (square x) (* x x))
+       
+       (define (smallest-divisor n)
+         (find-divisor n 2))
+
+       (define (find-divisor n test-divisor)
+         (cond ((&gt; (square test-divisor) n) n)
+               ((divides? test-divisor n) test-divisor)
+               (else (find-divisor n (+ test-divisor 1)))))
+
+       (define (divides? a b)
+         (= (remainder b a) 0))
+
+       (define (prime? n)
+         (= n (smallest-divisor n))))
+    (run env2)
+    (check-equal? 'ok))
+
+(~&gt; '(define (prime-sum-pair list1 list2)
+       (let ((a (an-element-of list1))
+             (b (an-element-of list2)))
+         (require (prime? (+ a b)))
+         (list a b)))
+    (run env2)
+    (check-equal? 'ok))
+    
+(~&gt; '(define (an-element-of items)
+       (require (not (null? items)))
+       (amb (car items) 
+            (an-element-of (cdr items))))
+    (run env2)
+    (check-equal? 'ok))
+
+(~&gt; '(prime-sum-pair '(1 3 5 8) '(20 35 110))
+    (runs env2)
+    (check-equal? '((3 20)
+                    (3 110)
+                    (8 35))))
+(~&gt; '(prime-sum-pair '(19 27 30) '(11 36 58))
+    (run env2)
+    (check-equal? '(30 11)))
+
+
+
+;;
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env3)
+(define-variable! '&lt;= (list 'primitive &lt;=) env3)
+(define-variable! 'inc (list 'primitive inc) env3)
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (an-integer-between from to)
+       ;; 정해진 범위에서 정수 하나를 골라내는 프로시저.
+       ;; (an-integer-between 1 10)
+       ;;=&gt; amb (1 2 3 4 5 6 7 8 9 10)
+       (require (&lt;= from to))
+       (amb from
+            (an-integer-between (inc from) to)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (a-pythagorean-triple-between low high)
+       ;; i^2 + j^2 = k^2 인 세 정수의 쌍 (i, j , k)을 찾아네는 프로시져.
+       (let ((i (an-integer-between low high)))
+         (let ((j (an-integer-between i high)))
+           (let ((k (an-integer-between j high)))
+             (require (= (+ (* i i) (* j j)) (* k k)))
+             (list i j k)))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(a-pythagorean-triple-between 1 30)
+    (runs env3)
+    (check-equal? '((3 4 5)
+                    (5 12 13)
+                    (6 8 10)
+                    (7 24 25)
+                    (8 15 17)
+                    (9 12 15)
+                    (10 24 26)
+                    (12 16 20)
+                    (15 20 25)
+                    (18 24 30)
+                    (20 21 29))))
 </code></pre>
 <h2 id="4_36"><a class="header" href="#4_36">4_36</a></h2>
 <pre><code class="language-lisp">;; file: 4_36.rkt
+;; 4_35, 4_37 
+
+(#%require rackunit)
+(#%require threading)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; 앞에 정의한 a-pythagorean-triple-between 함수에서 단순히 an-integer-between을 an-integer-starting-from로 바꿔서는 안됨.
+;; 안되는 이유는?
+;; an-integer-starting-from의 중첩으로는 깊이 우선 탐색으로 i j k가 1 1 1, 1 1 2, 1 1 3 .... 되면서 i가 올라가지 않게됨.
+;; require는 조건을 걸러내는 필터일 뿐이고, 탐색 순서 자체를 바꿔주지는 못함.
+;;
+;; 올바른 해결책은?
+;; 깊이 우선 탐색이므로 integer-starting-from만으로는 안됨. an-integer-between을 섞어 제한을 줘야함.
+
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env3)
+(define-variable! '&lt;= (list 'primitive &lt;=) env3)
+(define-variable! 'inc (list 'primitive inc) env3)
+(define-variable! 'display (list 'primitive display) env3)
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (an-integer-starting-from n)
+       ;; (an-integer-starting-from 1)
+       ;;=&gt; amb (1 .....)
+       (amb n
+            (an-integer-starting-from (+ n 1))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (an-integer-between from to)
+       ;; 정해진 범위에서 정수 하나를 골라내는 프로시저.
+       ;; (an-integer-between 1 10)
+       ;;=&gt; amb (1 2 3 4 5 6 7 8 9 10)
+       (require (&lt;= from to))
+       (amb from
+            (an-integer-between (inc from) to)))
+    (run env3)
+    (check-equal? 'ok))
+
+
+(~&gt; '(define (a-pythagorean-triple-from low)
+       (let ((k (an-integer-starting-from low)))
+         (let ((j (an-integer-between low k)))
+           (let ((i (an-integer-between low j)))
+             (require (= (+ (* i i) (* j j)) (* k k)))
+             (list i j k)))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(a-pythagorean-triple-from 1)
+    (runs env3 10)
+    (check-equal? '((3 4 5)
+                    (6 8 10)
+                    (5 12 13)
+                    (9 12 15)
+                    (8 15 17)
+                    (12 16 20)
+                    (15 20 25)
+                    (7 24 25)
+                    (10 24 26)
+                    (20 21 29))))
 </code></pre>
 <h2 id="4_37"><a class="header" href="#4_37">4_37</a></h2>
 <pre><code class="language-lisp">;; file: 4_37.rkt
+;; 4_35, 4_36
+(#%require rackunit)
+(#%require threading)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; Ben Bitdiddle 는 4.35에서 나온 a-pythagorean-triple-between보다 자신의 것이 더 효율적이라고 주장하는데, 사실인가?
+;; (힌트, 탐색해야할 가능성의 수 고려)
+
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+
+(define env3 (setup-environment))
+(define-variable! '+ (list 'primitive +) env3)
+(define-variable! '&lt;= (list 'primitive &lt;=) env3)
+(define-variable! 'inc (list 'primitive inc) env3)
+(define-variable! 'display (list 'primitive display) env3)
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (an-integer-starting-from n)
+       ;; (an-integer-starting-from 1)
+       ;;=&gt; amb (1 .....)
+       (amb n
+            (an-integer-starting-from (+ n 1))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (an-integer-between from to)
+       ;; 정해진 범위에서 정수 하나를 골라내는 프로시저.
+       ;; (an-integer-between 1 10)
+       ;;=&gt; amb (1 2 3 4 5 6 7 8 9 10)
+       (require (&lt;= from to))
+       (amb from
+            (an-integer-between (inc from) to)))
+    (run env3)
+    (check-equal? 'ok))
+
+;; 4.35
+'(define (a-pythagorean-triple-between low high)
+   ;; i^2 + j^2 = k^2 인 세 정수의 쌍 (i, j , k)을 찾아네는 프로시져.
+   ;; an-integer-between가 3개 O(n^3)
+   (let ((i (an-integer-between low high)))
+     (let ((j (an-integer-between i high)))
+       (let ((k (an-integer-between j high)))
+         (require (= (+ (* i i) (* j j)) (* k k)))
+         (list i j k)))))
+
+;; 4.37
+(~&gt; '(define (a-pythagorean-triple-between-37 low high)
+       ;; an-integer-between가 2개 O(n^2)
+       (let ((i (an-integer-between low high))
+             (hsq (* high high)))
+         (let ((j (an-integer-between i high)))
+           (let ((ksq (+ (* i i)
+                         (* j j))))
+             (require (&lt;= ksq hsq))
+             (let ((k (sqrt ksq)))
+               (require (integer? k))
+               (list i j k))))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(a-pythagorean-triple-between-37 1 50)
+    (runs env3 10)
+    (check-equal? ' ((3 4 5)
+                     (5 12 13)
+                     (6 8 10)
+                     (7 24 25)
+                     (8 15 17)
+                     (9 12 15)
+                     (9 40 41)
+                     (10 24 26)
+                     (12 16 20)
+                     (12 35 37))))
 </code></pre>
 <h2 id="4_38"><a class="header" href="#4_38">4_38</a></h2>
 <pre><code class="language-lisp">;; file: 4_38.rkt
+;; 4_38, 4_39, 4_40
+
+(#%require rackunit)
+(#%require threading)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; multiple-dwelling에서 Smith와 Fletcher가 인접층에 살지 않는다는 require를 빼도록 수정해라. 얼마나 많은 솔루션이 있는가?
+
+(define env3 (setup-environment))
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (distinct? items)
+       (cond ((null? items) true)
+             ((null? (cdr items)) true)
+             ((member (car items) (cdr items)) false)
+             (else (distinct? (cdr items)))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (multiple-dwelling)
+       (let ((baker (amb 1 2 3 4 5))
+             (cooper (amb 1 2 3 4 5))
+             (fletcher (amb 1 2 3 4 5))
+             (miller (amb 1 2 3 4 5))
+             (smith (amb 1 2 3 4 5)))
+         (require
+           (distinct? (list baker cooper fletcher miller smith)))
+         (require (not (= baker 5)))
+         (require (not (= cooper 1)))
+         (require (not (= fletcher 5)))
+         (require (not (= fletcher 1)))
+         (require (&gt; miller cooper))
+         ;; Smith와 Fletcher가 인접층에 살지 않는다는 require를 빼도록 수정해라.
+         ;; (require
+         ;;   (not (= (abs (- smith fletcher)) 1)))
+         (require 
+           (not (= (abs (- fletcher cooper)) 1)))
+         (list (list 'baker baker)
+               (list 'cooper cooper)
+               (list 'fletcher fletcher)
+               (list 'miller miller)
+               (list 'smith smith))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(multiple-dwelling)
+    (runs env3)
+    (length)
+    (check-equal? 5))
 </code></pre>
 <h2 id="4_39"><a class="header" href="#4_39">4_39</a></h2>
 <pre><code class="language-lisp">;; file: 4_39.rkt
+;; 4_38, 4_39, 4_40
+(#%require rackunit)
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+;; Q. multiple-dwelling에서 require의 순서가 답에 영향을 미치는가?
+;; 아니다.
+;;
+;; Q. 시간에 영향을 미치는가?
+;;
+;; 어쨋든 require를 모두 통과해야 결과가 나옴.
+;; require 순서를 조절하여 가지치기를 해두면 검사의 횟수를 줄이이면서 더 빠르게 결과를 얻을 수 있음.
+;; 계산비용 자체는 distinct? 함수가 가장 크나,
+;; 테스트 결과 (require (&gt; miller cooper)) 이 제약조건이 가지치기를 크게 함으로써 시간에 가장 크게 영향을 끼쳤음.
+;;
+;; Q. 순서가 중요하다면, 순서를 재배치하여 더 빠른 프로그램을 만들어라. 만약 순서가 중요하지 않다면, 그 이유를 설명하라.
+;;
+
+
+(define env3 (setup-environment))
+(define-variable! 'display (list 'primitive display) env3)
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (distinct? items)
+       (cond ((null? items)
+              true)
+             ((null? (cdr items))
+              true)
+             ((member (car items) (cdr items))
+              false)
+             (else
+              (distinct? (cdr items)))))
+    (run env3)
+    (check-equal? 'ok))
+
+(define expr-origin
+  '(define (multiple-dwelling)
+     (let ((baker (amb 1 2 3 4 5))
+           (cooper (amb 1 2 3 4 5))
+           (fletcher (amb 1 2 3 4 5))
+           (miller (amb 1 2 3 4 5))
+           (smith (amb 1 2 3 4 5)))
+        
+       (require (distinct? (list baker cooper fletcher miller smith)))
+         
+       (require (not (= baker 5)))
+       (require (not (= cooper 1)))
+       (require (not (= fletcher 5)))
+       (require (not (= fletcher 1)))
+       (require (&gt; miller cooper))
+
+       (require (not (= (abs (- smith fletcher)) 1)))
+       (require (not (= (abs (- fletcher cooper)) 1)))
+
+       (list (list 'baker baker)
+             (list 'cooper cooper)
+             (list 'fletcher fletcher)
+             (list 'miller miller)
+             (list 'smith smith)))))
+
+(define expr-2
+  '(define (multiple-dwelling)
+     (let ((baker (amb 1 2 3 4 5))
+           (cooper (amb 1 2 3 4 5))
+           (fletcher (amb 1 2 3 4 5))
+           (miller (amb 1 2 3 4 5))
+           (smith (amb 1 2 3 4 5)))
+
+       (require (&gt; miller cooper))
+
+       (require (not (= fletcher 1)))
+       (require (not (= cooper 1)))
+
+       (require (not (= (abs (- smith fletcher)) 1)))       
+       (require (not (= (abs (- fletcher cooper)) 1)))
+
+       (require (not (= fletcher 5)))
+       (require (not (= baker 5)))
+       (require (distinct? (list baker cooper fletcher miller smith)))
+
+       (list (list 'baker baker)
+             (list 'cooper cooper)
+             (list 'fletcher fletcher)
+             (list 'miller miller)
+             (list 'smith smith)))))
+
+(~&gt; expr-origin
+    (run env3)
+    (check-equal? 'ok))
+
+(racket:time
+ (racket:for ([i 10])
+             (~&gt; '(multiple-dwelling)
+                 (runs env3)
+                 (length)
+                 (check-equal? 1))))
+
+(~&gt; expr-2
+    (run env3)
+    (check-equal? 'ok))
+
+(racket:time
+ (racket:for ([i 10])
+             (~&gt; '(multiple-dwelling)
+                 (runs env3)
+                 (length)
+                 (check-equal? 1))))
+
 </code></pre>
 <h2 id="4_40"><a class="header" href="#4_40">4_40</a></h2>
 <pre><code class="language-lisp">;; file: 4_40.rkt
+;; 4_38, 4_39, 4_40
+
+(#%require rackunit)
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; Q. distict가 있을때 없을때 경우의 수?
+;; 있으면 1
+;; 없으면 120
+;;
+;; Q. 모든 사람들을 층에 배정 후 백트래킹을 통해 이를 제거하는 방식은 매우 비효율적. 이전 제약 조건에 의해 이미 배제된 가능성만 생성하도록 하는, 훨씬 더 효율적인 비결정적 절차를 작성하고 이를 시연하라
+;; (힌트: 이를 위해서는 let 표현식의 중첩이 필요하다.)
+;;
+;; distnct는 모든 사람들이 필요함.: (require (distinct? (list baker cooper fletcher miller smith)))
+;; 대신, 사람별로 (require (not (= cooper fletcher))) / (require (not (= miller cooper))) ... 제한을 두게되면 좀 더 최적화가 됨.
+
+(define env3 (setup-environment))
+(~&gt; '(define (require p)
+       (if (not p)
+           (amb)))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(define (distinct? items)
+       (cond ((null? items) true)
+             ((null? (cdr items)) true)
+             ((member (car items) (cdr items)) false)
+             (else (distinct? (cdr items)))))
+    (run env3)
+    (check-equal? 'ok))
+
+(define expr-origin
+  '(define (multiple-dwelling)
+     (let ((baker (amb 1 2 3 4 5))
+           (cooper (amb 1 2 3 4 5))
+           (fletcher (amb 1 2 3 4 5))
+           (miller (amb 1 2 3 4 5))
+           (smith (amb 1 2 3 4 5)))
+        
+       (require (distinct? (list baker cooper fletcher miller smith)))
+         
+       (require (not (= baker 5)))
+       (require (not (= cooper 1)))
+       (require (not (= fletcher 5)))
+       (require (not (= fletcher 1)))
+       (require (&gt; miller cooper))
+
+       (require (not (= (abs (- smith fletcher)) 1)))
+       (require (not (= (abs (- fletcher cooper)) 1)))
+
+       (list (list 'baker baker)
+             (list 'cooper cooper)
+             (list 'fletcher fletcher)
+             (list 'miller miller)
+             (list 'smith smith)))))
+
+(define expr-without-distinct
+  '(define (multiple-dwelling)
+     (let ((baker (amb 1 2 3 4 5))
+           (cooper (amb 1 2 3 4 5))
+           (fletcher (amb 1 2 3 4 5))
+           (miller (amb 1 2 3 4 5))
+           (smith (amb 1 2 3 4 5)))
+        
+       ;; (require (distinct? (list baker cooper fletcher miller smith)))
+         
+       (require (not (= baker 5)))
+       (require (not (= cooper 1)))
+       (require (not (= fletcher 5)))
+       (require (not (= fletcher 1)))
+       (require (&gt; miller cooper))
+
+       (require (not (= (abs (- smith fletcher)) 1)))
+       (require (not (= (abs (- fletcher cooper)) 1)))
+
+       (list (list 'baker baker)
+             (list 'cooper cooper)
+             (list 'fletcher fletcher)
+             (list 'miller miller)
+             (list 'smith smith)))))
+
+(define expr-split-let
+  '(define (multiple-dwelling)
+     (let ((fletcher (amb 1 2 3 4 5)))
+       (require (not (= fletcher 1)))
+       (require (not (= fletcher 5)))
+       
+       (let ((cooper (amb 1 2 3 4 5)))
+         (require (not (= cooper 1)))
+         (require (not (= (abs (- fletcher cooper)) 1)))
+         
+         (let ((miller (amb 1 2 3 4 5)))
+           (require (&gt; miller cooper))
+           
+           (let ((smith (amb 1 2 3 4 5)))
+             (require (not (= (abs (- smith fletcher)) 1)))
+             
+             (let ((baker (amb 1 2 3 4 5)))
+               (require (not (= baker 5)))
+               
+               (require (distinct? (list baker cooper fletcher miller smith)))
+               (list (list 'baker baker)
+                     (list 'cooper cooper)
+                     (list 'fletcher fletcher)
+                     (list 'miller miller)
+                     (list 'smith smith)))))))))
+
+(define expr-split-distict
+  '(define (multiple-dwelling)
+     (let ((fletcher (amb 1 2 3 4 5)))
+       (require (not (= fletcher 1)))
+       (require (not (= fletcher 5)))
+       
+       (let ((cooper (amb 1 2 3 4 5)))
+         (require (not (= cooper 1)))
+         (require (not (= (abs (- fletcher cooper)) 1)))
+         
+         (require (not (= cooper fletcher)))     ; for distict?
+         (let ((miller (amb 1 2 3 4 5)))
+           (require (&gt; miller cooper))
+           
+           (require (not (= miller fletcher)))   ; for distict?
+           (require (not (= miller cooper)))     ; for distict?
+           (let ((smith (amb 1 2 3 4 5)))
+             (require (not (= (abs (- smith fletcher)) 1)))
+             
+             (require (not (= smith fletcher)))  ; for distict?
+             (require (not (= smith cooper)))    ; for distict?
+             (require (not (= smith miller)))    ; for distict?
+             (let ((baker (amb 1 2 3 4 5)))
+               (require (not (= baker 5)))
+               
+               (require (not (= baker fletcher))) ; for distict?
+               (require (not (= baker cooper)))   ; for distict?
+               (require (not (= baker miller)))   ; for distict?
+               (require (not (= baker smith)))    ; for distict?
+               
+               
+               (list (list 'baker baker)
+                     (list 'cooper cooper)
+                     (list 'fletcher fletcher)
+                     (list 'miller miller)
+                     (list 'smith smith)))))))))
+
+(~&gt; expr-origin
+    (run env3)
+    (check-equal? 'ok))
+(~&gt; '(multiple-dwelling)
+    (runs env3)
+    (length)
+    (check-equal? 1))
+
+
+(~&gt; expr-without-distinct
+    (run env3)
+    (check-equal? 'ok))
+(~&gt; '(multiple-dwelling)
+    (runs env3)
+    (length)
+    (check-equal? 120))
+
+(~&gt; expr-origin
+    (run env3)
+    (check-equal? 'ok))
+(racket:time
+ (racket:for ([i 10])
+             (~&gt; '(multiple-dwelling)
+                 (runs env3)
+                 (length)
+                 (check-equal? 1))))
+
+(~&gt; expr-split-let
+    (run env3)
+    (check-equal? 'ok))
+
+
+(racket:time
+ (racket:for ([i 10])
+             (~&gt; '(multiple-dwelling)
+                 (runs env3)
+                 (length)
+                 (check-equal? 1))))
+
+(~&gt; expr-split-distict
+    (run env3)
+    (check-equal? 'ok))
+
+
+(racket:time
+ (racket:for ([i 10])
+             (~&gt; '(multiple-dwelling)
+                 (runs env3)
+                 (length)
+                 (check-equal? 1))))
+
 </code></pre>
 <h2 id="4_41"><a class="header" href="#4_41">4_41</a></h2>
 <pre><code class="language-lisp">;; file: 4_41.rkt
