@@ -136,18 +136,6 @@
               (distinct? (cdr items)))))
     (run env3)
     (check-equal? 'ok))
-(~> '(define (distinct? items)
-       (cond ((null? items)
-              true)
-             ((null? (cdr items))
-              true)
-             ((member (car items) (cdr items))
-              false)
-             (else
-              (distinct? (cdr items)))))
-    (run env3)
-    (check-equal? 'ok))
-
 
 (~> expr-find-father-v1
     (run env3)
