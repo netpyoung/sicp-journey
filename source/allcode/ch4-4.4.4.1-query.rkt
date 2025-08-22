@@ -696,3 +696,6 @@
                  (lambda (v f)
                    (contract-question-mark v))))
              (qeval q (singleton-stream '()))))))))
+
+(define (override-user-initial-environment! env)
+  (set! user-initial-environment env))
