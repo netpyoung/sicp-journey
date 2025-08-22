@@ -16,6 +16,13 @@
                     (job (Hacker Alyssa P) (computer programmer)))))
 
 ;; 쿼리 만들어보기
+;;
+;; (address    {이름}     {주소})
+;; (job        {이름}     ({부서} . {타이틀}))
+;; (salary     {이름}     {급여})
+;; (supervisor {하급자}   {상급자})
+;; (can-do-job {상위직업} {하위직업})
+
 ;; 1. Ben Bitdiddle가 관리하는 모든 사람들
 (~> '(supervisor ?name (Bitdiddle Ben))
     (run)

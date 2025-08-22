@@ -674,14 +674,12 @@
 ;; ==============================================================================
 
 (define (run expr)
-  (define (display-stream s)
-    (stream-for-each (lambda (x) x) s))
-  
-  (define (stream-for-each proc s)
+
+  (define (stream->list s)
     (define (iter acc xs)
       (if (stream-null? xs)
           (reverse acc)
-          (iter (cons (proc (stream-car xs)) acc)
+          (iter (cons (stream-car xs) acc)
                 (stream-cdr xs))))
     (iter '() s))
   
@@ -690,7 +688,7 @@
            (add-rule-or-assertion! (add-assertion-body q))
            'added)
           (else
-           (display-stream
+           (stream->list
             (stream-map
              (lambda (frame)
                (instantiate q
