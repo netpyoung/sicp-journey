@@ -1,6 +1,6 @@
 #lang sicp
 ;; file: 4_62.rkt
-;; 2_17 / 4_62
+;; 2_17 / 4_62 / 4_63 / 4_69
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -10,6 +10,8 @@
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
 
+(racket:provide
+ rules-last-pair)
 
 ;; Q. 연습문제 2.17에 나온 last-pair를 rule로 만들어라.
 ;;

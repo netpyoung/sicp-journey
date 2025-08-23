@@ -1,6 +1,6 @@
 #lang sicp
 ;; file: 4_63.rkt
-;; 4_63 / 4_69
+;; 2_17 / 4_62 / 4_63 / 4_69
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -10,7 +10,11 @@
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
 
-
+(racket:provide
+ Genesis-4
+ rules-find-grandson
+ rules-find-son
+ )
 
 (define Genesis-4
   '(
@@ -45,13 +49,17 @@
 ;; - S가 f의 아들이고, f가 G의 아들이면, S는 G의 손자이다
 ;; - W가 M의 아내이고, S가 W의 아들이면, S는 M의 아들이다.
 
-(define rules
+(define rules-find-grandson
   '(
     ;; (find-grandson {조부모} {손자})
     (rule (find-grandson ?G ?S)   ; S는 G의 손자이다
           (and (find-son ?f ?S)   ; S가 f의 아들이고, 
                (find-son ?G ?f))) ; f가 G의 아들이면,
-    
+    )
+  )
+
+(define rules-find-son
+  '(
     ;; (find-son {부모} {아들})
     (rule (find-son ?M ?S)        ; S는 M의 아들이다.
           (or (son ?M ?S)
@@ -63,7 +71,8 @@
 
 (~> microshaft-data-base
     (append Genesis-4)
-    (append rules)
+    (append rules-find-grandson)
+    (append rules-find-son)
     (initialize-data-base))
 
 (~> '(find-grandson Cain ?grandson)

@@ -13,12 +13,14 @@
 
 ;;;;NB. PUT's are commented out and no top-level table is set up.
 ;;;;Instead use initialize-data-base (from manual), supplied in this file.
+(#%require "./helper/my-util.rkt")
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
 
 (racket:provide (racket:all-defined-out))
 
-(define user-initial-environment (scheme-report-environment 5))
+(overridable-define user-initial-environment
+  (scheme-report-environment 5))
 
 (define (stream-car stream)
   (car stream))
@@ -76,7 +78,7 @@
 ;;;SECTION 4.4.4.2
 ;;;The Evaluator
 
-(define (qeval query frame-stream)
+(overridable-define (qeval query frame-stream)
   (let ((qproc (get (type query) 'qeval)))
     (if qproc
         (qproc (contents query) frame-stream)
@@ -697,5 +699,11 @@
                    (contract-question-mark v))))
              (qeval q (singleton-stream '()))))))))
 
-(define (override-user-initial-environment! env)
-  (set! user-initial-environment env))
+(define (reset!)
+  (override-qeval! _qeval)
+  (override-user-initial-environment! _user-initial-environment)
+  )
+ 
+(reset!)
+
+'QUERY-SYSTEM-LOADED

@@ -12,6 +12,9 @@
 (define rules-append-to-form
   '(
     ;; (append-to-form ?x ?y ?z) : ?x 랑 ?y를 합쳐서 ?z만들기.
+    ;; (append-to-form (a b) (c d) ?z)
+    ;;=> ((append-to-form (a b) (c d) (a b c d)))
+    
     (rule (append-to-form () ?y ?y))
 
     (rule (append-to-form (?u . ?v) ?y (?u . ?z))
