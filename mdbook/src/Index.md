@@ -61,6 +61,7 @@
 - <https://github.com/ivanjovanovic/sicp>
 - <https://eli.thegreenplace.net/tag/sicp>
 - <https://github.com/l0stman/sicp>
+- <https://git.felixm.de/felixm/SICP>
 
 ## 기타
 

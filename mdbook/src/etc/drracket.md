@@ -11,14 +11,14 @@ The Racket Programming Environment
 - ref: <https://github.com/zv/SICP-guile?tab=readme-ov-file#language>
   - Zetavolt이란 분은 GNU Guile을 추천함.
 
-|                | PL          | r5rs | 함수 재정의 | GUI IDE                       |
-| -------------- | ----------- | ---- | ----------- | ----------------------------- |
-| DrRacket       | Racket      | O    | X           | DrRacket                      |
-| MITScheme      | Scheme      | O    | O           | X                             |
-| GNU Guile      | Scheme      | O    | O           | X                             |
-| CHICKEN Scheme | Scheme      | O    | O           | X                             |
-| SBCL           | Common Lisp | X    | O           | Slt Plugin for JetBrains IDEs |
-| LispWorks      | Common Lisp | X    | O           | LispWorks                     |
+|                | PL          | r5rs | 함수 재정의 | GUI IDE                                                                                                            |
+| -------------- | ----------- | ---- | ----------- | ------------------------------------------------------------------------------------------------------------------ |
+| DrRacket       | Racket      | O    | X           | DrRacket                                                                                                           |
+| MITScheme      | Scheme      | O    | O           | [Edwin (GNU Emacs clone)](https://www.gnu.org/software/mit-scheme/documentation/stable/mit-scheme-user/Edwin.html) |
+| GNU Guile      | Scheme      | O    | O           | X                                                                                                                  |
+| CHICKEN Scheme | Scheme      | O    | O           | X                                                                                                                  |
+| SBCL           | Common Lisp | X    | O           | Slt Plugin for JetBrains IDEs                                                                                      |
+| LispWorks      | Common Lisp | X    | O           | LispWorks                                                                                                          |
 
 - Common Lisp로 하는건 일단 배제하고,
 - **Emacs 사용이 자유로운 사람**이라면, 함수를 계속 덮어쓰므로 Scheme구현체 중 하나를 선택하면 좋다.
