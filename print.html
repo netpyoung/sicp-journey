@@ -2755,6 +2755,9 @@ graph TD
 </code></pre>
 <h2 id="2_42"><a class="header" href="#2_42">2_42</a></h2>
 <pre><code class="language-lisp">;; file: 2_42.rkt
+;; 2_42 / 4_44
+
+;; TODO
 </code></pre>
 <h2 id="2_43"><a class="header" href="#2_43">2_43</a></h2>
 <pre><code class="language-lisp">;; file: 2_43.rkt
@@ -8579,42 +8582,1004 @@ graph TD
 </code></pre>
 <h2 id="4_51"><a class="header" href="#4_51">4_51</a></h2>
 <pre><code class="language-lisp">;; file: 4_51.rkt
+;; 4_51 / 4_52 / 4_53
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(racket:provide
+ ;;    ((permutation-set? exp) (analyze-permutation-set exp))   ;**
+ permutation-set? analyze-permutation-set)
+
+;; 실패로 끝나더라도 값을 유지하는, permutation-set! 구현하라.
+;;
+;; permanent-set! 말고 set! 을 썼다면 어 떤 값이 나오는가?
+;;
+
+(define (permutation-set? exp)
+  (tagged-list? exp 'permanent-set!))
+
+(define (analyze-permutation-set exp)
+  (let ((var (assignment-variable exp))
+        (vproc (analyze (assignment-value exp))))
+    (lambda (env succeed fail)
+      (vproc env
+             ;; before: analyze-assignment
+             ;; (lambda (val fail2)        ; *1*
+             ;;   (let ((old-value (lookup-variable-value var env)))
+             ;;     (set-variable-value! var val env)
+             ;;     (succeed 'ok
+             ;;              (lambda ()    ; *2*
+             ;;                (set-variable-value! var old-value env)
+             ;;                (fail2)))))
+             ;;
+             ;; after: analyze-permutation-set
+             ;; analyze-assignment에서 old-value를 저장해서 덮어쓰는 로직 제거.
+             (lambda (val fail2)
+               (set-variable-value! var val env)
+               (succeed 'ok fail2))
+             fail))))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp) 
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+        ((permutation-set? exp) (analyze-permutation-set exp))   ;**
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond-&gt;if exp)))
+        ((let? exp) (analyze (let-&gt;combination exp)))
+        ((amb? exp) (analyze-amb exp))
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))
+
+(override-analyze! analyze)
+
+;; ======================================
+
+(define env3 (setup-environment))
+(~&gt; '(begin
+       (define (require p)
+         (if (not p)
+             (amb)))
+       (define (an-element-of items)
+         (require (not (null? items)))
+         (amb (car items) (an-element-of (cdr items))))
+       )
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(begin
+       ;; set! 테스트
+       (define count 0)
+       
+       (let ((x (an-element-of '(a b c)))
+             (y (an-element-of '(a b c))))
+         
+         (set! count (+ count 1)) ;;(permanent-set! count (+ count 1))
+         (require (not (eq? x y)))
+         (list x y count)))
+    (runs env3)
+    (check-equal? '((a b 1) (a c 1) (b a 1) (b c 1) (c a 1) (c b 1)))
+    )
+
+
+(~&gt; '(begin
+       ;; permanent-set! 테스트
+       
+       (define count 0)
+       
+       (let ((x (an-element-of '(a b c)))
+             (y (an-element-of '(a b c))))
+         (permanent-set! count (+ count 1))
+         (require (not (eq? x y)))
+         (list x y count)))
+    (runs env3)
+    (check-equal? '((a b 2) (a c 3) (b a 4) (b c 6) (c a 7) (c b 8))))
 </code></pre>
 <h2 id="4_52"><a class="header" href="#4_52">4_52</a></h2>
 <pre><code class="language-lisp">;; file: 4_52.rkt
+;; 4_51 / 4_52 / 4_53
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(racket:provide
+ ;;  ((if-fail? exp) (analyze-if-fail exp))   ;**
+ if-fail? analyze-if-fail)
+
+;; 표현식 2개를 받아 첫번째가 성공시 첫번째 값을, 실패시 두번째 값을 반환하는 if-fail을 구현해라.
+
+
+(define (if-fail? exp)
+  (tagged-list? exp 'if-fail))
+
+(define (analyze-if-fail exp)
+  (let ((pproc (analyze (if-predicate exp)))
+        (cproc (analyze (if-consequent exp))))
+    (lambda (env succeed fail)
+      ;; before: analyze-if
+      ;; (pproc env
+      ;;        (lambda (pred-value fail2)
+      ;;          (if (true? pred-value)
+      ;;              (cproc env succeed fail2)
+      ;;              (aproc env succeed fail2)))
+      ;;        fail)
+      ;;
+      ;; after: analyze-if-fail
+      (pproc env
+             succeed
+             (lambda ()
+               (cproc env succeed fail))))))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp) 
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+        ((if-fail? exp) (analyze-if-fail exp))   ;**
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond-&gt;if exp)))
+        ((let? exp) (analyze (let-&gt;combination exp)))
+        ((amb? exp) (analyze-amb exp))
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))
+
+(override-analyze! analyze)
+
+;; ======================================
+
+(define env3 (setup-environment))
+(define-variable! 'even? (list 'primitive even?) env3)
+(~&gt; '(begin
+       (define (require p)
+         (if (not p)
+             (amb)))
+       (define (an-element-of items)
+         (require (not (null? items)))
+         (amb (car items) (an-element-of (cdr items))))
+       )
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(if-fail 
+      (let ((x (an-element-of '(1 3 5))))
+        (require (even? x))
+        x)
+      'all-odd)
+    (run env3)
+    (check-equal? 'all-odd)
+    )
+
+(~&gt; '(if-fail 
+      (let ((x (an-element-of '(1 3 5 8))))
+        (require (even? x))
+        x)
+      'all-odd)
+    (run env3)
+    (check-equal? '8)
+    )
 </code></pre>
 <h2 id="4_53"><a class="header" href="#4_53">4_53</a></h2>
 <pre><code class="language-lisp">;; file: 4_53.rkt
+;; 4_51 / 4_52 / 4_53
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; 연습문제 4.51의 permanent-set! 와 연습문제 4.52의 if-fail을 가지고 다음을 구해보면?
+
+;; 일단 permanent-set! / if-fail 적용시켜주고,
+(#%require "4_51.rkt")
+(#%require "4_52.rkt")
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp) 
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+        ((permutation-set? exp) (analyze-permutation-set exp))   ;**
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+        ((if-fail? exp) (analyze-if-fail exp))   ;**
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond-&gt;if exp)))
+        ((let? exp) (analyze (let-&gt;combination exp)))
+        ((amb? exp) (analyze-amb exp))
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))
+
+(override-analyze! analyze)
+
+;; =================================================
+
+(define env3 (setup-environment))
+(define-variable! 'even? (list 'primitive even?) env3)
+(~&gt; '(begin
+       (define (square x) (* x x))
+       
+       (define (smallest-divisor n)
+         (find-divisor n 2))
+
+       (define (find-divisor n test-divisor)
+         (cond ((&gt; (square test-divisor) n) n)
+               ((divides? test-divisor n) test-divisor)
+               (else (find-divisor n (+ test-divisor 1)))))
+
+       (define (divides? a b)
+         (= (remainder b a) 0))
+
+       (define (prime? n)
+         (= n (smallest-divisor n))))
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(begin
+       (define (require p)
+         (if (not p)
+             (amb)))
+
+       (define (an-element-of items)
+         (require (not (null? items)))
+         (amb (car items) (an-element-of (cdr items))))
+       
+       (define (prime-sum-pair list1 list2)
+         (let ((a (an-element-of list1))
+               (b (an-element-of list2)))
+           (require (prime? (+ a b)))
+           (list a b)))
+       )
+    (run env3)
+    (check-equal? 'ok))
+
+(~&gt; '(let ((pairs '()))
+       (if-fail (let ((p (prime-sum-pair 
+                          '(1 3 5 8) 
+                          '(20 35 110))))
+                  (permanent-set! pairs (cons p pairs))
+                  (amb))
+                pairs))
+    (runs env3)
+    (check-equal? '(
+                    ((8 35) (3 110) (3 20))
+                    ))
+    )
 </code></pre>
 <h2 id="4_54"><a class="header" href="#4_54">4_54</a></h2>
 <pre><code class="language-lisp">;; file: 4_54.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.3.3-ambeval.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; amb함수를 써서 require 함수를 구현하는 방법을 모른다면, special form으로 만들어야함.
+;; special form으로 require문을 처리해라.
+
+(define (require? exp) 
+  (tagged-list? exp 'require))
+
+(define (require-predicate exp) 
+  (cadr exp))
+
+(define (analyze-require exp)
+  ;; analyze-if 참고.
+  (let ((pproc (analyze (require-predicate exp))))
+    (lambda (env succeed fail)
+      (pproc env
+             (lambda (pred-value fail2)
+               (if (not pred-value)
+                   (fail2)
+                   (succeed 'ok fail2)))
+             fail))))
+
+(define (analyze exp)
+  (cond ((self-evaluating? exp) 
+         (analyze-self-evaluating exp))
+        ((quoted? exp) (analyze-quoted exp))
+        ((variable? exp) (analyze-variable exp))
+        ((assignment? exp) (analyze-assignment exp))
+        ((definition? exp) (analyze-definition exp))
+        ((if? exp) (analyze-if exp))
+        ((lambda? exp) (analyze-lambda exp))
+        ((begin? exp) (analyze-sequence (begin-actions exp)))
+        ((cond? exp) (analyze (cond-&gt;if exp)))
+        ((let? exp) (analyze (let-&gt;combination exp)))
+        ((amb? exp) (analyze-amb exp))
+        ((require? exp) (analyze-require exp))   ; &lt;-----------------
+        ((application? exp) (analyze-application exp))
+        (else
+         (error "Unknown expression type -- ANALYZE" exp))))
+
+(override-analyze! analyze)
+
+;; =================================================
+
+
+(define env2 (setup-environment))
+(~&gt; '(let ((x (amb 0 1 2)))
+       (require (&gt; x 0))
+       x)
+    (runs env2)
+    (check-equal? '(1 2)))
+
+(~&gt; '(begin
+       (define (square x) (* x x))
+       
+       (define (smallest-divisor n)
+         (find-divisor n 2))
+
+       (define (find-divisor n test-divisor)
+         (cond ((&gt; (square test-divisor) n) n)
+               ((divides? test-divisor n) test-divisor)
+               (else (find-divisor n (+ test-divisor 1)))))
+
+       (define (divides? a b)
+         (= (remainder b a) 0))
+
+       (define (prime? n)
+         (= n (smallest-divisor n)))
+
+       (define (an-element-of items)
+         (require (not (null? items)))
+         (amb (car items) 
+              (an-element-of (cdr items))))
+       
+       (define (prime-sum-pair list1 list2)
+         (let ((a (an-element-of list1))
+               (b (an-element-of list2)))
+           (require (prime? (+ a b)))
+           (list a b)))
+       )
+    (run env2)
+    (check-equal? 'ok))
+
+
+(~&gt; '(prime-sum-pair '(1 3 5 8) '(20 35 110))
+    (runs env2)
+    (check-equal? '((3 20)
+                    (3 110)
+                    (8 35))))
+(~&gt; '(prime-sum-pair '(19 27 30) '(11 36 58))
+    (run env2)
+    (check-equal? '(30 11)))
 </code></pre>
 <h2 id="4_55"><a class="header" href="#4_55">4_55</a></h2>
 <pre><code class="language-lisp">;; file: 4_55.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(initialize-data-base microshaft-data-base)
+;;  (query-driver-loop)
+(~&gt; '(job ?x (computer programmer))
+    (run)
+    (check-equal? '((job (Fect Cy D) (computer programmer))
+                    (job (Hacker Alyssa P) (computer programmer)))))
+
+;; 쿼리 만들어보기
+;;
+;; (address    {이름}     {주소})
+;; (job        {이름}     ({부서} . {타이틀}))
+;; (salary     {이름}     {급여})
+;; (supervisor {하급자}   {상급자})
+;; (can-do-job {상위직업} {하위직업})
+
+;; 1. Ben Bitdiddle가 관리하는 모든 사람들
+(~&gt; '(supervisor ?name (Bitdiddle Ben))
+    (run)
+    (check-equal? '(
+                    (supervisor (Tweakit Lem E) (Bitdiddle Ben))
+                    (supervisor (Fect Cy D) (Bitdiddle Ben))
+                    (supervisor (Hacker Alyssa P) (Bitdiddle Ben))
+                    )))
+
+
+;; 2. accounting 부서의 모든 사람들의 이름과 직업;
+(~&gt; '(job ?name (accounting . ?job))
+    (run)
+    (check-equal? '(
+                    (job (Cratchet Robert) (accounting scrivener))
+                    (job (Scrooge Eben) (accounting chief accountant))
+                    )))
+
+;; 3. Slumerville에 살고 있는 사람들의 이름과 주소
+(~&gt; '(address ?name (Slumerville . ?address))
+    (run)
+    (check-equal? '(
+                    (address (Aull DeWitt) (Slumerville (Onion Square) 5))
+                    (address (Reasoner Louis) (Slumerville (Pine Tree Road) 80))
+                    (address (Bitdiddle Ben) (Slumerville (Ridge Road) 10))
+                    )))
 </code></pre>
 <h2 id="4_56"><a class="header" href="#4_56">4_56</a></h2>
 <pre><code class="language-lisp">;; file: 4_56.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+;; 쿼리 만들어보기
+
+(initialize-data-base microshaft-data-base)
+
+;; (and
+;; (or
+;; (not
+;; (lisp-value {predicate} {arg0} ... {argn})
+
+
+;; 1. Ben Bitdiddle가 관리하는 모든 사람의 이름과 주소
+(~&gt; '(and (supervisor ?name (Bitdiddle Ben))
+          (address ?name ?address))
+    (run)
+    (check-equal? '(
+                    (and (supervisor (Tweakit Lem E) (Bitdiddle Ben))
+                         (address (Tweakit Lem E) (Boston (Bay State Road) 22)))
+                    (and (supervisor (Fect Cy D) (Bitdiddle Ben))
+                         (address (Fect Cy D) (Cambridge (Ames Street) 3)))
+                    (and (supervisor (Hacker Alyssa P) (Bitdiddle Ben))
+                         (address (Hacker Alyssa P) (Cambridge (Mass Ave) 78)))
+                    )))
+
+
+;; 2. Ben Bitdiddle 보다 salary가 적은 사람들과 급여. 그리고 Ben Bitdiddle의 급여.
+(~&gt; '(and (salary (Bitdiddle Ben) ?ben-salary)
+          (salary ?name ?amount)
+          (lisp-value &lt; ?amount ?ben-salary))
+    (run)
+    (check-equal? '(
+                    (and (salary (Bitdiddle Ben) 60000)
+                         (salary (Aull DeWitt) 25000)
+                         (lisp-value &lt; 25000 60000))
+                    (and (salary (Bitdiddle Ben) 60000)
+                         (salary (Cratchet Robert) 18000)
+                         (lisp-value &lt; 18000 60000))
+                    (and (salary (Bitdiddle Ben) 60000)
+                         (salary (Reasoner Louis) 30000)
+                         (lisp-value &lt; 30000 60000))
+                    (and (salary (Bitdiddle Ben) 60000)
+                         (salary (Tweakit Lem E) 25000)
+                         (lisp-value &lt; 25000 60000))
+                    (and (salary (Bitdiddle Ben) 60000)
+                         (salary (Fect Cy D) 35000)
+                         (lisp-value &lt; 35000 60000))
+                    (and (salary (Bitdiddle Ben) 60000)
+                         (salary (Hacker Alyssa P) 40000)
+                         (lisp-value &lt; 40000 60000))
+                    )))
+
+;; 3. computer 부서에 속하지 않은 사람이 관리하는 모든 사람들 그리고 관리자. 이름과 job 포함.
+(~&gt; '(and (job ?supervisor-name (computer . ?x))
+          (supervisor ?name ?supervisor-name)
+          (job ?name . ?y)
+          )
+    (run)
+    (check-equal? '(
+                    (and (job (Hacker Alyssa P) (computer programmer))
+                         (supervisor (Reasoner Louis) (Hacker Alyssa P))
+                         (job (Reasoner Louis) (computer programmer trainee)))
+                    (and (job (Bitdiddle Ben) (computer wizard))
+                         (supervisor (Tweakit Lem E) (Bitdiddle Ben))
+                         (job (Tweakit Lem E) (computer technician)))
+                    (and (job (Bitdiddle Ben) (computer wizard))
+                         (supervisor (Fect Cy D) (Bitdiddle Ben))
+                         (job (Fect Cy D) (computer programmer)))
+                    (and (job (Bitdiddle Ben) (computer wizard))
+                         (supervisor (Hacker Alyssa P) (Bitdiddle Ben))
+                         (job (Hacker Alyssa P) (computer programmer)))
+                    )))
 </code></pre>
 <h2 id="4_57"><a class="header" href="#4_57">4_57</a></h2>
 <pre><code class="language-lisp">;; file: 4_57.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+;; 쿼리 만들어보기
+
+(initialize-data-base microshaft-data-base)
+;; (rule {패턴} {질의문})
+
+;; (rule (lives-near ?person-1 ?person-2)   : 주변에 사는가?
+;; (rule (same ?x ?x))                      : 같은가?
+;; (rule (wheel ?person)                    : supervisor의 supervisor
+;; (rule (outranked-by ?staff-person ?boss) : ?boss가 관리하는 자(?staff-person)인가?
+
+(~&gt; '(lives-near ?x (Bitdiddle Ben))
+    (run)
+    (check-equal? '((lives-near (Aull DeWitt) (Bitdiddle Ben))
+                    (lives-near (Reasoner Louis) (Bitdiddle Ben)))))
+
+(~&gt; '(and (job ?x (computer programmer))
+          (lives-near ?x (Bitdiddle Ben)))
+    (run)
+    (check-equal? '()))
+
+
+;;  정의한 규칙을 사용하여 다음을 찾는 질의를 작성하시오:
+;; - 사람 1이 사람 2를 대체할 수 있으려면,
+;;   - 사람 1이 사람 2와 같은 직업을 가지거나,
+;;   - 사람 1의 직업을 가진 누군가가 사람 2의 직업도 수행할 수 있어야 하며,
+;;   - 사람 1과 사람 2가 동일한 사람이 아니어야 한다.
+
+(define rule-can-replace
+  '(rule (can-replace ?person-Replacer ?person-Replaced)
+         (and (job ?person-Replacer ?job-1)
+              (job ?person-Replaced ?job-2)
+              (or
+               (same       ?job-1 ?job-2)      ;;   - 사람 1이 사람 2와 같은 직업을 가지거나,
+               (can-do-job ?job-1 ?job-2)      ;;   - 사람 1의 직업을 가진 누군가가 사람 2의 직업도 수행할 수 있어야 하며,
+               )
+              (not (same ?person-Replacer ?person-Replaced)) ;;   - 사람 1과 사람 2가 동일한 사람이 아니어야 한다.
+              )))
+
+(~&gt;&gt; (list rule-can-replace)
+     (append microshaft-data-base)
+     (initialize-data-base))
+
+;; a. Cy D. Fect을 대신할 수 있는 모든 사람들.
+(~&gt; '(can-replace ?person (Fect Cy D))
+    (run)
+    (check-equal? '(
+                    (can-replace (Bitdiddle Ben) (Fect Cy D))
+                    (can-replace (Hacker Alyssa P) (Fect Cy D))
+                    )))
+
+;; b. 보다 급여를 많이 받는 사람을 대신할 수 있는 후보목록(대체할 수 있는 사람과 대채자 그리고 급여와 같이)
+(~&gt; '(and (can-replace ?person-1 ?person-2)
+          (salary ?person-1 ?salary-1)
+          (salary ?person-2 ?salary-2)
+          (lisp-value &lt; ?salary-1 ?salary-2))
+    (run)
+    (check-equal? '((and (can-replace (Aull DeWitt) (Warbucks Oliver))
+                         (salary (Aull DeWitt) 25000)
+                         (salary (Warbucks Oliver) 150000)
+                         (lisp-value &lt; 25000 150000))
+                    (and (can-replace (Fect Cy D) (Hacker Alyssa P))
+                         (salary (Fect Cy D) 35000)
+                         (salary (Hacker Alyssa P) 40000)
+                         (lisp-value &lt; 35000 40000)))))
 </code></pre>
 <h2 id="4_58"><a class="header" href="#4_58">4_58</a></h2>
 <pre><code class="language-lisp">;; file: 4_58.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; 쿼리 만들어보기
+;; 다음 조건을 만족하는 규칙을 정의하시오:
+;; - 한 사람이 부서에서 "중요 인물(big shot)"로 간주되려면
+;;   - 그 사람이 해당 부서에서 일하고,
+;;   - 그 부서에서 일하는 상사가 없어야 한다.
+
+
+(define rule-bigshot
+  '(rule (bigshot ?person ?division)
+         (and (job ?person (?division . ?title-1))               ;;  - 그 사람이 해당 부서에서 일하고,
+              (not (and (job ?supervisor (?division . ?title-2)) ;;  - 그 부서에서 일하는 상사가 없어야 한다.
+                        (supervisor ?person ?supervisor))))))
+
+(~&gt;&gt; (list rule-bigshot)
+     (append microshaft-data-base)
+     (initialize-data-base))
+
+(~&gt; '(bigshot ?person ?division)
+    (run)
+    (check-equal? '((bigshot (Scrooge Eben) accounting)
+                    (bigshot (Warbucks Oliver) administration)
+                    (bigshot (Bitdiddle Ben) computer))))
 </code></pre>
 <h2 id="4_59"><a class="header" href="#4_59">4_59</a></h2>
 <pre><code class="language-lisp">;; file: 4_59.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+;; 쿼리 만들어보기
+
+(define rows
+  '(
+    ;; (meeting {부서} ({요일} {시간}))
+    (meeting accounting (Monday 9am))
+    (meeting administration (Monday 10am))
+    (meeting computer (Wednesday 3pm))
+    (meeting administration (Friday 1pm))
+
+    ;; 모든 사원 참석.
+    (meeting whole-company (Wednesday 4pm))
+    ))
+
+;; a. 금요일 아침에 Ben은 그 날에 있는 모든 회의를 찾으려 한다.
+(~&gt; microshaft-data-base
+    (append rows)
+    (initialize-data-base))
+
+(~&gt; '(meeting ?division (Friday ?time))
+    (run)
+    (check-equal? '((meeting administration (Friday 1pm)))))
+
+;; b. 자기 이름으로 자기가 참석해야할 모든 회의를 뽑는 룰을 만들어라.
+(define rule-meeting-time
+  '(rule (meeting-time ?person ?day-and-time)
+         (and (job ?person (?division . ?title))
+              (or (meeting ?division ?day-and-time)
+                  (meeting whole-company ?day-and-time))))
+  )
+
+(~&gt; microshaft-data-base
+    (append rows)
+    (append (list rule-meeting-time))
+    (initialize-data-base))
+
+;; c. 수요일에 Alyssa는 그 날 참석해야할 회의를 찾으려 한다.
+
+(~&gt; '(and (meeting ?div (Wednesday . ?time))
+          (meeting-time (Hacker Alyssa P) (Wednesday . ?time)))
+    (run)
+    (check-equal? '((and (meeting whole-company (Wednesday 4pm))
+                         (meeting-time (Hacker Alyssa P) (Wednesday 4pm)))
+                    (and (meeting computer (Wednesday 3pm))
+                         (meeting-time (Hacker Alyssa P) (Wednesday 3pm))))))
 </code></pre>
 <h2 id="4_60"><a class="header" href="#4_60">4_60</a></h2>
 <pre><code class="language-lisp">;; file: 4_60.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(~&gt; '(lives-near ?person (Hacker Alyssa P))
+    (run)
+    (check-equal? '((lives-near (Fect Cy D) (Hacker Alyssa P)))))
+
+(~&gt; '(lives-near ?person-1 ?person-2)
+    (run)
+    (check-equal? '((lives-near (Aull DeWitt) (Reasoner Louis))      ; A
+                    (lives-near (Aull DeWitt) (Bitdiddle Ben))       ; B
+                    (lives-near (Reasoner Louis) (Aull DeWitt))      ; A
+                    (lives-near (Reasoner Louis) (Bitdiddle Ben))    ; D
+                    (lives-near (Hacker Alyssa P) (Fect Cy D))       ; ** C
+                    (lives-near (Fect Cy D) (Hacker Alyssa P))       ; ** C
+                    (lives-near (Bitdiddle Ben) (Aull DeWitt))       ; B
+                    (lives-near (Bitdiddle Ben) (Reasoner Louis))))) ; D
+
+;; Q. 왜 중복해서 나오는 문제가 있는가?
+;;
+;; (rule (lives-near ?person-1 ?person-2)
+;;       (and (address ?person-1 (?town . ?rest-1))
+;;            (address ?person-2 (?town . ?rest-2))
+;;            (not (same ?person-1 ?person-2))))
+;;
+;; 룰에서 ?person-1 / ?person-2가 같지만 않으면 통과라서. 추가 제제가 없음.
+;;
+;; Q. 가까운데 사는데 중복이 없도록 나오게 만들 방법이 있는가?
+;;
+;; uid를 주입해서 활용.
+
+(define uids
+  ;; (uid {unique-id} {이름})
+  '((uid 1 (Aull DeWitt))
+    (uid 2 (Cratchet Robert))
+    (uid 3 (Scrooge Eben))
+    (uid 4 (Warbucks Oliver))
+    (uid 5 (Reasoner Louis))
+    (uid 6 (Tweakit Lem E))
+    (uid 7 (Fect Cy D))
+    (uid 8 (Hacker Alyssa P))
+    (uid 9 (Bitdiddle Ben))))
+
+(~&gt; microshaft-data-base
+    (append uids)
+    (initialize-data-base))
+
+(~&gt; '(and (lives-near ?person-1 ?person-2)
+          (uid ?uid-1 ?person-1)
+          (uid ?uid-2 ?person-2)
+          (lisp-value &lt; ?uid-1 ?uid-2))
+    (run)
+    (check-equal?
+     '((and (lives-near (Aull DeWitt) (Reasoner Louis)) (uid 1 (Aull DeWitt)) (uid 5 (Reasoner Louis)) (lisp-value &lt; 1 5))
+       (and (lives-near (Aull DeWitt) (Bitdiddle Ben)) (uid 1 (Aull DeWitt)) (uid 9 (Bitdiddle Ben)) (lisp-value &lt; 1 9))
+       (and (lives-near (Reasoner Louis) (Bitdiddle Ben)) (uid 5 (Reasoner Louis)) (uid 9 (Bitdiddle Ben)) (lisp-value &lt; 5 9))
+       (and (lives-near (Fect Cy D) (Hacker Alyssa P)) (uid 7 (Fect Cy D)) (uid 8 (Hacker Alyssa P)) (lisp-value &lt; 7 8)))))
+
+
+;; 이름정렬방식 : environment에 함수를 주입 lisp-value를 사용하여 사람 이름으로 정렬.
+;;   - 이름이 중복일 경우도 있음. =&gt; 문제발생.
+(let ((environment (scheme-report-environment 5))) 
+  (eval
+   '(begin
+      (define (fold-right op init lst)
+        (if (null? lst)
+            init
+            (op (car lst) (fold-right op init (cdr lst)))))
+      
+      (define (string-join lst delimiter)  
+        (if (null? lst)
+            ""
+            (fold-right (lambda (x acc)
+                          (if (string=? acc "")
+                              x
+                              (string-append x delimiter acc)))
+                        ""
+                        lst)))
+      
+      (define (pair-&gt;string pair)
+        (string-join (map symbol-&gt;string pair) " "))
+      
+      (define (compare-person-name p1 p2)
+        (string&lt;? (pair-&gt;string p1)
+                  (pair-&gt;string p2))))
+   environment)
+  (override-user-initial-environment! environment))
+
+(~&gt; '(and (lives-near ?person-1 ?person-2)
+          (lisp-value compare-person-name ?person-1 ?person-2))
+    (run)
+    (check-equal? '((and (lives-near (Aull DeWitt) (Reasoner Louis))
+                         (lisp-value compare-person-name (Aull DeWitt) (Reasoner Louis)))
+                    (and (lives-near (Aull DeWitt) (Bitdiddle Ben))
+                         (lisp-value compare-person-name (Aull DeWitt) (Bitdiddle Ben)))
+                    (and (lives-near (Fect Cy D) (Hacker Alyssa P))
+                         (lisp-value compare-person-name (Fect Cy D) (Hacker Alyssa P)))
+                    (and (lives-near (Bitdiddle Ben) (Reasoner Louis))
+                         (lisp-value compare-person-name (Bitdiddle Ben) (Reasoner Louis))))))
 </code></pre>
 <h2 id="4_61"><a class="header" href="#4_61">4_61</a></h2>
 <pre><code class="language-lisp">;; file: 4_61.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+(define rules-append-to-form
+  '(
+    ;; (append-to-form ?x ?y ?z) : ?x 랑 ?y를 합쳐서 ?z만들기.
+    (rule (append-to-form () ?y ?y))
+
+    (rule (append-to-form (?u . ?v) ?y (?u . ?z))
+          (append-to-form ?v ?y ?z))
+    ))
+
+(~&gt; microshaft-data-base
+    (append rules-append-to-form)
+    (initialize-data-base))
+
+(~&gt; '(append-to-form (a b) (c d) ?z)
+    (run)
+    (check-equal? '((append-to-form (a b) (c d) (a b c d)))))
+
+(~&gt; '(append-to-form (a b) ?y (a b c d))
+    (run)
+    (check-equal? '((append-to-form (a b) (c d) (a b c d)))))
+
+(~&gt; '(append-to-form ?x ?y (a b c d))
+    (run)
+    (check-equal? '((append-to-form (a b c d) () (a b c d))
+                    (append-to-form () (a b c d) (a b c d))
+                    (append-to-form (a) (b c d) (a b c d))
+                    (append-to-form (a b) (c d) (a b c d))
+                    (append-to-form (a b c) (d) (a b c d)))))
+
+
+;; 쿼리 만들어보기
+(define rules-next-to
+  '(
+    ;; (?x next-to ?y in ?z) : ?z에서 붙어있는 ?x / ?y 찾기
+    (rule (?x next-to ?y in (?x ?y . ?u)))
+    
+    (rule (?x next-to ?y in (?v . ?z))
+          (?x next-to ?y in ?z))
+    ))
+
+(~&gt; microshaft-data-base
+    (append rules-next-to)
+    (initialize-data-base))
+
+(~&gt; '(?x next-to ?y in (1 (2 3) 4))
+    (run)
+    (check-equal? '(((2 3) next-to 4 in (1 (2 3) 4))
+                    (1 next-to (2 3) in (1 (2 3) 4)))))
+
+
+(~&gt; '(?x next-to 1 in (2 1 3 1))
+    (run)
+    (check-equal? '((3 next-to 1 in (2 1 3 1))
+                    (2 next-to 1 in (2 1 3 1)))))
 </code></pre>
 <h2 id="4_62"><a class="header" href="#4_62">4_62</a></h2>
 <pre><code class="language-lisp">;; file: 4_62.rkt
+;; 2_17 / 4_62
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+;; Q. 연습문제 2.17에 나온 last-pair를 rule로 만들어라.
+;;
+;; - 연습문제 2.17
+;;   - last-pair: 마지막 요소가 포함된 리스트를 반환하는 함수
+;;   - (last-pair (list 23 72 149 34)) ;=&gt; (34)
+;;
+
+(define rules-last-pair
+  '(
+    ;; (last-pair ?lst (?last-elem)) : ?lst에서 ?last-elem을 찾음
+    (rule (last-pair (?x) (?x)))       ; == (rule (last-pair (?x . ()) (?x . ())))
+    (rule (last-pair (?x . ?y) ?z)
+          (last-pair ?y ?z))
+    )
+  )
+
+(~&gt; microshaft-data-base
+    (append rules-last-pair)
+    (initialize-data-base))
+
+(~&gt; '(last-pair (3) ?x)
+    (run)
+    (check-equal? '((last-pair (3) (3)))))
+
+(~&gt; '(last-pair (1 2 3) ?x)
+    (run)
+    (check-equal? '((last-pair (1 2 3) (3)))))
+
+(~&gt; '(last-pair (2 ?x) (3))
+    (run)
+    (check-equal? '((last-pair (2 3) (3)))))
+
+;; Q. (last-pair ?x (3)) 와 같은 것에도 제대로 동작하나?
+;; 제약조건인 ?x가 미지수이기에 결과를 제대로 얻지못함.
 </code></pre>
 <h2 id="4_63"><a class="header" href="#4_63">4_63</a></h2>
 <pre><code class="language-lisp">;; file: 4_63.rkt
+;; 4_63 / 4_69
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+
+(define Genesis-4
+  '(
+    ;; 창세기 4 족보
+    ;;
+    ;; 아담(Adam)
+    ;; └── 가인(Cain)
+    ;;     └── 에녹(Enoch)
+    ;;         └── 이라드(Irad)
+    ;;             └── 므후야엘(Mehujael)
+    ;;                 └── 므드사엘(Methushael)
+    ;;                     └── 라멕(Lamech) + 아다(Adah)
+    ;;                         ├── 야발(Jabal)
+    ;;                         └── 유발(Jubal)
+    
+    ;; (son {부모} {아들})
+    ;; (wife {남편} {아내})
+
+    (son Adam Cain)
+    (son Cain Enoch)
+    (son Enoch Irad)
+    (son Irad Mehujael)
+    (son Mehujael Methushael)
+    (son Methushael Lamech)
+    (wife Lamech Ada)
+    (son Ada Jabal)
+    (son Ada Jubal)
+    ))
+
+;; Q. 규칙을 만들어라
+;;
+;; - S가 f의 아들이고, f가 G의 아들이면, S는 G의 손자이다
+;; - W가 M의 아내이고, S가 W의 아들이면, S는 M의 아들이다.
+
+(define rules
+  '(
+    ;; (find-grandson {조부모} {손자})
+    (rule (find-grandson ?G ?S)   ; S는 G의 손자이다
+          (and (find-son ?f ?S)   ; S가 f의 아들이고, 
+               (find-son ?G ?f))) ; f가 G의 아들이면,
+    
+    ;; (find-son {부모} {아들})
+    (rule (find-son ?M ?S)        ; S는 M의 아들이다.
+          (or (son ?M ?S)
+              (and (wife ?M ?W)   ; W가 M의 아내이고, 
+                   (son ?W ?S)))) ; S가 W의 아들이면,
+    ))
+
+;; Q. Cain의 손자 / Lamech의 아들들 / Methushael의 손자들을 찾아내는 쿼리 만들어라.
+
+(~&gt; microshaft-data-base
+    (append Genesis-4)
+    (append rules)
+    (initialize-data-base))
+
+(~&gt; '(find-grandson Cain ?grandson)
+    (run)
+    (check-equal? '((find-grandson Cain Irad))))
+
+
+(~&gt; '(find-son Lamech ?son)
+    (run)
+    (check-equal? '((find-son Lamech Jubal)
+                    (find-son Lamech Jabal))))
+
+(~&gt; '(find-grandson Methushael ?grandson)
+    (run)
+    (check-equal? '((find-grandson Methushael Jubal)
+                    (find-grandson Methushael Jabal))))
+    
 </code></pre>
 <h2 id="4_64"><a class="header" href="#4_64">4_64</a></h2>
 <pre><code class="language-lisp">;; file: 4_64.rkt
