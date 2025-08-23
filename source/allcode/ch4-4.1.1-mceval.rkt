@@ -22,7 +22,7 @@
 
 ;;;SECTION 4.1.1
 
-(define-overridable (eval exp env)
+(overridable-define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -42,7 +42,7 @@
         (else
          (error "Unknown expression type -- EVAL" exp))))
 
-(define-overridable (apply procedure arguments)
+(overridable-define (apply procedure arguments)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure procedure arguments))
         ((compound-procedure? procedure)
@@ -56,18 +56,18 @@
          (error
           "Unknown procedure type -- APPLY" procedure))))
 
-(define-overridable (list-of-values exps env)
+(overridable-define (list-of-values exps env)
   (if (no-operands? exps)
       '()
       (cons (eval (first-operand exps) env)
             (list-of-values (rest-operands exps) env))))
 
-(define-overridable (eval-if exp env)
+(overridable-define (eval-if exp env)
   (if (true? (eval (if-predicate exp) env))
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
 
-(define-overridable (eval-sequence exps env)
+(overridable-define (eval-sequence exps env)
   (cond ((last-exp? exps) (eval (first-exp exps) env))
         (else (eval (first-exp exps) env)
               (eval-sequence (rest-exps exps) env))))
@@ -211,16 +211,16 @@
   (eq? x false))
 
 
-(define-overridable (make-procedure parameters body env)
+(overridable-define (make-procedure parameters body env)
   (list 'procedure parameters body env))
 
 (define (compound-procedure? p)
   (tagged-list? p 'procedure))
 
 
-(define-overridable (procedure-parameters p) (cadr p))
+(overridable-define (procedure-parameters p) (cadr p))
 
-(define-overridable (procedure-body p) (caddr p))
+(overridable-define (procedure-body p) (caddr p))
 
 (define (procedure-environment p) (cadddr p))
 
@@ -248,7 +248,7 @@
           (error "Too many arguments supplied" vars vals)
           (error "Too few arguments supplied" vars vals))))
 
-(define-overridable (lookup-variable-value var env)
+(overridable-define (lookup-variable-value var env)
   (define (env-loop env)
     (define (scan vars vals)
       (cond ((null? vars)
@@ -307,7 +307,7 @@
 
 (define (primitive-implementation proc) (cadr proc))
 
-(define-overridable primitive-procedures
+(overridable-define primitive-procedures
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
@@ -331,10 +331,10 @@
 
 
 
-(define-overridable input-prompt ";;; M-Eval input:")
-(define-overridable output-prompt ";;; M-Eval value:")
+(overridable-define input-prompt ";;; M-Eval input:")
+(overridable-define output-prompt ";;; M-Eval value:")
 
-(define-overridable (driver-loop)
+(overridable-define (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))
     (let ((output (eval input the-global-environment)))
@@ -358,7 +358,7 @@
 
 ;;;Following are commented out so as not to be evaluated when
 ;;; the file is loaded.
-(define-overridable the-global-environment (setup-environment))
+(overridable-define the-global-environment (setup-environment))
 ;;(driver-loop)
 
 

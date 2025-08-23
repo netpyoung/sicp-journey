@@ -2,7 +2,7 @@
 
 (provide (all-defined-out))
 
-(define-syntax (define-overridable stx)
+(define-syntax (overridable-define stx)
   (syntax-case stx ()
     ;; 함수 정의
     [(_ (fname arg ...) body ...)
@@ -28,7 +28,7 @@
              (define fname iname)
              (define (oname new-value) (set! fname new-value)))))]))
 
-;; (define-overridable (hello x)
+;; (overridable-define (hello x)
 ;;   (+ x 1))
 ;; ==>
 ;; (define (_hello x)

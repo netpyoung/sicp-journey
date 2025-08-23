@@ -36,7 +36,7 @@
 (define (eval exp env)
   ((analyze exp) env))
 
-(define-overridable (analyze exp)
+(overridable-define (analyze exp)
   (cond ((self-evaluating? exp) 
          (analyze-self-evaluating exp))
         ((quoted? exp) (analyze-quoted exp))
@@ -89,7 +89,7 @@
         (bproc (analyze-sequence (lambda-body exp))))
     (lambda (env) (make-procedure vars bproc env))))
 
-(define-overridable (analyze-sequence exps)
+(overridable-define (analyze-sequence exps)
   (define (sequentially proc1 proc2)
     (lambda (env) (proc1 env) (proc2 env)))
   (define (loop first-proc rest-procs)

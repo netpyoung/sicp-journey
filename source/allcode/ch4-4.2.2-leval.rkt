@@ -43,7 +43,7 @@
 
 ;;; Modifying the evaluator
 
-(define-overridable (eval exp env)
+(overridable-define (eval exp env)
   (cond ((self-evaluating? exp) exp)
         ((variable? exp) (lookup-variable-value exp env))
         ((quoted? exp) (text-of-quotation exp))
@@ -67,7 +67,7 @@
 (define (actual-value exp env)
   (force-it (eval exp env)))
 
-(define-overridable (apply procedure arguments env)
+(overridable-define (apply procedure arguments env)
   (cond ((primitive-procedure? procedure)
          (apply-primitive-procedure
           procedure
@@ -97,15 +97,15 @@
             (list-of-delayed-args (rest-operands exps)
                                   env))))
 
-(define-overridable (eval-if exp env)
+(overridable-define (eval-if exp env)
   (if (true? (actual-value (if-predicate exp) env))
       (eval (if-consequent exp) env)
       (eval (if-alternative exp) env)))
 
-(define-overridable input-prompt ";;; L-Eval input:")
-(define-overridable output-prompt ";;; L-Eval value:")
+(overridable-define input-prompt ";;; L-Eval input:")
+(overridable-define output-prompt ";;; L-Eval value:")
 
-(define-overridable (driver-loop)
+(overridable-define (driver-loop)
   (prompt-for-input input-prompt)
   (let ((input (read)))
     (let ((output
@@ -161,7 +161,7 @@
 ;; A longer list of primitives -- suitable for running everything in 4.2
 ;; Overrides the list in ch4-mceval.scm
 
-(define-overridable primitive-procedures
+(overridable-define primitive-procedures
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)

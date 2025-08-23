@@ -46,7 +46,7 @@
 
 ;; analyze from 4.1.6, with clause from 4.3.3 added
 ;; and also support for Let
-(define-overridable (analyze exp)
+(overridable-define (analyze exp)
   (cond ((self-evaluating? exp) 
          (analyze-self-evaluating exp))
         ((quoted? exp) (analyze-quoted exp))
@@ -218,10 +218,10 @@
 
 ;;;Driver loop
 
-(define-overridable input-prompt ";;; Amb-Eval input:")
-(define-overridable output-prompt ";;; Amb-Eval value:")
+(overridable-define input-prompt ";;; Amb-Eval input:")
+(overridable-define output-prompt ";;; Amb-Eval value:")
 
-(define-overridable (driver-loop)
+(overridable-define (driver-loop)
   (define (internal-loop try-again)
     (prompt-for-input input-prompt)
     (let ((input (read)))
@@ -277,7 +277,7 @@
 ;;  support for Prime?); integer? and sqrt for exercise code;
 ;;  eq? for ex. solution
 
-(define-overridable primitive-procedures
+(overridable-define primitive-procedures
   (list (list 'car car)
         (list 'cdr cdr)
         (list 'cons cons)
