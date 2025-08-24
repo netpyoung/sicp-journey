@@ -2,9 +2,25 @@
 
 The Racket Programming Environment
 
+## racket 설치 (raco 도 같이 설치된다)
+
+### Windows
+
 - [다운로드](https://download.racket-lang.org/)
   - [깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(1)](https://kkalkkalparrot.tistory.com/31)
   - [깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(2)](https://kkalkkalparrot.tistory.com/32)
+
+### linux (ubuntu)
+
+``` zsh
+sudo apt-get install racket
+```
+
+### macOs
+
+``` zsh
+brew install --cask racket
+```
 
 ## 왜 DrRacket
 

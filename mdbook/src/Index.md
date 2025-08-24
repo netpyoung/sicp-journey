@@ -34,7 +34,6 @@
 - MIT 6.001 Structure and Interpretation, 1986
   - [youtube](https://www.youtube.com/playlist?list=PLE18841CABEA24090)
   - [opencourseware](https://ocw.mit.edu/courses/6-001-structure-and-interpretation-of-computer-programs-spring-2005/video_galleries/video-lectures/)
-  - [notes by Aditya](https://nebhrajani-a.org/sicp/video_notes/)
 - [by Eric Grimson in 2004](https://www.youtube.com/playlist?list=PL7BcsI5ueSNFPCEisbaoQ0kXIDX9rR5FF)
 - [by 이광근 Kwangkeun Yi 교수님](https://ropas.snu.ac.kr/~kwang/4190.210/13/)
 - [by code_report](https://www.youtube.com/playlist?list=PLVFrD1dmDdvdvWFK8brOVNL7bKHpE-9w0)
@@ -65,6 +64,7 @@
 
 ## 기타
 
+- <https://nlp.jbnu.ac.kr/SICP2019/>
 - [Language Oriented Design - Discussing SICP with Hal Abelson](https://corecursive.com/039-hal-abelson-sicp/)
 - [Instructor's Manual t/a Structure and Interpretation of Computer Programs](https://www.amazon.com/Instructors-Structure-Interpretation-Computer-Programs/dp/0262692201/)
 - [Structure and Interpretation of Classical Mechanics (SICM) ](https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/9579/sicm_edition_2.zip/book.html)
