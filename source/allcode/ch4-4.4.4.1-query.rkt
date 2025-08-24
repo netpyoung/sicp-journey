@@ -20,7 +20,7 @@
 (racket:provide (racket:all-defined-out))
 
 (overridable-define user-initial-environment
-  (scheme-report-environment 5))
+                    (scheme-report-environment 5))
 
 (define (stream-car stream)
   (car stream))
@@ -52,14 +52,10 @@
            (newline)
            (display output-prompt)
            ;; [extra newline at end] (announce-output output-prompt)
-           (display-stream
-            (stream-map
-             (lambda (frame)
-               (instantiate q
-                 frame
-                 (lambda (v f)
-                   (contract-question-mark v))))
-             (qeval q (singleton-stream '()))))
+           (display-stream (stream-map (lambda (frame)
+                                         (instantiate q frame (lambda (v f)
+                                                                (contract-question-mark v))))
+                                       (qeval q (singleton-stream '()))))
            (query-driver-loop)))))
 
 (define (instantiate exp frame unbound-var-handler)
@@ -70,7 +66,8 @@
                  (copy (binding-value binding))
                  (unbound-var-handler exp frame))))
           ((pair? exp)
-           (cons (copy (car exp)) (copy (cdr exp))))
+           (cons (copy (car exp))
+                 (copy (cdr exp))))
           (else exp)))
   (copy exp))
 
@@ -79,20 +76,28 @@
 ;;;The Evaluator
 
 (overridable-define (qeval query frame-stream)
-  (let ((qproc (get (type query) 'qeval)))
-    (if qproc
-        (qproc (contents query) frame-stream)
-        (simple-query query frame-stream))))
+                    ;; (type '(salary (? x) (? y)))
+                    ;;=> salary
+
+                    ;; (get {type}       'qeval)
+                    ;;      'and         'qeval => conjoin
+                    ;;      'or          'qeval => disjoin
+                    ;;      'not         'qeval => negate
+                    ;;      'lisp-value  'qeval => lisp-value
+                    ;;      'always-true 'qeval => always-true
+  
+                    (let ((qproc (get (type query) 'qeval)))
+                      (if qproc
+                          (qproc (contents query) frame-stream)
+                          (simple-query query frame-stream))))
 
 ;;;Simple queries
 
 (define (simple-query query-pattern frame-stream)
-  (stream-flatmap
-   (lambda (frame)
-     (stream-append-delayed
-      (find-assertions query-pattern frame)
-      (delay (apply-rules query-pattern frame))))
-   frame-stream))
+  (stream-flatmap (lambda (frame)
+                    (stream-append-delayed (find-assertions query-pattern frame)
+                                           (delay (apply-rules query-pattern frame))))
+                  frame-stream))
 
 ;;;Compound queries
 
@@ -109,38 +114,30 @@
 (define (disjoin disjuncts frame-stream)
   (if (empty-disjunction? disjuncts)
       the-empty-stream
-      (interleave-delayed
-       (qeval (first-disjunct disjuncts) frame-stream)
-       (delay (disjoin (rest-disjuncts disjuncts)
-                       frame-stream)))))
+      (interleave-delayed (qeval (first-disjunct disjuncts)
+                                 frame-stream)
+                          (delay (disjoin (rest-disjuncts disjuncts)
+                                          frame-stream)))))
 
 ;;(put 'or 'qeval disjoin)
 
 ;;;Filters
 
 (define (negate operands frame-stream)
-  (stream-flatmap
-   (lambda (frame)
-     (if (stream-null? (qeval (negated-query operands)
-                              (singleton-stream frame)))
-         (singleton-stream frame)
-         the-empty-stream))
-   frame-stream))
+  (stream-flatmap (lambda (frame)
+                    (if (stream-null? (qeval (negated-query operands) (singleton-stream frame)))
+                        (singleton-stream frame)
+                        the-empty-stream))
+                  frame-stream))
 
 ;;(put 'not 'qeval negate)
 
 (define (lisp-value call frame-stream)
-  (stream-flatmap
-   (lambda (frame)
-     (if (execute
-          (instantiate
-              call
-            frame
-            (lambda (v f)
-              (error "Unknown pat var -- LISP-VALUE" v))))
-         (singleton-stream frame)
-         the-empty-stream))
-   frame-stream))
+  (stream-flatmap (lambda (frame)
+                    (if (execute (instantiate call frame (lambda (v f) (error "Unknown pat var -- LISP-VALUE" v))))
+                        (singleton-stream frame)
+                        the-empty-stream))
+                  frame-stream))
 
 ;;(put 'lisp-value 'qeval lisp-value)
 
@@ -168,6 +165,19 @@
         (singleton-stream match-result))))
 
 (define (pattern-match pat dat frame)
+  ;; (pattern-match {패턴} {데이터} {프레임}) => {새로운 프레임}
+  ;;
+  ;; (pattern-match '((? x) (? y) (? x)) '(a b a) '())
+  ;;=> (((? y) . b)
+  ;;    ((? x) . a))
+  ;;
+  ;; (pattern-match '((? x) (? y) (? x)) '(a b a) '(((? y) . a)))
+  ;;=> failed
+  ;;
+  ;; (pattern-match '((? x) (? y) (? x)) '(a b a) '(((? y) . b)))
+  ;;=> (((? x) . a)
+  ;;    ((? y) . b))
+  
   (cond ((eq? frame 'failed) 'failed)
         ((equal? pat dat) frame)
         ((var? pat) (extend-if-consistent pat dat frame))
@@ -195,10 +205,9 @@
 
 (define (apply-a-rule rule query-pattern query-frame)
   (let ((clean-rule (rename-variables-in rule)))
-    (let ((unify-result
-           (unify-match query-pattern
-                        (conclusion clean-rule)
-                        query-frame)))
+    (let ((unify-result (unify-match query-pattern
+                                     (conclusion clean-rule)
+                                     query-frame)))
       (if (eq? unify-result 'failed)
           the-empty-stream
           (qeval (rule-body clean-rule)
@@ -216,6 +225,22 @@
     (tree-walk rule)))
 
 (define (unify-match p1 p2 frame)
+  ;; (unify-match {패턴1} {패턴2} {프레임}) => {새로운 프레임}
+  ;;
+  ;; (unify-match '((? x) (? x)) '((a (? y) c) (a b (? z))) '())
+  ;;=> (((? z) . c)
+  ;;    ((? y) . b)
+  ;;    ((? x) a (? y) c))
+  ;;
+  ;; (unify-match '((? x) (? x)) '(((? y) a (? w)) (b (? v) (? z))) '())
+  ;;=> (((? w) ? z)
+  ;;    ((? v) . a)
+  ;;    ((? y) . b)
+  ;;    ((? x) (? y) a (? w)))
+  ;;
+  ;; (unify-match '((? x) (? x)) '((? y) (a . (? y))) '())
+  ;;=> failed
+  
   (cond ((eq? frame 'failed) 'failed)
         ((equal? p1 p2) frame)
         ((var? p1) (extend-if-possible p1 p2 frame))
@@ -275,7 +300,9 @@
 
 (define (get-stream key1 key2)
   (let ((s (get key1 key2)))
-    (if s s the-empty-stream)))
+    (if s
+        s
+        the-empty-stream)))
 
 (define THE-RULES the-empty-stream)
 
@@ -312,8 +339,7 @@
 (define (store-assertion-in-index assertion)
   (if (indexable? assertion)
       (let ((key (index-key-of assertion)))
-        (let ((current-assertion-stream
-               (get-stream key 'assertion-stream)))
+        (let ((current-assertion-stream (get-stream key 'assertion-stream)))
           (put key
                'assertion-stream
                (cons-stream assertion
@@ -323,8 +349,7 @@
   (let ((pattern (conclusion rule)))
     (if (indexable? pattern)
         (let ((key (index-key-of pattern)))
-          (let ((current-rule-stream
-                 (get-stream key 'rule-stream)))
+          (let ((current-rule-stream (get-stream key 'rule-stream)))
             (put key
                  'rule-stream
                  (cons-stream rule
@@ -347,17 +372,15 @@
 (define (stream-append-delayed s1 delayed-s2)
   (if (stream-null? s1)
       (force delayed-s2)
-      (cons-stream
-       (stream-car s1)
-       (stream-append-delayed (stream-cdr s1) delayed-s2))))
+      (cons-stream (stream-car s1)
+                   (stream-append-delayed (stream-cdr s1) delayed-s2))))
 
 (define (interleave-delayed s1 delayed-s2)
   (if (stream-null? s1)
       (force delayed-s2)
-      (cons-stream
-       (stream-car s1)
-       (interleave-delayed (force delayed-s2)
-                           (delay (stream-cdr s1))))))
+      (cons-stream (stream-car s1)
+                   (interleave-delayed (force delayed-s2)
+                                       (delay (stream-cdr s1))))))
 
 (define (stream-flatmap proc s)
   (flatten-stream (stream-map proc s)))
@@ -365,9 +388,8 @@
 (define (flatten-stream stream)
   (if (stream-null? stream)
       the-empty-stream
-      (interleave-delayed
-       (stream-car stream)
-       (delay (flatten-stream (stream-cdr stream))))))
+      (interleave-delayed (stream-car stream)
+                          (delay (flatten-stream (stream-cdr stream))))))
 
 
 (define (singleton-stream x)
@@ -418,6 +440,9 @@
       (caddr rule)))
 
 (define (query-syntax-process exp)
+  ;; (query-syntax-process '(hello world ?x ?y))
+  ;;=> (hello world (? x) (? y))
+
   (map-over-symbols expand-question-mark exp))
 
 (define (map-over-symbols proc exp)
@@ -428,6 +453,9 @@
         (else exp)))
 
 (define (expand-question-mark symbol)
+  ;; (expand-question-mark '?x)
+  ;;=> (? x)
+
   (let ((chars (symbol->string symbol)))
     (if (string=? (substring chars 0 1) "?")
         (list '?
@@ -438,7 +466,8 @@
 (define (var? exp)
   (tagged-list? exp '?))
 
-(define (constant-symbol? exp) (symbol? exp))
+(define (constant-symbol? exp)
+  (symbol? exp))
 
 (define rule-counter 0)
 
@@ -450,6 +479,11 @@
   (cons '? (cons rule-application-id (cdr var))))
 
 (define (contract-question-mark variable)
+  ;; (contract-question-mark '(? x))
+  ;;=> ?x
+  ;; (contract-question-mark '(? 1 x))
+  ;;=> ?x-1
+  
   (string->symbol
    (string-append "?" 
                   (if (number? (cadr variable))
@@ -470,7 +504,6 @@
 (define (binding-value binding)
   (cdr binding))
 
-
 (define (binding-in-frame variable frame)
   (assoc variable frame))
 
@@ -486,7 +519,10 @@
       false))
 
 (define (prompt-for-input string)
-  (newline) (newline) (display string) (newline))
+  (newline)
+  (newline)
+  (display string)
+  (newline))
 
 
 ;;;;Stream support from Chapter 3
@@ -505,6 +541,7 @@
 
 (define (display-stream s)
   (stream-for-each display-line s))
+
 (define (display-line x)
   (newline)
   (display x))
@@ -515,7 +552,8 @@
          (cons-stream (stream-car stream)
                       (stream-filter pred
                                      (stream-cdr stream))))
-        (else (stream-filter pred (stream-cdr stream)))))
+        (else
+         (stream-filter pred (stream-cdr stream)))))
 
 (define (stream-append s1 s2)
   (if (stream-null? s1)
@@ -531,8 +569,13 @@
 
 ;;;;Table support from Chapter 3, Section 3.3.3 (local tables)
 
+(racket:require racket/pretty)	
+
 (define (make-table)
   (let ((local-table (list '*table*)))
+    (define (show-table)  ; NOTE(pyoung): to show local-table
+      (pretty-print local-table))
+
     (define (lookup key-1 key-2)
       (let ((subtable (assoc key-1 (cdr local-table))))
         (if subtable
@@ -558,6 +601,7 @@
     (define (dispatch m)
       (cond ((eq? m 'lookup-proc) lookup)
             ((eq? m 'insert-proc!) insert!)
+            ((eq? m 'show-table) show-table) ; NOTE(pyoung): to show local-table
             (else (error "Unknown operation -- TABLE" m))))
     dispatch))
 
@@ -566,6 +610,8 @@
 (define get '())
 
 (define put '())
+
+(define show-table nil) ; NOTE(pyoung): to show local-table
 
 (define (initialize-data-base rules-and-assertions)
   (define (deal-out r-and-a rules assertions)
@@ -586,6 +632,7 @@
                               rules
                               (cons s assertions))))))))
   (let ((operation-table (make-table)))
+    (set! show-table (operation-table 'show-table)) ; NOTE(pyoung): to show local-table
     (set! get (operation-table 'lookup-proc))
     (set! put (operation-table 'insert-proc!)))
   (put 'and 'qeval conjoin)
@@ -674,30 +721,25 @@
     ))
 
 ;; ==============================================================================
+(define (stream->list s)
+  (define (iter acc xs)
+    (if (stream-null? xs)
+        (reverse acc)
+        (iter (cons (stream-car xs) acc)
+              (stream-cdr xs))))
+  (iter '() s))
 
 (define (run expr)
-
-  (define (stream->list s)
-    (define (iter acc xs)
-      (if (stream-null? xs)
-          (reverse acc)
-          (iter (cons (stream-car xs) acc)
-                (stream-cdr xs))))
-    (iter '() s))
-  
+  ;; NOTE(pyoung): like query-driver-loop but without user interactive.
   (let ((q (query-syntax-process expr)))
     (cond ((assertion-to-be-added? q)
            (add-rule-or-assertion! (add-assertion-body q))
            'added)
           (else
-           (stream->list
-            (stream-map
-             (lambda (frame)
-               (instantiate q
-                 frame
-                 (lambda (v f)
-                   (contract-question-mark v))))
-             (qeval q (singleton-stream '()))))))))
+           (stream->list (stream-map (lambda (frame)
+                                       (instantiate q frame (lambda (v f)
+                                                              (contract-question-mark v))))
+                                     (qeval q (singleton-stream '()))))))))
 
 (define (reset!)
   (override-qeval! _qeval)
