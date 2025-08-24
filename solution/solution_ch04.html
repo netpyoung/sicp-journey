@@ -6407,6 +6407,9 @@
 (define rules-append-to-form
   '(
     ;; (append-to-form ?x ?y ?z) : ?x 랑 ?y를 합쳐서 ?z만들기.
+    ;; (append-to-form (a b) (c d) ?z)
+    ;;=&gt; ((append-to-form (a b) (c d) (a b c d)))
+    
     (rule (append-to-form () ?y ?y))
 
     (rule (append-to-form (?u . ?v) ?y (?u . ?z))
@@ -6461,7 +6464,7 @@
 </code></pre>
 <h2 id="4_62"><a class="header" href="#4_62">4_62</a></h2>
 <pre><code class="language-lisp">;; file: 4_62.rkt
-;; 2_17 / 4_62
+;; 2_17 / 4_62 / 4_63 / 4_69
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -6471,6 +6474,8 @@
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
 
+(racket:provide
+ rules-last-pair)
 
 ;; Q. 연습문제 2.17에 나온 last-pair를 rule로 만들어라.
 ;;
@@ -6509,7 +6514,7 @@
 </code></pre>
 <h2 id="4_63"><a class="header" href="#4_63">4_63</a></h2>
 <pre><code class="language-lisp">;; file: 4_63.rkt
-;; 4_63 / 4_69
+;; 2_17 / 4_62 / 4_63 / 4_69
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -6519,7 +6524,11 @@
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
 
-
+(racket:provide
+ Genesis-4
+ rules-find-grandson
+ rules-find-son
+ )
 
 (define Genesis-4
   '(
@@ -6554,13 +6563,17 @@
 ;; - S가 f의 아들이고, f가 G의 아들이면, S는 G의 손자이다
 ;; - W가 M의 아내이고, S가 W의 아들이면, S는 M의 아들이다.
 
-(define rules
+(define rules-find-grandson
   '(
     ;; (find-grandson {조부모} {손자})
     (rule (find-grandson ?G ?S)   ; S는 G의 손자이다
           (and (find-son ?f ?S)   ; S가 f의 아들이고, 
                (find-son ?G ?f))) ; f가 G의 아들이면,
-    
+    )
+  )
+
+(define rules-find-son
+  '(
     ;; (find-son {부모} {아들})
     (rule (find-son ?M ?S)        ; S는 M의 아들이다.
           (or (son ?M ?S)
@@ -6572,7 +6585,8 @@
 
 (~&gt; microshaft-data-base
     (append Genesis-4)
-    (append rules)
+    (append rules-find-grandson)
+    (append rules-find-son)
     (initialize-data-base))
 
 (~&gt; '(find-grandson Cain ?grandson)
@@ -6593,21 +6607,464 @@
 </code></pre>
 <h2 id="4_64"><a class="header" href="#4_64">4_64</a></h2>
 <pre><code class="language-lisp">;; file: 4_64.rkt
+;; 4_64 / 4_67
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+(racket:provide
+ microshaft-data-base-modified-outranked-by)
+
+;; Q. outranked-by를 바꿨는데, 왜 무한 루프에 빠지는가?
+;;
+;; 제약조건 (supervisor ?staff-person ?middle-manager)와 (outranked-by ?middle-manager ?boss)의 순서가 바뀌면서,
+;; outranked-by에서 제약을 받지않는 ?middle-manager ?boss 변수를 찾으려고 시도하는데, 이제 자꾸 반복되어 호출되면서 무한루프.
+;;                    
+
+(define microshaft-data-base-modified-outranked-by
+  '(
+    ;; from section 4.4.1
+    (address (Bitdiddle Ben) (Slumerville (Ridge Road) 10))
+    (job (Bitdiddle Ben) (computer wizard))
+    (salary (Bitdiddle Ben) 60000)
+
+    (address (Hacker Alyssa P) (Cambridge (Mass Ave) 78))
+    (job (Hacker Alyssa P) (computer programmer))
+    (salary (Hacker Alyssa P) 40000)
+    (supervisor (Hacker Alyssa P) (Bitdiddle Ben))
+
+    (address (Fect Cy D) (Cambridge (Ames Street) 3))
+    (job (Fect Cy D) (computer programmer))
+    (salary (Fect Cy D) 35000)
+    (supervisor (Fect Cy D) (Bitdiddle Ben))
+
+    (address (Tweakit Lem E) (Boston (Bay State Road) 22))
+    (job (Tweakit Lem E) (computer technician))
+    (salary (Tweakit Lem E) 25000)
+    (supervisor (Tweakit Lem E) (Bitdiddle Ben))
+
+    (address (Reasoner Louis) (Slumerville (Pine Tree Road) 80))
+    (job (Reasoner Louis) (computer programmer trainee))
+    (salary (Reasoner Louis) 30000)
+    (supervisor (Reasoner Louis) (Hacker Alyssa P))
+
+    (supervisor (Bitdiddle Ben) (Warbucks Oliver))
+
+    (address (Warbucks Oliver) (Swellesley (Top Heap Road)))
+    (job (Warbucks Oliver) (administration big wheel))
+    (salary (Warbucks Oliver) 150000)
+
+    (address (Scrooge Eben) (Weston (Shady Lane) 10))
+    (job (Scrooge Eben) (accounting chief accountant))
+    (salary (Scrooge Eben) 75000)
+    (supervisor (Scrooge Eben) (Warbucks Oliver))
+
+    (address (Cratchet Robert) (Allston (N Harvard Street) 16))
+    (job (Cratchet Robert) (accounting scrivener))
+    (salary (Cratchet Robert) 18000)
+    (supervisor (Cratchet Robert) (Scrooge Eben))
+
+    (address (Aull DeWitt) (Slumerville (Onion Square) 5))
+    (job (Aull DeWitt) (administration secretary))
+    (salary (Aull DeWitt) 25000)
+    (supervisor (Aull DeWitt) (Warbucks Oliver))
+
+    (can-do-job (computer wizard) (computer programmer))
+    (can-do-job (computer wizard) (computer technician))
+
+    (can-do-job (computer programmer)
+                (computer programmer trainee))
+
+    (can-do-job (administration secretary)
+                (administration big wheel))
+
+    (rule (lives-near ?person-1 ?person-2)
+          (and (address ?person-1 (?town . ?rest-1))
+               (address ?person-2 (?town . ?rest-2))
+               (not (same ?person-1 ?person-2))))
+
+    (rule (same ?x ?x))
+
+    (rule (wheel ?person)
+          (and (supervisor ?middle-manager ?person)
+               (supervisor ?x ?middle-manager)))
+
+    #;(rule (outranked-by ?staff-person ?boss)
+            (or (supervisor ?staff-person ?boss)
+                (and (supervisor ?staff-person ?middle-manager)
+                     (outranked-by ?middle-manager ?boss))))
+
+    (rule (outranked-by ?staff-person ?boss)
+          (or (supervisor ?staff-person ?boss)
+              (and (outranked-by ?middle-manager ?boss)
+                   (supervisor ?staff-person ?middle-manager))))
+    ))
+
+
+(~&gt; microshaft-data-base-modified-outranked-by
+    (initialize-data-base))
+
+
+;; endless waiting ...
+;; (~&gt; '(outranked-by (Bitdiddle Ben) ?who)
+;;     (run))
 </code></pre>
 <h2 id="4_65"><a class="header" href="#4_65">4_65</a></h2>
 <pre><code class="language-lisp">;; file: 4_65.rkt
+;; 4_65 / 4_66
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; Q. 왜 (Warbucks Oliver)가 4번 나오는가?
+;;
+;; supervisor관계도를 나타내면
+;;
+;; (Warbucks Oliver)               -- 0
+;; ├─ (Bitdiddle Ben)              -- 1
+;; │  ├─ (Hacker Alyssa P)         -- 2 **
+;; │  │  └─ (Reasoner Louis)       -- 3
+;; │  ├─ (Fect Cy D)               -- 2 **
+;; │  └─ (Tweakit Lem E)           -- 2 **
+;; ├─ (Scrooge Eben)               -- 1
+;; │  └─ (Cratchet Robert)         -- 2 **
+;; └─ (Aull DeWitt)                -- 1
+;;
+;; wheel은 supervisor의 supervisor를 찾는거니,
+;; (Warbucks Oliver) 기준으로깊이가 2이상인 애들을 찾으면 4명.
+;;
+;;     (rule (wheel ?person)
+;;           (and (supervisor ?middle-manager ?person)
+;;                (supervisor ?x ?middle-manager)))
+
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(~&gt; '(wheel ?who)
+    (run)
+    (check-equal? '((wheel (Warbucks Oliver))
+                    (wheel (Warbucks Oliver))
+                    (wheel (Bitdiddle Ben))
+                    (wheel (Warbucks Oliver))
+                    (wheel (Warbucks Oliver)))))
 </code></pre>
 <h2 id="4_66"><a class="header" href="#4_66">4_66</a></h2>
 <pre><code class="language-lisp">;; file: 4_66.rkt
+;; 4_65 / 4_66
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+
+
+;; Ben은 쿼리 시스템을 일반화 시키고 있음.  새로운 시스템은 다음과 같은 형태의 표현을 허용하도록 만들고 싶음.
+;;
+;; (accumulation-function {variable}
+;;                        {query pattern})
+;;
+;; ex. 모든이들의 급의여 합.
+;; (sum ?amount
+;;      (and (job ?x (computer programmer))
+;;           (salary ?x ?amount)))
+;;
+;; 하지만 연습문제 4.65에서 wheel결과를 보고 Ben은 좌절에 빠짐.
+;;
+;; Q. Ben이 깨닫은 것은?
+;;
+;; 기존 쿼리 시스템에서 중복이 나올 가능성이 있음. 이 중복으로 계산의 결과가 올바르지 못하게 될 경우가 있음.
+;;
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(~&gt; '(and (wheel (Warbucks Oliver))
+          (salary ?x ?amount))
+    (run)
+    (check-equal? '((and (wheel (Warbucks Oliver)) (salary (Aull DeWitt) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Aull DeWitt) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Cratchet Robert) 18000))
+                    (and (wheel (Warbucks Oliver)) (salary (Aull DeWitt) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Scrooge Eben) 75000))
+                    (and (wheel (Warbucks Oliver)) (salary (Cratchet Robert) 18000))
+                    (and (wheel (Warbucks Oliver)) (salary (Warbucks Oliver) 150000))
+                    (and (wheel (Warbucks Oliver)) (salary (Aull DeWitt) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Reasoner Louis) 30000))
+                    (and (wheel (Warbucks Oliver)) (salary (Scrooge Eben) 75000))
+                    (and (wheel (Warbucks Oliver)) (salary (Tweakit Lem E) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Cratchet Robert) 18000))
+                    (and (wheel (Warbucks Oliver)) (salary (Fect Cy D) 35000))
+                    (and (wheel (Warbucks Oliver)) (salary (Warbucks Oliver) 150000))
+                    (and (wheel (Warbucks Oliver)) (salary (Hacker Alyssa P) 40000))
+                    (and (wheel (Warbucks Oliver)) (salary (Cratchet Robert) 18000))
+                    (and (wheel (Warbucks Oliver)) (salary (Bitdiddle Ben) 60000))
+                    (and (wheel (Warbucks Oliver)) (salary (Reasoner Louis) 30000))
+                    (and (wheel (Warbucks Oliver)) (salary (Scrooge Eben) 75000))
+                    (and (wheel (Warbucks Oliver)) (salary (Tweakit Lem E) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Scrooge Eben) 75000))
+                    (and (wheel (Warbucks Oliver)) (salary (Fect Cy D) 35000))
+                    (and (wheel (Warbucks Oliver)) (salary (Warbucks Oliver) 150000))
+                    (and (wheel (Warbucks Oliver)) (salary (Hacker Alyssa P) 40000))
+                    (and (wheel (Warbucks Oliver)) (salary (Warbucks Oliver) 150000))
+                    (and (wheel (Warbucks Oliver)) (salary (Bitdiddle Ben) 60000))
+                    (and (wheel (Warbucks Oliver)) (salary (Reasoner Louis) 30000))
+                    (and (wheel (Warbucks Oliver)) (salary (Reasoner Louis) 30000))
+                    (and (wheel (Warbucks Oliver)) (salary (Tweakit Lem E) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Tweakit Lem E) 25000))
+                    (and (wheel (Warbucks Oliver)) (salary (Fect Cy D) 35000))
+                    (and (wheel (Warbucks Oliver)) (salary (Fect Cy D) 35000))
+                    (and (wheel (Warbucks Oliver)) (salary (Hacker Alyssa P) 40000))
+                    (and (wheel (Warbucks Oliver)) (salary (Hacker Alyssa P) 40000))
+                    (and (wheel (Warbucks Oliver)) (salary (Bitdiddle Ben) 60000))
+                    (and (wheel (Warbucks Oliver)) (salary (Bitdiddle Ben) 60000)))))
+
+;; Q. 이 상황을 해결하기 위해선?
+;;
+;; 중복된 결과를 유니크한 결과로 바꿀 메커니즘이 필요.
 </code></pre>
 <h2 id="4_67"><a class="header" href="#4_67">4_67</a></h2>
 <pre><code class="language-lisp">;; file: 4_67.rkt
+;; 2_18 / 4_67 / 4_68
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; TODO Q. 쿼리 시스템에 루프 감지기를 설치하여 본문과 연습문제 4.64에서 설명된 간단한 루프를 피할 수 있는 방법을 고안하시오.
+;; 일반적인 아이디어는 시스템이 현재 추론 체인의 이력을 유지하고, 이미 처리 중인 쿼리를 다시 처리하지 않도록 하는 것입니다.
+;; 이 이력에 포함되는 정보(패턴과 프레임)의 종류와 검사 방법을 설명하시오.
+;;
+;; (4.4.4절에서 쿼리 시스템 구현의 세부 사항을 공부한 후, 루프 감지기를 포함하도록 시스템을 수정할 수 있습니다.)
+
+(racket:require "4_64.rkt")
+
+(~&gt; microshaft-data-base-modified-outranked-by
+    (initialize-data-base))
+
+(define (qeval query frame-stream)
+  (display query)
+  (newline)
+  (let ((qproc (get (type query) 'qeval)))
+    (if qproc
+        (qproc (contents query) frame-stream)
+        (simple-query query frame-stream))))
+         
+(override-qeval! qeval)
+
+;; (~&gt; '(outranked-by (Bitdiddle Ben) ?who)
+;;     (run))
+;;
+;; (outranked-by (Bitdiddle Ben) (? who))
+;; (or (supervisor (? 1 staff-person) (? 1 boss)) (and (outranked-by (? 1 middle-manager) (? 1 boss)) (supervisor (? 1 staff-person) (? 1 middle-manager))))
+;; (supervisor (? 1 staff-person) (? 1 boss))
+;; (and (outranked-by (? 1 middle-manager) (? 1 boss)) (supervisor (? 1 staff-person) (? 1 middle-manager)))
+;;
+;; (outranked-by (? 1 middle-manager) (? 1 boss))
+;; (or (supervisor (? 2 staff-person) (? 2 boss)) (and (outranked-by (? 2 middle-manager) (? 2 boss)) (supervisor (? 2 staff-person) (? 2 middle-manager))))
+;; (supervisor (? 2 staff-person) (? 2 boss))
+;; (supervisor (? 1 staff-person) (? 1 middle-manager))
+;; (and (outranked-by (? 2 middle-manager) (? 2 boss)) (supervisor (? 2 staff-person) (? 2 middle-manager)))
+;;
+;; (outranked-by (? 2 middle-manager) (? 2 boss))
+;; (or (supervisor (? 3 staff-person) (? 3 boss)) (and (outranked-by (? 3 middle-manager) (? 3 boss)) (supervisor (? 3 staff-person) (? 3 middle-manager))))
+;; (supervisor (? 3 staff-person) (? 3 boss))
+;; (supervisor (? 2 staff-person) (? 2 middle-manager))
+;; (and (outranked-by (? 3 middle-manager) (? 3 boss)) (supervisor (? 3 staff-person) (? 3 middle-manager)))
+;;
+;; ...
+;;
+;; (outranked-by (? {N} middle-manager) (? {N} boss))
+;; (or (supervisor (? {N+1} staff-person) (? {N+1} boss)) (and (outranked-by (? {N+1} middle-manager) (? {N+1} boss)) (supervisor (? {N+1} staff-person) (? {N+1} middle-manager))))
+;; (supervisor (? {N+1} staff-person) (? {N+1} boss))
+;; (supervisor (? {N} staff-person) (? {N} middle-manager))
+;; (and (outranked-by (? {N+1} middle-manager) (? {N+1} boss)) (supervisor (? {N+1} staff-person) (? {N+1} middle-manager)))
+
+
 </code></pre>
 <h2 id="4_68"><a class="header" href="#4_68">4_68</a></h2>
 <pre><code class="language-lisp">;; file: 4_68.rkt
+;; 2_18 / 4_67 / 4_68
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+
+;; Q. 연습문제 2.18의 reverse를 rule로 만들어 봐라. (힌트, append-to-form 활용)
+;;
+
+(define rules-append-to-form
+  '(
+    ;; (append-to-form ?x ?y ?z) : ?x 랑 ?y를 합쳐서 ?z만들기.
+    ;; (append-to-form (a b) (c d) ?z)
+    ;;=&gt; ((append-to-form (a b) (c d) (a b c d)))
+    (rule (append-to-form () ?y ?y))
+
+    (rule (append-to-form (?u . ?v) ?y (?u . ?z))
+          (append-to-form ?v ?y ?z))
+
+    ))
+
+(define rules-reverse
+  '(
+    ;; (reverse ?x ?reversed) : ?x를 받아 뒤집어서 ?reversed.
+    ;; (reverse (1 2 3) ?x)
+    ;;=&gt; ((reverse (1 2 3) (3 2 1)))
+    (rule (reverse () ()))
+
+    (rule (reverse (?first . ?rest) ?reversed)
+          (and (reverse ?rest ?rest-reversed)
+               (append-to-form ?rest-reversed (?first) ?reversed)))
+
+    ))
+
+(~&gt; microshaft-data-base
+    (append rules-append-to-form)
+    (append rules-reverse)
+    (initialize-data-base))
+
+(~&gt; '(reverse () ?x)
+    (run)
+    (check-equal? '((reverse () ()))))
+
+(~&gt; '(reverse (1) ?x)
+    (run)
+    (check-equal? '((reverse (1) (1)))))
+
+(~&gt; '(reverse (1 2 3) ?x)
+    (run)
+    (check-equal? '((reverse (1 2 3) (3 2 1)))))
+
+
+(~&gt; '(reverse ?x (1 2 3))
+    (run)
+    (check-equal? '((reverse (1 2 3) (3 2 1)))))
+
+;; 무한루프
+;;
+;; (~&gt; '(reverse (1 2 3) ?x)
+;;     (run)
+;;     (check-equal? '((reverse (1 2 3) (3 2 1)))))
+
+;; TODO Q. (reverse (1 2 3) ?x) 과 (reverse ?x (1 2 3)) 에 모두 답할 수 있는가?
+;;
+;; (reverse ?x (1 2 3))는 무한 루프.
 </code></pre>
 <h2 id="4_69"><a class="header" href="#4_69">4_69</a></h2>
 <pre><code class="language-lisp">;; file: 4_69.rkt
+;; 2_17 / 4_62 / 4_63 / 4_69
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(#%require "../allcode/ch4-4.4.4.1-query.rkt")
+
+;; 연습문제 4.63에서 만든 데이터베이스와 규칙을 시작으로, 손자 관계에 “great”를 추가하는 규칙을 고안하시오.
+;; 이 규칙은 시스템이 Irad가 Adam의 2대 손자(great-grandson)임을 추론하거나, Jabal과 Jubal이 Adam의 6대 손자(great-great-great-great-great-grandson)임을 추론할 수 있도록 해야 합니다.
+;; 
+;; 힌트: 예를 들어, Irad에 대한 사실을 ((great grandson) Adam Irad)로 표현하시오.
+;;       리스트가 grandson이라는 단어로 끝나는지 판단하는 규칙을 작성하시오.
+;;       이를 사용하여 (?rel이 grandson으로 끝나는 리스트일 때)
+;;       ((great . ?rel) ?x ?y) 관계를 도출하는 규칙을 표현하시오.
+;;
+;; ((great grandson) ?g ?ggs)나 (?relationship Adam Irad)와 같은 질의에서 규칙을 확인하시오.
+;;
+;;                               Grandson :     손자
+;;                         Great-grandson : 2대 손자
+;;                   Great-great-grandson : 3대 손자
+;;             Great-great-great-grandson : 4대 손자
+;;       Great-great-great-great-grandson : 5대 손자
+;; Great-great-great-great-great-grandson : 6대 손자
+
+(racket:require (racket:only-in "4_62.rkt"
+                                rules-last-pair))
+(racket:require (racket:only-in "4_63.rkt"
+                                Genesis-4
+                                rules-find-grandson
+                                rules-find-son))
+
+(define rules-relationship-of-grandson
+  '(
+    
+    ;; ((great {손자 관계}) {?대 조상} {?대 손자})
+    (rule ((grandson) ?x ?y)
+          (find-grandson ?x ?y))
+    
+    (rule ((great . ?rel) ?x ?y)
+          (and (find-son ?x ?x-son)
+               (?rel ?x-son ?y)
+               (last-pair ?rel (grandson))))
+    ))
+
+
+(~&gt; microshaft-data-base
+    (append Genesis-4)
+    (append rules-find-son)
+    (append rules-find-grandson)
+    (append rules-last-pair)
+    (append rules-relationship-of-grandson)
+    (initialize-data-base))
+
+(~&gt; '((great grandson) ?x Irad)
+    (run)
+    (check-equal? '(
+                    ((great grandson) Adam Irad)
+                    )))
+
+(~&gt; '((great grandson) ?g ?ggs)
+    (run)
+    (check-equal? '(
+                    ((great grandson) Mehujael Jubal)
+                    ((great grandson) Irad Lamech)
+                    ((great grandson) Mehujael Jabal)
+                    ((great grandson) Enoch Methushael)
+                    ((great grandson) Cain Mehujael)
+                    ((great grandson) Adam Irad)
+                    )))
+
+(~&gt; '(?relationship Adam Irad)
+    (run)
+    (check-equal? '(
+                    ((great grandson) Adam Irad)
+                    )))
+
+(~&gt; '(?relationship Adam Jubal)
+    (run)
+    (check-equal? '(
+                    ((great great great great great grandson) Adam Jubal)
+                    )))
+
+(~&gt; '((great great great great great grandson) Adam ?x)
+    (run)
+    (check-equal? '(
+                    ((great great great great great grandson) Adam Jubal)
+                    ((great great great great great grandson) Adam Jabal)
+                    )))
 </code></pre>
 <h2 id="4_70"><a class="header" href="#4_70">4_70</a></h2>
 <pre><code class="language-lisp">;; file: 4_70.rkt
