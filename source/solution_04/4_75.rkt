@@ -7,8 +7,13 @@
 (#%require (prefix r5rs: r5rs))
 (#%require (prefix racket: racket))
 
+(racket:provide
+ uniquely-asserted)
+
+
+;; 쿼리 시스템에 unique 라는 special form을 추가하라.
+
 (racket:require "../allcode/ch4-4.4.4.1-query.rkt")
-;; TODO
 
 (~> microshaft-data-base
     (initialize-data-base))
