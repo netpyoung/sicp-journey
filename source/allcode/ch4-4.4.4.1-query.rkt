@@ -93,11 +93,11 @@
 
 ;;;Simple queries
 
-(define (simple-query query-pattern frame-stream)
-  (stream-flatmap (lambda (frame)
-                    (stream-append-delayed (find-assertions query-pattern frame)
-                                           (delay (apply-rules query-pattern frame))))
-                  frame-stream))
+(overridable-define (simple-query query-pattern frame-stream)
+                    (stream-flatmap (lambda (frame)
+                                      (stream-append-delayed (find-assertions query-pattern frame)
+                                                             (delay (apply-rules query-pattern frame))))
+                                    frame-stream))
 
 ;;;Compound queries
 
@@ -111,13 +111,11 @@
 ;;(put 'and 'qeval conjoin)
 
 
-(define (disjoin disjuncts frame-stream)
-  (if (empty-disjunction? disjuncts)
-      the-empty-stream
-      (interleave-delayed (qeval (first-disjunct disjuncts)
-                                 frame-stream)
-                          (delay (disjoin (rest-disjuncts disjuncts)
-                                          frame-stream)))))
+(overridable-define (disjoin disjuncts frame-stream)
+                    (if (empty-disjunction? disjuncts)
+                        the-empty-stream
+                        (interleave-delayed (qeval (first-disjunct disjuncts) frame-stream)
+                                            (delay (disjoin (rest-disjuncts disjuncts) frame-stream)))))
 
 ;;(put 'or 'qeval disjoin)
 
@@ -158,8 +156,7 @@
                   (fetch-assertions pattern frame)))
 
 (define (check-an-assertion assertion query-pat query-frame)
-  (let ((match-result
-         (pattern-match query-pat assertion query-frame)))
+  (let ((match-result (pattern-match query-pat assertion query-frame)))
     (if (eq? match-result 'failed)
         the-empty-stream
         (singleton-stream match-result))))
@@ -326,8 +323,7 @@
 (define (add-assertion! assertion)
   (store-assertion-in-index assertion)
   (let ((old-assertions THE-ASSERTIONS))
-    (set! THE-ASSERTIONS
-          (cons-stream assertion old-assertions))
+    (set! THE-ASSERTIONS (cons-stream assertion old-assertions))
     'ok))
 
 (define (add-rule! rule)
@@ -373,7 +369,8 @@
   (if (stream-null? s1)
       (force delayed-s2)
       (cons-stream (stream-car s1)
-                   (stream-append-delayed (stream-cdr s1) delayed-s2))))
+                   (stream-append-delayed (stream-cdr s1)
+                                          delayed-s2))))
 
 (define (interleave-delayed s1 delayed-s2)
   (if (stream-null? s1)
@@ -382,14 +379,14 @@
                    (interleave-delayed (force delayed-s2)
                                        (delay (stream-cdr s1))))))
 
-(define (stream-flatmap proc s)
-  (flatten-stream (stream-map proc s)))
+(overridable-define (stream-flatmap proc s)
+                    (flatten-stream (stream-map proc s)))
 
-(define (flatten-stream stream)
-  (if (stream-null? stream)
-      the-empty-stream
-      (interleave-delayed (stream-car stream)
-                          (delay (flatten-stream (stream-cdr stream))))))
+(overridable-define (flatten-stream stream)
+                    (if (stream-null? stream)
+                        the-empty-stream
+                        (interleave-delayed (stream-car stream)
+                                            (delay (flatten-stream (stream-cdr stream))))))
 
 
 (define (singleton-stream x)
@@ -744,6 +741,12 @@
 (define (reset!)
   (override-qeval! _qeval)
   (override-user-initial-environment! _user-initial-environment)
+  (override-simple-query! _simple-query)
+  (override-disjoin! _disjoin)
+  (override-flatten-stream! _flatten-stream)
+  (override-stream-flatmap! _stream-flatmap)
+  
+  (set! rule-counter 0)
   )
  
 (reset!)
