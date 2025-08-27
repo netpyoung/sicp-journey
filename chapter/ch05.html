@@ -185,6 +185,24 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="5장-레지스터-머신으로-계산"><a class="header" href="#5장-레지스터-머신으로-계산">5장. 레지스터 머신으로 계산</a></h1>
+<ul>
+<li>CODE 코드 : 컴퓨터 하드웨어와 소프트웨어에 숨어 있는 언어
+<ul>
+<li>Code: The Hidden Language of Computer Hardware and Software</li>
+</ul>
+</li>
+</ul>
+<p>instruction
+lable
+pc
+flag
+stack - save / restore</p>
+<p>5.1에서 controller로 의사코드를 보여주면서</p>
+<p>5.2에서 make-machine으로 머신을 만들어 구동
+load-eceval
+파일은 SICP 5.4절에서 정의된 **명시적 제어 평가기(ECEval)**를 로드합니다. ECEval은 Scheme 프로그램을 해석(interpret)하는 인터프리터로, Scheme 코드를 직접 실행할 수 있도록 설계된 가상 머신입니다.</p>
+<p>load-eceval-compiler
+SICP 5.5절에서 다루는 컴파일러와 연동된 ECEval을 로드합니다. 즉, Scheme 코드를 컴파일하여 기계어 수준의 명령어로 변환한 뒤, 이를 ECEval에서 실행할 수 있도록 지원합니다.</p>
 <hr />
 <h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
 <ul>
@@ -197,17 +215,127 @@
 <ol>
 <li>레지스터 기계로 계산하기</li>
 </ol>
+<pre><code class="language-lisp">(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th></th><th></th></tr></thead><tbody>
+<tr><td>data path</td><td>레지스터 + 연산</td></tr>
+<tr><td>controller</td><td>연산 순서</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th></th><th></th></tr></thead><tbody>
+<tr><td>네모</td><td>레지스터</td></tr>
+<tr><td>세모</td><td>상수</td></tr>
+<tr><td>사다리꼴</td><td>연산</td></tr>
+<tr><td>원</td><td>검사</td></tr>
+</tbody></table>
+</div>
+<p>a &lt;- b: a에 b값을 덮어쓰기</p>
+<pre><code class="language-lisp">(data-paths
+ (registers
+  ((name a)
+   (buttons ((name a&lt;-b) 
+             (source (register b)))))
+  ((name b)
+   (buttons ((name b&lt;-t)
+             (source (register t)))))
+  ((name t)
+   (buttons ((name t&lt;-r)
+             (source (operation rem))))))
+ (operations
+  ((name rem)
+   (inputs (register a) (register b)))
+  ((name =)
+   (inputs (register b) (constant 0)))))
+</code></pre>
+<pre><code class="language-lisp">(controller
+ test-b                ; label
+   (test =)            ; test
+   (branch 
+    (label gcd-done))  ; conditional branch
+   (t&lt;-r)              ; button push
+   (a&lt;-b)              ; button push
+   (b&lt;-t)              ; button push
+   (goto 
+    (label test-b))    ; unconditional branch
+ gcd-done)             ; label
+</code></pre>
 <p>5.1 레지스터 기계 설계하기
 5.1.1 레지스터 기계를 묘사하는 언어
 5.1.2 기계 디자인에서의 속 내용 감추기(abstraction)
-5.1.3 서브루틴
-5.1.4 스택(stack)을 이용해 되돌기(recursion) 구현하기
-5.1.5 명령어 정리</p>
-<p>5.2 레지스터 기계 시뮬레이터
-5.2.1 기계 모형
+5.1.3 서브루틴</p>
+<pre><code class="language-lisp">(define (factorial n)
+  (if (= n 1) 
+      1
+      (* (factorial (- n 1)) n)))
+
+;;FIGURE 5.11
+(controller
+   (assign continue (label fact-done))     ; set up final return address
+
+ fact-loop
+   (test (op =) (reg n) (const 1))
+   (branch
+     (label base-case))
+
+   ;; Set up for the recursive call by saving n and continue.
+   ;; Set up continue so that the computation will continue
+   ;; at after-fact when the subroutine returns.
+   (save continue)
+   (save n)
+   (assign n (op -) (reg n) (const 1))
+   (assign continue
+     (label after-fact))
+   (goto
+     (label fact-loop))
+
+ after-fact
+   (restore n)
+   (restore continue)
+   (assign val (op *) (reg n) (reg val))   ; val now contains n(n-1)!
+   (goto (reg continue))                   ; return to caller
+
+ base-case
+   (assign val (const 1))                  ; base case: 1!=1
+   (goto (reg continue))                   ; return to caller
+
+ fact-done)
+</code></pre>
+<p>** 5.1.4 스택(stack)을 이용해 되돌기(recursion) 구현하기</p>
+<p>5.1.5 명령어 정리</p>
+<p>5.2 레지스터 기계 시뮬레이터</p>
+<pre><code class="language-lisp">(define gcd-machine
+  (make-machine
+     ;; 레지스터 목록
+   '(a b t)
+   
+   ;; 연산 목록
+   (list (list 'rem remainder) (list '= =))
+
+   ;; 컨트롤러
+   '(test-b
+      (test (op =) (reg b) (const 0))
+      (branch (label gcd-done))
+      (assign t (op rem) (reg a) (reg b))
+      (assign a (reg b))
+      (assign b (reg t))
+      (goto (label test-b))
+     gcd-done)))
+
+(set-register-contents! gcd-machine 'a 206)
+(set-register-contents! gcd-machine 'b 40)
+
+(start gcd-machine)
+
+(get-register-contents gcd-machine 'a)
+</code></pre>
+<p>5.2.1 기계 모형
 5.2.2 어셈블러
-5.2.3 명령에 해당하는 실행 프로시저 만들기
-5.2.4 기계 성능 지켜보기</p>
+5.2.3 명령에 해당하는 실행 프로시저 만들기</p>
+<p>eval/analyze같은 존재
+make-execution-procedure</p>
+<p>5.2.4 기계 성능 지켜보기</p>
 <p>5.3 메모리 할당(memory allocation)과 재활용(garbage collection)
 5.3.1 벡터로 나타낸 메모리
 5.3.2 무한히 많은 메모리인 양 보이기</p>
@@ -224,6 +352,48 @@
 5.5.5 번역된 코드의 예
 5.5.6 텍스트에서 변수의 정의를 파악하기(lexical addressing)
 5.5.7 번역된 코드를 실행기에 연결하기</p>
+<pre><code class="language-txt">(reg ⟨register-name⟩) or (const ⟨constant-value⟩). These instructions were introduced in 5.1.1:
+
+(assign ⟨register-name⟩ (reg ⟨register-name⟩))
+(assign ⟨register-name⟩ 
+        (const ⟨constant-value⟩))
+(assign ⟨register-name⟩ 
+        (op ⟨operation-name⟩) 
+        ⟨input₁⟩ … ⟨inputₙ⟩)
+(perform (op ⟨operation-name⟩) 
+         ⟨input₁⟩ 
+         … 
+         ⟨inputₙ⟩)
+(test (op ⟨operation-name⟩) 
+      ⟨input₁⟩ 
+      … 
+      ⟨inputₙ⟩)
+(branch (label ⟨label-name⟩))
+(goto (label ⟨label-name⟩))
+The use of registers to hold labels was introduced in 5.1.3:
+
+(assign ⟨register-name⟩ (label ⟨label-name⟩))
+(goto (reg ⟨register-name⟩))
+Instructions to use the stack were introduced in 5.1.4:
+
+(save ⟨register-name⟩)
+(restore ⟨register-name⟩)
+The only kind of ⟨constant-value⟩ we have seen so far is a number, but later we will use strings, symbols, and lists. For example,
+(const "abc") is the string "abc",
+(const abc) is the symbol abc,
+(const (a b c)) is the list (a b c),
+and (const ()) is the empty list.
+</code></pre>
+<pre><code class="language-txt">(make-machine ⟨register-names⟩
+              ⟨operations⟩
+              ⟨controller⟩)
+(set-register-contents! ⟨machine-model⟩ 
+                        ⟨register-name⟩ 
+                        ⟨value⟩)
+(get-register-contents ⟨machine-model⟩
+                       ⟨register-name⟩)
+(start ⟨machine-model⟩)
+</code></pre>
 
                     </main>
 

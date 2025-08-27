@@ -633,8 +633,9 @@ multiple-dwelling
 <p>4.3.3 amb 실행기 구현</p>
 <p>4.1.7절에서 만든 문법을 분석하는 해석기를 고치자 ( analyzingmceval =&gt; ambeval)</p>
 <hr />
-<p>4.4 논리로 프로그램 짜기
-https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
+<p>4.4 논리로 프로그램 짜기</p>
+<p>https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
+<p>3.5 스트림도 보고 오는게 좋음</p>
 <p>4.4.1 연역식 정보 찾기 - 쿼리짜는 연습 rule</p>
 <p>4.4.2 쿼리 시스템의 동작 방식</p>
 <ul>
@@ -662,6 +663,39 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 </ul>
 </li>
 </ul>
+<pre><code class="language-txt">(simple-query query-pattern frame-stream)
+  |
+  v
+[frame-stream] ==&gt; stream-flatmap
+                        |
+                        v
+                    (per frame)
+                  stream-append-delayed
+                  |                     \
+                  v                      v
+             find-assertions         delay (apply-rules)
+                  |                      |
+                  v                      v
+             fetch-assertions        fetch-rules
+                  |                      |
+               (per datum)             (per rule)
+             check-an-assertion       apply-a-rule
+                  |                      |
+                  v                      v
+             pattern-match           unify-match
+                  |                      |
+                  v                      v
+             extend-if-consistent    extend-if-possible
+                  |                      |
+                  v                      v
+             [frame-stream]          [frame-stream]
+                  |                      /
+                  v                     v
+                  stream-append-delayed
+                        |
+                        v
+                  stream-flatmap    ===========&gt;   [result-frame-stream]
+</code></pre>
 <pre><code class="language-lisp">;; (pattern-match {패턴} {데이터} {프레임(사전역활)})
 ;;=&gt; {새로운 프레임}
 
@@ -714,29 +748,39 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 </ul>
 <p>연습문제 4.69 **</p>
 <p>4.4.4 쿼리 시스템 만들기</p>
-<p>코드양이 꽤 되네</p>
 <p>4.4.4.1 드라이버 루프와 쿼리 값 찍어내기(instantiation)</p>
-<p>(define (instantiate exp frame unbound-var-handler)
-(define (copy exp)
-(cond ((var? exp)
-(let ((binding (binding-in-frame exp frame)))
-(if binding
-(copy (binding-value binding))
-(unbound-var-handler exp frame))))
-((pair? exp)
-(cons (copy (car exp)) (copy (cdr exp))))
-(else exp)))
-(copy exp))</p>
-<p>;; (query-syntax-process '(hello world ?x ?y))
-;;=&gt; (hello world (? x) (? y))</p>
-<p>;; (expand-question-mark '?x)
-;;=&gt; (? x)</p>
-<p>4.4.4.2 실행기(evaluator)
-(define (qeval query frame-stream)
-(let ((qproc (get (type query) 'qeval)))
-(if qproc
-(qproc (contents query) frame-stream)
-(simple-query query frame-stream))))</p>
+<pre><code class="language-lisp">(define (instantiate exp frame unbound-var-handler)
+  (define (copy exp)
+    (cond ((var? exp)
+           (let ((binding (binding-in-frame exp frame)))
+             (if binding
+                 (copy (binding-value binding))
+                 (unbound-var-handler exp frame))))
+          ((pair? exp)
+           (cons (copy (car exp)) (copy (cdr exp))))
+          (else exp)))
+  (copy exp))
+
+;; (query-syntax-process '(hello world ?x ?y))
+;;=&gt; (hello world (? x) (? y))
+
+;; (expand-question-mark '?x)
+;;=&gt; (? x)
+</code></pre>
+<p>4.4.4.2 실행기(evaluator)</p>
+<pre><code class="language-lisp">(define (qeval query frame-stream)
+  (let ((qproc (get (type query) 'qeval)))
+    (if qproc
+        (qproc (contents query) frame-stream)
+        (simple-query query frame-stream)))):
+
+
+(define (simple-query query-pattern frame-stream)
+  (stream-flatmap (lambda (frame)
+                    (stream-append-delayed (find-assertions query-pattern frame)
+                                           (delay (apply-rules query-pattern frame))))
+                  frame-stream))
+</code></pre>
 <p>4.4.4.3 패턴 매칭으로 참말 찾아내기
 4.4.4.4 규칙과 동일화
 4.4.4.5 데이터베이스의 관리

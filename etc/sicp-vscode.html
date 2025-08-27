@@ -184,7 +184,43 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="vscode"><a class="header" href="#vscode">VsCode</a></h1>
+                        <h1 id="vscode-설정"><a class="header" href="#vscode-설정">VsCode 설정</a></h1>
+<p>DrRacket을 쓰면 상관없지만, VsCode로 하고싶다면</p>
+<ul>
+<li>Vscode: Visual Studio Code (VSCode)는 마이크로소프트에서 개발한 소스 코드 편집기이다.
+<ul>
+<li><a href="https://code.visualstudio.com/">https://code.visualstudio.com/</a></li>
+</ul>
+</li>
+<li>Magic Racket: Racket 언어를 위한 VSCode 확장 프로그램
+<ul>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=evzen-wybitul.magic-racket">https://marketplace.visualstudio.com/items?itemName=evzen-wybitul.magic-racket</a></li>
+</ul>
+</li>
+<li>Racket Helpers
+<ul>
+<li>S-expression 영역 선택</li>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=Calvin-LL.racket-helpers">https://marketplace.visualstudio.com/items?itemName=Calvin-LL.racket-helpers</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="racket-rangserver-설치"><a class="header" href="#racket-rangserver-설치">racket-rangserver 설치</a></h2>
+<ul>
+<li>raco: racket 관리 도구(패키지, 문서, 빌드 등등)
+<ul>
+<li><a href="https://docs.racket-lang.org/raco/index.html">https://docs.racket-lang.org/raco/index.html</a></li>
+<li>Windows라면 <code>C:\Program Files\Racket</code> 폴더에 있음.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-zsh">raco pkg install racket-langserver
+Would you like to install these dependencies? [Y/n/a/c/?]
+
+raco pkg update racket-langserver
+
+# sicp 설치(필요시)
+raco pkg install sicp
+</code></pre>
 
                     </main>
 

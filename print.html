@@ -191,11 +191,34 @@
 </li>
 <li><a href="https://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs">wikipedia</a></li>
 </ul>
+<h2 id="간단-느낌"><a class="header" href="#간단-느낌">간단 느낌</a></h2>
+<ul>
+<li>1장: 할만한데 그 놈의 뉴턴</li>
+<li>2장: 알 수 있는걸 말하는거 같은데 그 놈의 연습문제</li>
+<li>3장: 연습문제 연습문제 연습문제</li>
+<li>4장: 이발, 이발, 이발, 이발 아이고 쿼리</li>
+<li>5장: 이젠 어셈블까지? 그리고 마지막에 가서는 연습문제로 알려줄거 다 알려줬으니 알아서 C로 해보라고.</li>
+</ul>
 <h2 id="요구조건"><a class="header" href="#요구조건">요구조건</a></h2>
 <ul>
 <li>엄청난 시간.
 <ul>
-<li>연습문제는 깊이있는 이해를 도와주지만, 손을 대는 순간 타임머신이므로, 탐독할 시간이 적으신 분은 욕심을 내려놓으셔야 합니다.</li>
+<li>연습문제는 깊이있는 이해를 도와주지만, 손을 대는 순간 타임머신이므로, 탐독할 시간이 적으신 분은 욕심을 내려놓으셔야 합니다.
+<ul>
+<li>한시간씩만 잡아도 356시간 &gt; 잠안자고 15일
+<ul>
+<li>46(1장) + 97(2장) + 82(3장) + 79(4장) + 52(5장) = 356</li>
+</ul>
+</li>
+<li>증명해라 / 구현해라</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>엄청난 양/깊이
+<ul>
+<li>저자가 열심히 설명했지만, 다루는 양과 깊이 자체가 두께에 비해 흔히 접할 수 있는 컴퓨터 서적보다는 많고 깊음.</li>
+<li>정보 과부하가 걸리기 시작하면서 연습문제를 맞이하면, 그리고 일상생활에 치여 흐름이 끊기면 이어나가기 힘듬.</li>
 </ul>
 </li>
 <li>영어.
@@ -296,11 +319,22 @@
 </ul>
 <h2 id="기타"><a class="header" href="#기타">기타</a></h2>
 <ul>
+<li><a href="https://people.eecs.berkeley.edu/~bh/sicp.html">Why Structure and Interpretation of Computer Programs matters - Brian Harvey</a></li>
+<li><a href="https://www.amazon.com/Instructors-Structure-Interpretation-Computer-Programs/dp/0262692201/">Instructor's Manual t/a Structure and Interpretation of Computer Programs</a></li>
 <li><a href="https://nlp.jbnu.ac.kr/SICP2019/">https://nlp.jbnu.ac.kr/SICP2019/</a></li>
 <li><a href="https://corecursive.com/039-hal-abelson-sicp/">Language Oriented Design - Discussing SICP with Hal Abelson</a></li>
-<li><a href="https://www.amazon.com/Instructors-Structure-Interpretation-Computer-Programs/dp/0262692201/">Instructor's Manual t/a Structure and Interpretation of Computer Programs</a></li>
+<li><a href="https://www.amazon.com/Software-Design-Flexibility-Programming-Yourself/dp/0262045494">Software Design for Flexibility</a>
+<ul>
+<li><a href="https://play.google.com/store/books/details?id=ii5qEAAAQBAJ">유연한 소프트웨어를 만드는 설계 원칙: 막다른 골목 없이 진화하는 시스템 개발하기</a></li>
+</ul>
+</li>
+<li><a href="https://norvig.github.io/paip-lisp/">Paradigms of Artificial Intelligence Programming</a></li>
+<li>수학
+<ul>
 <li><a href="https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/9579/sicm_edition_2.zip/book.html">Structure and Interpretation of Classical Mechanics (SICM) </a></li>
-<li><a href="https://www.amazon.com/Software-Design-Flexibility-Programming-Yourself/dp/0262045494">Software Design for Flexibility</a></li>
+<li>Functional Differential Geometry</li>
+</ul>
+</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="들어가며"><a class="header" href="#들어가며">들어가며</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="drracket"><a class="header" href="#drracket">DrRacket</a></h1>
@@ -522,7 +556,43 @@
 (#%require (prefix racket: racket))
 (racket:provide (racket:all-defined-out))
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="vscode"><a class="header" href="#vscode">VsCode</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="vscode-설정"><a class="header" href="#vscode-설정">VsCode 설정</a></h1>
+<p>DrRacket을 쓰면 상관없지만, VsCode로 하고싶다면</p>
+<ul>
+<li>Vscode: Visual Studio Code (VSCode)는 마이크로소프트에서 개발한 소스 코드 편집기이다.
+<ul>
+<li><a href="https://code.visualstudio.com/">https://code.visualstudio.com/</a></li>
+</ul>
+</li>
+<li>Magic Racket: Racket 언어를 위한 VSCode 확장 프로그램
+<ul>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=evzen-wybitul.magic-racket">https://marketplace.visualstudio.com/items?itemName=evzen-wybitul.magic-racket</a></li>
+</ul>
+</li>
+<li>Racket Helpers
+<ul>
+<li>S-expression 영역 선택</li>
+<li><a href="https://marketplace.visualstudio.com/items?itemName=Calvin-LL.racket-helpers">https://marketplace.visualstudio.com/items?itemName=Calvin-LL.racket-helpers</a></li>
+</ul>
+</li>
+</ul>
+<h2 id="racket-rangserver-설치"><a class="header" href="#racket-rangserver-설치">racket-rangserver 설치</a></h2>
+<ul>
+<li>raco: racket 관리 도구(패키지, 문서, 빌드 등등)
+<ul>
+<li><a href="https://docs.racket-lang.org/raco/index.html">https://docs.racket-lang.org/raco/index.html</a></li>
+<li>Windows라면 <code>C:\Program Files\Racket</code> 폴더에 있음.</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-zsh">raco pkg install racket-langserver
+Would you like to install these dependencies? [Y/n/a/c/?]
+
+raco pkg update racket-langserver
+
+# sicp 설치(필요시)
+raco pkg install sicp
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="1장-함수로-추상화-쌓기"><a class="header" href="#1장-함수로-추상화-쌓기">1장. 함수로 추상화 쌓기</a></h1>
 <ul>
 <li>
@@ -1633,8 +1703,9 @@ multiple-dwelling
 <p>4.3.3 amb 실행기 구현</p>
 <p>4.1.7절에서 만든 문법을 분석하는 해석기를 고치자 ( analyzingmceval =&gt; ambeval)</p>
 <hr />
-<p>4.4 논리로 프로그램 짜기
-https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
+<p>4.4 논리로 프로그램 짜기</p>
+<p>https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
+<p>3.5 스트림도 보고 오는게 좋음</p>
 <p>4.4.1 연역식 정보 찾기 - 쿼리짜는 연습 rule</p>
 <p>4.4.2 쿼리 시스템의 동작 방식</p>
 <ul>
@@ -1662,6 +1733,39 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 </ul>
 </li>
 </ul>
+<pre><code class="language-txt">(simple-query query-pattern frame-stream)
+  |
+  v
+[frame-stream] ==&gt; stream-flatmap
+                        |
+                        v
+                    (per frame)
+                  stream-append-delayed
+                  |                     \
+                  v                      v
+             find-assertions         delay (apply-rules)
+                  |                      |
+                  v                      v
+             fetch-assertions        fetch-rules
+                  |                      |
+               (per datum)             (per rule)
+             check-an-assertion       apply-a-rule
+                  |                      |
+                  v                      v
+             pattern-match           unify-match
+                  |                      |
+                  v                      v
+             extend-if-consistent    extend-if-possible
+                  |                      |
+                  v                      v
+             [frame-stream]          [frame-stream]
+                  |                      /
+                  v                     v
+                  stream-append-delayed
+                        |
+                        v
+                  stream-flatmap    ===========&gt;   [result-frame-stream]
+</code></pre>
 <pre><code class="language-lisp">;; (pattern-match {패턴} {데이터} {프레임(사전역활)})
 ;;=&gt; {새로운 프레임}
 
@@ -1714,29 +1818,39 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 </ul>
 <p>연습문제 4.69 **</p>
 <p>4.4.4 쿼리 시스템 만들기</p>
-<p>코드양이 꽤 되네</p>
 <p>4.4.4.1 드라이버 루프와 쿼리 값 찍어내기(instantiation)</p>
-<p>(define (instantiate exp frame unbound-var-handler)
-(define (copy exp)
-(cond ((var? exp)
-(let ((binding (binding-in-frame exp frame)))
-(if binding
-(copy (binding-value binding))
-(unbound-var-handler exp frame))))
-((pair? exp)
-(cons (copy (car exp)) (copy (cdr exp))))
-(else exp)))
-(copy exp))</p>
-<p>;; (query-syntax-process '(hello world ?x ?y))
-;;=&gt; (hello world (? x) (? y))</p>
-<p>;; (expand-question-mark '?x)
-;;=&gt; (? x)</p>
-<p>4.4.4.2 실행기(evaluator)
-(define (qeval query frame-stream)
-(let ((qproc (get (type query) 'qeval)))
-(if qproc
-(qproc (contents query) frame-stream)
-(simple-query query frame-stream))))</p>
+<pre><code class="language-lisp">(define (instantiate exp frame unbound-var-handler)
+  (define (copy exp)
+    (cond ((var? exp)
+           (let ((binding (binding-in-frame exp frame)))
+             (if binding
+                 (copy (binding-value binding))
+                 (unbound-var-handler exp frame))))
+          ((pair? exp)
+           (cons (copy (car exp)) (copy (cdr exp))))
+          (else exp)))
+  (copy exp))
+
+;; (query-syntax-process '(hello world ?x ?y))
+;;=&gt; (hello world (? x) (? y))
+
+;; (expand-question-mark '?x)
+;;=&gt; (? x)
+</code></pre>
+<p>4.4.4.2 실행기(evaluator)</p>
+<pre><code class="language-lisp">(define (qeval query frame-stream)
+  (let ((qproc (get (type query) 'qeval)))
+    (if qproc
+        (qproc (contents query) frame-stream)
+        (simple-query query frame-stream)))):
+
+
+(define (simple-query query-pattern frame-stream)
+  (stream-flatmap (lambda (frame)
+                    (stream-append-delayed (find-assertions query-pattern frame)
+                                           (delay (apply-rules query-pattern frame))))
+                  frame-stream))
+</code></pre>
 <p>4.4.4.3 패턴 매칭으로 참말 찾아내기
 4.4.4.4 규칙과 동일화
 4.4.4.5 데이터베이스의 관리
@@ -1748,6 +1862,24 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 4.03 data-directed style
 4.04 and? or? 추가</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="5장-레지스터-머신으로-계산"><a class="header" href="#5장-레지스터-머신으로-계산">5장. 레지스터 머신으로 계산</a></h1>
+<ul>
+<li>CODE 코드 : 컴퓨터 하드웨어와 소프트웨어에 숨어 있는 언어
+<ul>
+<li>Code: The Hidden Language of Computer Hardware and Software</li>
+</ul>
+</li>
+</ul>
+<p>instruction
+lable
+pc
+flag
+stack - save / restore</p>
+<p>5.1에서 controller로 의사코드를 보여주면서</p>
+<p>5.2에서 make-machine으로 머신을 만들어 구동
+load-eceval
+파일은 SICP 5.4절에서 정의된 **명시적 제어 평가기(ECEval)**를 로드합니다. ECEval은 Scheme 프로그램을 해석(interpret)하는 인터프리터로, Scheme 코드를 직접 실행할 수 있도록 설계된 가상 머신입니다.</p>
+<p>load-eceval-compiler
+SICP 5.5절에서 다루는 컴파일러와 연동된 ECEval을 로드합니다. 즉, Scheme 코드를 컴파일하여 기계어 수준의 명령어로 변환한 뒤, 이를 ECEval에서 실행할 수 있도록 지원합니다.</p>
 <hr />
 <h2 id="todo-4"><a class="header" href="#todo-4">TODO</a></h2>
 <ul>
@@ -1760,17 +1892,127 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 <ol>
 <li>레지스터 기계로 계산하기</li>
 </ol>
+<pre><code class="language-lisp">(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+</code></pre>
+<div class="table-wrapper"><table><thead><tr><th></th><th></th></tr></thead><tbody>
+<tr><td>data path</td><td>레지스터 + 연산</td></tr>
+<tr><td>controller</td><td>연산 순서</td></tr>
+</tbody></table>
+</div><div class="table-wrapper"><table><thead><tr><th></th><th></th></tr></thead><tbody>
+<tr><td>네모</td><td>레지스터</td></tr>
+<tr><td>세모</td><td>상수</td></tr>
+<tr><td>사다리꼴</td><td>연산</td></tr>
+<tr><td>원</td><td>검사</td></tr>
+</tbody></table>
+</div>
+<p>a &lt;- b: a에 b값을 덮어쓰기</p>
+<pre><code class="language-lisp">(data-paths
+ (registers
+  ((name a)
+   (buttons ((name a&lt;-b) 
+             (source (register b)))))
+  ((name b)
+   (buttons ((name b&lt;-t)
+             (source (register t)))))
+  ((name t)
+   (buttons ((name t&lt;-r)
+             (source (operation rem))))))
+ (operations
+  ((name rem)
+   (inputs (register a) (register b)))
+  ((name =)
+   (inputs (register b) (constant 0)))))
+</code></pre>
+<pre><code class="language-lisp">(controller
+ test-b                ; label
+   (test =)            ; test
+   (branch 
+    (label gcd-done))  ; conditional branch
+   (t&lt;-r)              ; button push
+   (a&lt;-b)              ; button push
+   (b&lt;-t)              ; button push
+   (goto 
+    (label test-b))    ; unconditional branch
+ gcd-done)             ; label
+</code></pre>
 <p>5.1 레지스터 기계 설계하기
 5.1.1 레지스터 기계를 묘사하는 언어
 5.1.2 기계 디자인에서의 속 내용 감추기(abstraction)
-5.1.3 서브루틴
-5.1.4 스택(stack)을 이용해 되돌기(recursion) 구현하기
-5.1.5 명령어 정리</p>
-<p>5.2 레지스터 기계 시뮬레이터
-5.2.1 기계 모형
+5.1.3 서브루틴</p>
+<pre><code class="language-lisp">(define (factorial n)
+  (if (= n 1) 
+      1
+      (* (factorial (- n 1)) n)))
+
+;;FIGURE 5.11
+(controller
+   (assign continue (label fact-done))     ; set up final return address
+
+ fact-loop
+   (test (op =) (reg n) (const 1))
+   (branch
+     (label base-case))
+
+   ;; Set up for the recursive call by saving n and continue.
+   ;; Set up continue so that the computation will continue
+   ;; at after-fact when the subroutine returns.
+   (save continue)
+   (save n)
+   (assign n (op -) (reg n) (const 1))
+   (assign continue
+     (label after-fact))
+   (goto
+     (label fact-loop))
+
+ after-fact
+   (restore n)
+   (restore continue)
+   (assign val (op *) (reg n) (reg val))   ; val now contains n(n-1)!
+   (goto (reg continue))                   ; return to caller
+
+ base-case
+   (assign val (const 1))                  ; base case: 1!=1
+   (goto (reg continue))                   ; return to caller
+
+ fact-done)
+</code></pre>
+<p>** 5.1.4 스택(stack)을 이용해 되돌기(recursion) 구현하기</p>
+<p>5.1.5 명령어 정리</p>
+<p>5.2 레지스터 기계 시뮬레이터</p>
+<pre><code class="language-lisp">(define gcd-machine
+  (make-machine
+     ;; 레지스터 목록
+   '(a b t)
+   
+   ;; 연산 목록
+   (list (list 'rem remainder) (list '= =))
+
+   ;; 컨트롤러
+   '(test-b
+      (test (op =) (reg b) (const 0))
+      (branch (label gcd-done))
+      (assign t (op rem) (reg a) (reg b))
+      (assign a (reg b))
+      (assign b (reg t))
+      (goto (label test-b))
+     gcd-done)))
+
+(set-register-contents! gcd-machine 'a 206)
+(set-register-contents! gcd-machine 'b 40)
+
+(start gcd-machine)
+
+(get-register-contents gcd-machine 'a)
+</code></pre>
+<p>5.2.1 기계 모형
 5.2.2 어셈블러
-5.2.3 명령에 해당하는 실행 프로시저 만들기
-5.2.4 기계 성능 지켜보기</p>
+5.2.3 명령에 해당하는 실행 프로시저 만들기</p>
+<p>eval/analyze같은 존재
+make-execution-procedure</p>
+<p>5.2.4 기계 성능 지켜보기</p>
 <p>5.3 메모리 할당(memory allocation)과 재활용(garbage collection)
 5.3.1 벡터로 나타낸 메모리
 5.3.2 무한히 많은 메모리인 양 보이기</p>
@@ -1787,9 +2029,64 @@ https://www.slideshare.net/slideshow/sicp-44-logic-programming/1552206</p>
 5.5.5 번역된 코드의 예
 5.5.6 텍스트에서 변수의 정의를 파악하기(lexical addressing)
 5.5.7 번역된 코드를 실행기에 연결하기</p>
+<pre><code class="language-txt">(reg ⟨register-name⟩) or (const ⟨constant-value⟩). These instructions were introduced in 5.1.1:
+
+(assign ⟨register-name⟩ (reg ⟨register-name⟩))
+(assign ⟨register-name⟩ 
+        (const ⟨constant-value⟩))
+(assign ⟨register-name⟩ 
+        (op ⟨operation-name⟩) 
+        ⟨input₁⟩ … ⟨inputₙ⟩)
+(perform (op ⟨operation-name⟩) 
+         ⟨input₁⟩ 
+         … 
+         ⟨inputₙ⟩)
+(test (op ⟨operation-name⟩) 
+      ⟨input₁⟩ 
+      … 
+      ⟨inputₙ⟩)
+(branch (label ⟨label-name⟩))
+(goto (label ⟨label-name⟩))
+The use of registers to hold labels was introduced in 5.1.3:
+
+(assign ⟨register-name⟩ (label ⟨label-name⟩))
+(goto (reg ⟨register-name⟩))
+Instructions to use the stack were introduced in 5.1.4:
+
+(save ⟨register-name⟩)
+(restore ⟨register-name⟩)
+The only kind of ⟨constant-value⟩ we have seen so far is a number, but later we will use strings, symbols, and lists. For example,
+(const "abc") is the string "abc",
+(const abc) is the symbol abc,
+(const (a b c)) is the list (a b c),
+and (const ()) is the empty list.
+</code></pre>
+<pre><code class="language-txt">(make-machine ⟨register-names⟩
+              ⟨operations⟩
+              ⟨controller⟩)
+(set-register-contents! ⟨machine-model⟩ 
+                        ⟨register-name⟩ 
+                        ⟨value⟩)
+(get-register-contents ⟨machine-model⟩
+                       ⟨register-name⟩)
+(start ⟨machine-model⟩)
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="풀이"><a class="header" href="#풀이">풀이</a></h1>
 <ul>
 <li><a href="https://sarabander.github.io/sicp/html/Exercises.xhtml#Exercises">문제 목록</a></li>
+</ul>
+<h2 id="todo-5"><a class="header" href="#todo-5">todo</a></h2>
+<ul>
+<li>4
+<ul>
+<li>4_34</li>
+<li>4_44</li>
+<li>4_67</li>
+<li>4_77</li>
+<li>4_78</li>
+<li>4_79</li>
+</ul>
+</li>
 </ul>
 <h2 id="chapter-1---building-abstractions-with-procedures"><a class="header" href="#chapter-1---building-abstractions-with-procedures">Chapter 1 - Building Abstractions with Procedures</a></h2>
 <h3 id="11--the-elements-of-programming"><a class="header" href="#11--the-elements-of-programming">1.1 – The Elements of Programming</a></h3>
@@ -2951,12 +3248,125 @@ graph TD
 </code></pre>
 <h2 id="1_16"><a class="header" href="#1_16">1_16</a></h2>
 <pre><code class="language-lisp">;; file: 1_16.rkt
+;; 1_16 / 1_17 / 1_18
+(#%require threading)
+(#%require rackunit)
+(#%require profile)
+
+;; fast-expt를 iterate하게 바꿔라
+
+
+(define (square x)
+  (* x x))
+
+(define (fast-expt b n)
+  (cond (( = n 0)
+         1)
+        ((even? n)
+         (square (fast-expt b (/ n 2))))
+        (else
+         (* b (fast-expt b (- n 1))))))
+
+(define (fast-expt-iter b n)
+  (define (iter acc b n)
+    (cond (( = n 0)
+           acc)
+          ((even? n)
+           (iter acc (square b) (/ n 2)))
+          (else
+           (iter (* acc b) b (- n 1)))))
+  (iter 1 b n))
+
+(~&gt; (fast-expt 2 0)
+    (check-equal? 1))
+(~&gt; (fast-expt 2 1)
+    (check-equal? 2))
+(~&gt; (fast-expt 2 5)
+    (check-equal? 32))
+(~&gt; (fast-expt 2 10)
+    (check-equal? 1024))
+
+
+(~&gt; (fast-expt-iter 2 0)
+    (check-equal? 1))
+(~&gt; (fast-expt-iter 2 1)
+    (check-equal? 2))
+(~&gt; (fast-expt-iter 2 5)
+    (check-equal? 32))
+(~&gt; (fast-expt-iter 2 10)
+    (check-equal? 1024))
 </code></pre>
 <h2 id="1_17"><a class="header" href="#1_17">1_17</a></h2>
 <pre><code class="language-lisp">;; file: 1_17.rkt
+;; 1_16 / 1_17 / 1_18
+
+(#%require rackunit)
+
+;; Mul구현. fast-expt처럼 계산단계가 로그로 자라도록 짜라.
+
+(define (double x)
+  (* 2 x))
+
+(define (halve x)
+  (/ x 2))
+
+(define (mul a b)
+  (if (= b 0)
+      0
+      (+ a (mul a (- b 1)))))
+
+(define (fast-mul a b)
+  (cond ((= b 0)
+         0)
+        ((even? b)
+         (double (fast-mul a (halve b))))
+        (else
+         (+ a (fast-mul a (- b 1))))))
+
+
+(check-equal? (mul 2 0)  0)
+(check-equal? (mul 2 1)  2)
+(check-equal? (mul 2 2)  4)
+(check-equal? (mul 2 10) 20)
+(check-equal? (mul 2 11) 22)
+
+(check-equal? (fast-mul 2 0)  0)
+(check-equal? (fast-mul 2 1)  2)
+(check-equal? (fast-mul 2 2)  4)
+(check-equal? (fast-mul 2 10) 20)
+(check-equal? (fast-mul 2 11) 22)
 </code></pre>
 <h2 id="1_18"><a class="header" href="#1_18">1_18</a></h2>
 <pre><code class="language-lisp">;; file: 1_18.rkt
+;; 1_16 / 1_17 / 1_18
+
+(#%require rackunit)
+
+;; Mul구현. 1.16와 1.17를 합쳐 계산 단계가 로그로 자라되 iterative형태로 짜라.
+
+(define (double x)
+  (* 2 x))
+
+(define (halve x)
+  (/ x 2))
+
+
+(define (fast-mul-iter a b)
+  (define (iter acc a b)
+    (cond ((= b 0)
+           acc)
+          ((even? b)
+           (iter acc (double a) (halve b)))
+          (else
+           (iter (+ acc a) a (- b 1)))))
+  (iter 0 a b))
+
+
+(check-equal? (fast-mul-iter 2 0)  0)
+(check-equal? (fast-mul-iter 2 1)  2)
+(check-equal? (fast-mul-iter 2 2)  4)
+(check-equal? (fast-mul-iter 2 10) 20)
+(check-equal? (fast-mul-iter 2 11) 22)
 </code></pre>
 <h2 id="1_19"><a class="header" href="#1_19">1_19</a></h2>
 <pre><code class="language-lisp">;; file: 1_19.rkt
@@ -10475,33 +10885,415 @@ graph TD
 </code></pre>
 <h2 id="4_70"><a class="header" href="#4_70">4_70</a></h2>
 <pre><code class="language-lisp">;; file: 4_70.rkt
+
+;; Q. 프로시저 add-assertion! 과 add-rule! 에서 let을 쓰는 목적이 무엇인가?
+;;
+;; cons-stream을 쓰는데 이게 두번째(cdr)위치에 있는 것을 dealy시킴.
+;; delay되면서 자기 자신을 참조하게되는데 그걸 방지할 목적으로 let으로 미리 저장해둔걸 사용.
+;;
+;; Q. 다음과 같이 add-assertion!을 구현하면 무엇이 잘못인가?
+;;  - 3.5.2절에서 끝없는 스트림의 정의를 되새겨 보라
+;;    - (define ones (cons-stream 1 ones))
+;;
+;; (define (add-assertion! assertion)
+;;   (store-assertion-in-index assertion)
+;;   (set! THE-ASSERTIONS (cons-stream assertion THE-ASSERTIONS))
+;;   'ok)
+
+;; 예를들어 (add-assertion! '(a 1)) 라고 하면
+;; THE-ASSERTIONS 는 다음과 같이 무한으로 나가게 된다.
+;; (a 1) THE-ASSERTIONS
+;;       (a 1) THE-ASSERTIONS
+;;             (a 1) THE-ASSERTIONS
+;;                   ...
 </code></pre>
 <h2 id="4_71"><a class="header" href="#4_71">4_71</a></h2>
 <pre><code class="language-lisp">;; file: 4_71.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(racket:require (racket:rename-in "../allcode/ch4-4.4.4.1-query.rkt"
+                                  (_simple-query simple-query-before)
+                                  (_disjoin disjoin-before)))
+
+;; simple-query과 disjoin에서 delay시키느냐 안시키느냐의 차이.
+
+
+;; simple-query
+;; rule적용을 delay시키는데, 이상한 룰이 있으면 무한루프에 빠지게됨.
+
+
+(~&gt; '(
+      
+      (married Minnie Mickey)
+
+      (rule (married ?x ?y)
+            (married ?y ?x))
+      
+      )
+    (initialize-data-base))
+
+(define query
+  '(married Mickey (? x))
+  )
+
+(~&gt; (simple-query query (singleton-stream '()))
+    (stream-car)
+    (check-equal? '(((? 1 y) . Minnie) ((? x) ? 1 y) ((? 1 x) . Mickey))))
+
+(define (simple-query-after query-pattern frame-stream)
+  (stream-flatmap (lambda (frame)
+                    ;; before
+                    ;; (stream-append-delayed (find-assertions query-pattern frame)
+                    ;;                        (delay (apply-rules query-pattern frame)))
+                    ;;
+                    ;; after
+                    (stream-append (find-assertions query-pattern frame)
+                                   (apply-rules query-pattern frame))
+                    )
+                  frame-stream))
+
+(override-simple-query! simple-query-after)
+
+;; endless loop
+;;
+;; (simple-query query (singleton-stream '()))
+
+
+;; disjoin
+;;
+;; or 연산을 담당하는데, or의 두번째에 이상한걸 넣게되면 무한루프에 빠지게 됨.
+
+(reset!)
+
+(~&gt; '(
+      
+      (married Minnie Mickey)
+
+      (rule (married ?x ?y)
+            (married ?y ?x))
+      
+      )
+    (initialize-data-base))
+
+(define query2
+  '((married Mickey (? x)) (married (? x) 1))
+  )
+
+(~&gt; (disjoin query2 (singleton-stream '()))
+    (stream-car)
+    (check-equal? '(((? 1 y) . Minnie) ((? x) ? 1 y) ((? 1 x) . Mickey))))
+
+(define (disjoin-after disjuncts frame-stream)
+  (if (empty-disjunction? disjuncts)
+      the-empty-stream
+      ;; before
+      ;; (interleave-delayed (qeval (first-disjunct disjuncts) frame-stream)
+      ;;                     (delay (disjoin (rest-disjuncts disjuncts) frame-stream)))
+      (interleave (qeval (first-disjunct disjuncts) frame-stream)
+                  (disjoin-after (rest-disjuncts disjuncts) frame-stream))
+      ))
+
+(override-disjoin! disjoin-after)
+
+
+;; endless loop
+;;
+;; (disjoin query2 (singleton-stream '()))
 </code></pre>
 <h2 id="4_72"><a class="header" href="#4_72">4_72</a></h2>
 <pre><code class="language-lisp">;; file: 4_72.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; 왜 disjoin 와 stream-flatmap에서 스트림을 병합할때 append가 아닌 interleave를 사용하는가?
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+'(define (disjoin disjuncts frame-stream)
+   (if (empty-disjunction? disjuncts)
+       the-empty-stream
+       (interleave-delayed (qeval (first-disjunct disjuncts) frame-stream)
+                           (delay (disjoin (rest-disjuncts disjuncts) frame-stream)))))
+
+'(define (stream-flatmap proc s)
+   (flatten-stream (stream-map proc s)))
+
+
+'(define (flatten-stream stream)
+   (if (stream-null? stream)
+       the-empty-stream
+       (interleave-delayed (stream-car stream)
+                           (delay (flatten-stream (stream-cdr stream))))))
+
+'(define (interleave-delayed s1 delayed-s2)
+   (if (stream-null? s1)
+       (force delayed-s2)
+       (cons-stream (stream-car s1)
+                    (interleave-delayed (force delayed-s2)
+                                        (delay (stream-cdr s1))))))
+
+
+'(define (stream-append-delayed s1 delayed-s2)
+   (if (stream-null? s1)
+       (force delayed-s2)
+       (cons-stream (stream-car s1)
+                    (stream-append-delayed (stream-cdr s1)
+                                           delayed-s2))))
+
+
+(define ones (cons-stream 1 ones))
+(define twos (cons-stream 2 twos))
+
+;; append시 첫번째 스트림이 무한일때, 두번째 스트림에 접근이 불가.
+(~&gt; (stream-append-delayed ones (delay twos))
+    (stream-cdr)
+    (stream-cdr)
+    (stream-cdr)
+    (stream-car)
+    (check-equal? 1))
+
+;; interleave면 첫번째 스트림이 무한이라도 번갈아 기회가 생김.
+(~&gt; (interleave-delayed ones (delay twos))
+    (stream-cdr)
+    (stream-cdr)
+    (stream-cdr)
+    (stream-car)
+    (check-equal? 2))
 </code></pre>
 <h2 id="4_73"><a class="header" href="#4_73">4_73</a></h2>
 <pre><code class="language-lisp">;; file: 4_73.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; flatten-stream 는 왜 delay 사용하나?
+;; 계산을 미뤄 무한 스트림에 대한 무한루프 방지.
+(racket:require (racket:rename-in "../allcode/ch4-4.4.4.1-query.rkt"
+                                  (_flatten-stream flatten-stream-before)))
+
+
+(define ones (cons-stream 1 ones))
+(define twos (cons-stream 2 twos))
+
+
+
+#;(flatten-stream (list-&gt;stream (list (list-&gt;stream '(1 2 3)) ones)))
+
+
+(~&gt; (flatten-stream (cons-stream (list-&gt;stream '(1 2 3)) ones))
+    (stream-car)
+    (check-equal? 1))
+
+(define (flatten-stream-after stream)
+  ;; before
+  ;; (if (stream-null? stream)
+  ;;     the-empty-stream
+  ;;     (interleave-delayed (stream-car stream)
+  ;;                         (delay (flatten-stream (stream-cdr stream)))))
+
+  ;; after
+  (if (stream-null? stream)
+      the-empty-stream
+      (interleave (stream-car stream)
+                  (flatten-stream-after (stream-cdr stream)))))
+
+(override-flatten-stream! flatten-stream-after)
+
+;; 무한 루프
+;; (~&gt; (flatten-stream (cons-stream (list-&gt;stream '(1 2 3)) ones))
+;;     (stream-car)
+;;     (check-equal? 1))
 </code></pre>
 <h2 id="4_74"><a class="header" href="#4_74">4_74</a></h2>
-<pre><code class="language-lisp">;; file: 4_74.rkt
+<pre><code class="language-lisp">
+;; file: 4_74.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;;
+;; simple-flatten을 구현하라
+
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+(define (simple-stream-flatmap proc s)
+  (simple-flatten (stream-map proc s)))
+
+(define (simple-flatten stream)
+  (stream-map stream-car
+              (stream-filter (lambda (s)
+                               (not (stream-null? s)))
+                             stream)))
+
+'(define (flatten-stream stream)
+   (if (stream-null? stream)
+       the-empty-stream
+       (interleave-delayed (stream-car stream)
+                           (delay (flatten-stream (stream-cdr stream))))))
+
+
+
+(define test-stream
+  (list-&gt;stream (list (list-&gt;stream '(1))
+                      (list-&gt;stream '(2))
+                      (list-&gt;stream '())
+                      (list-&gt;stream '(3)))))
+
+(~&gt; (flatten-stream test-stream)
+    (stream-&gt;list )
+    (check-equal?'(1 2 3)))
+
+(~&gt; (simple-flatten test-stream)
+    (stream-&gt;list )
+    (check-equal?'(1 2 3)))
+
+
+(override-flatten-stream! flatten-stream)
+(override-stream-flatmap! simple-stream-flatmap)
+
+;; 쿼리 시스템의 행동이 달라지는가?
+;; 달라지지 않는다.
+;; frame 스트림에 프로시저를 적용하면 언제나 빈 스트림이나 원소 한 개짜리 스트림이 나오므로, 스트림을 번갈아 끼워넣을 필요가 없다.
 </code></pre>
 <h2 id="4_75"><a class="header" href="#4_75">4_75</a></h2>
 <pre><code class="language-lisp">;; file: 4_75.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(racket:provide
+ uniquely-asserted)
+
+
+;; 쿼리 시스템에 unique 라는 special form을 추가하라.
+
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(define (uniquely-asserted content frame-stream)
+  (let* ((q (first content)))
+    ;; 남은 스트림을 다시 커다란 스트림 하나로 묶어서 unique 쿼리의 결과를 내놓게 된다.
+    (stream-flatmap (lambda (frame)
+                      ;; qeval을 사용하여, 스트림 속의 각 일람표에 대해 정해진 쿼리를 만족하도록 확장된 모든 일람표의 스트림을 찾아낸다
+                      (let ((qstream (qeval q (singleton-stream frame))))
+                        ;; 이로부터 정확히 원소 하나만 들지 않은 스트림은 걸러내야 한다.
+                        (cond ((stream-null? qstream)              the-empty-stream)
+                              ((stream-null? (stream-cdr qstream)) qstream)
+                              (else                                the-empty-stream))))
+                    frame-stream)))
+
+(put 'unique 'qeval uniquely-asserted)
+
+(~&gt; '(unique (job ?x (computer wizard)))
+    (run)
+    (check-equal? '((unique (job (Bitdiddle Ben) (computer wizard))))))
+
+
+(~&gt; '(unique (job (Bitdiddle Ben) (computer wizard)))
+    (run)
+    (check-equal? '((unique (job (Bitdiddle Ben) (computer wizard))))))
+
+
+(~&gt; '(unique (job ?x (computer programmer)))
+    (run)
+    (check-equal? '()))
+
+(~&gt; '(and (job ?x ?j) 
+          (unique (job ?anyone ?j)))
+    (run)
+    (check-equal? '(
+                    (and (job (Aull DeWitt) (administration secretary))
+                         (unique (job (Aull DeWitt) (administration secretary))))
+                    (and (job (Cratchet Robert) (accounting scrivener))
+                         (unique (job (Cratchet Robert) (accounting scrivener))))
+                    (and (job (Scrooge Eben) (accounting chief accountant))
+                         (unique (job (Scrooge Eben) (accounting chief accountant))))
+                    (and (job (Warbucks Oliver) (administration big wheel))
+                         (unique (job (Warbucks Oliver) (administration big wheel))))
+                    (and (job (Reasoner Louis) (computer programmer trainee))
+                         (unique (job (Reasoner Louis) (computer programmer trainee))))
+                    (and (job (Tweakit Lem E) (computer technician))
+                         (unique (job (Tweakit Lem E) (computer technician))))
+                    (and (job (Bitdiddle Ben) (computer wizard))
+                         (unique (job (Bitdiddle Ben) (computer wizard)))))
+                  ))
 </code></pre>
 <h2 id="4_76"><a class="header" href="#4_76">4_76</a></h2>
 <pre><code class="language-lisp">;; file: 4_76.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; TODO and의 두번째 쿼리를처리하는 과정에서 첫 번째 쿼리가 만들어낸 모든 일람표에 대해 데이터베이스를 훌어보아야 하기 때문에 효율이 떨어진다.
+;; 이와달리, and의 두절을 따로 처리한 다음에, 출력 일람표들의 모든쌍이 서로 어긋나지 않는지 살펴보는 방법도 있다.
+;; 그리하려면, 두 일람표를 인자로 받아, 두 일람표 속의 정의가 서로 맞아떨어진다면 두 정의를 한데 합쳐 하나의 일람표를 만들어내는 프로시저를 짜야한다.
+;; 이 연산은 unification과 유사하다.
+
+
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(define (conjoin-origin conjuncts frame-stream)
+  (if (empty-conjunction? conjuncts)
+      frame-stream
+      (conjoin-origin (rest-conjuncts conjuncts)
+                      (qeval (first-conjunct conjuncts)
+                             frame-stream))))
+
+(put 'and 'qeval conjoin-origin)
+
+
+(define (conjoin-after conjuncts frame-stream)
+  (if (empty-conjunction? conjuncts)
+      frame-stream
+      (conjoin-after (rest-conjuncts conjuncts)
+                     (qeval (first-conjunct conjuncts)
+                            frame-stream))))
+
+(put 'and 'qeval conjoin-after)
 </code></pre>
 <h2 id="4_77"><a class="header" href="#4_77">4_77</a></h2>
 <pre><code class="language-lisp">;; file: 4_77.rkt
+
+;; TODO
 </code></pre>
 <h2 id="4_78"><a class="header" href="#4_78">4_78</a></h2>
 <pre><code class="language-lisp">;; file: 4_78.rkt
+
+;; TODO
 </code></pre>
 <h2 id="4_79"><a class="header" href="#4_79">4_79</a></h2>
 <pre><code class="language-lisp">;; file: 4_79.rkt
+
+;; TODO
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-05"><a class="header" href="#연습문제-풀이-05">연습문제 풀이 05</a></h1>
 <ul>
@@ -10509,27 +11301,596 @@ graph TD
 </ul>
 <h2 id="5_01"><a class="header" href="#5_01">5_01</a></h2>
 <pre><code class="language-lisp">;; file: 5_01.rkt
+;; 5_01 / 5_02
+
+;;
+;; ref:
+;; Figure 5.3: A specification of the GCD machine. (data-path + controller)
+;; Figure 5.4: A GCD machine that reads inputs and prints results. (gdc + read / print)
+;; 5.2 A Register-Machine Simulator - (define gcd-machine ...)
+
+
+;; TODO Draw data-path and controller diagrams for this machine.
+'(define (factorial n)
+   (define (iter product counter)
+     (if (&gt; counter n)
+         product
+         (iter (* counter product)
+               (+ counter 1))))
+   (iter 1 1))
 </code></pre>
 <h2 id="5_02"><a class="header" href="#5_02">5_02</a></h2>
 <pre><code class="language-lisp">;; file: 5_02.rkt
+;; 5_01 / 5_02
+
+;; register-machine언어를 사용하여 iterative factorial 머신을 기술하라(연습문제 5.1에서  만든)
+
+'(define (factorial n)
+   (define (iter product counter)
+     (if (&gt; counter n)
+         product
+         (iter (* counter product)
+               (+ counter 1))))
+   (iter 1 1))
+
+'(data-paths
+  (registers
+   ((name n))
+   ((name product)
+    (buttons ((name product&lt;-1) 
+              (source (constant 1)))
+             ((name product&lt;-mul) 
+              (source (operation *)))))
+   ((name count)
+    (buttons ((name counter&lt;-1) 
+              (source (constant 1)))
+             ((name counter&lt;-add)
+              (source (operation +))))))
+  (operations
+   ((name factorial)
+    (inputs (register n)))
+   ((name iter)
+    (inputs (constant 1) (constant 1)))
+   ((name &gt;)
+    (inputs (register a) (register b)))
+   ((name *)
+    (inputs (register a) (register b)))
+   ((name +)
+    (inputs (register a) (constant 0)))))
+
+'(controller
+  (assign n (op read))
+  
+  (assign product (const 1))
+  (assign counter (const 1))
+  
+  loop-iter
+  (test (op =) (reg counter) (reg n))
+  (branch
+   (label done-iter))
+  
+  (assign product (op *) (reg counter) (reg product))
+  (assign counter (op +) (reg counter) (const 1))
+  (goto
+   (label loop-iter))
+  
+  done-iter
+  ;; (read product)
+  )
 </code></pre>
 <h2 id="5_03"><a class="header" href="#5_03">5_03</a></h2>
 <pre><code class="language-lisp">;; file: 5_03.rkt
+
+#|
+(define (sqrt x)
+  (define (good-enough? guess)
+    (&lt; (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
+
+
+- sqrt 각 버전의 머신 설계를 data-path 다이어그램으로, 레지스터 머신 언어로 controller 정의를 작성하여 설명.
+|#
+
+
+;; - good-enough?와 improve 연산자는 primitive로 사용 가능하다고 가정.
+'(controller
+  (assign x (op read))
+  
+  (assign guess (constant 1.0))
+  
+  loop-sqrt-iter
+  (test (op good-enough?) (reg guess) (reg x))
+  (branch
+   (label done-loop-sqrt-iter))
+  
+  (assign guess (op improve) (reg guess) (reg x))
+  (goto
+   (label loop-sqrt-iter))
+  
+  done-loop-sqrt-iter
+  ;; (read guess)
+  )
+
+
+;; - 두 연산자를 산술 연산으로 확장하여 구현
+'(controller
+  (assign x (op read))
+  
+  (assign guess (constant 1.0))
+  
+  loop
+
+  ;; (define (good-enough? guess)
+  ;;   (&lt; (abs (- (square guess) x)) 0.001)) 
+  (assign good-enough-s   (op square) (reg guess))                  ; (square guess)
+  (assign good-enough-m   (op -)      (reg good-enough-s) (reg x))  ; (- x)
+  (assign good-enough-abs (op abs)    (reg good-enough-m))          ; (abs)
+  (test (op &lt;) (register good-enough-abs) (constant 0.001))         ; (&lt; 0.001)
+  (branch
+   (label done))
+
+  ;; (define (improve guess)
+  ;;   (average guess (/ x guess)))
+  (assign improve-d   (op /)       (reg x)     (reg guess))          ; (/ x guess)
+  (assign guess       (op average) (reg guess) (reg improve-d))      ; (average)
+  (goto
+   (label loop))
+  
+  done
+  ;; (read guess)
+  )
 </code></pre>
 <h2 id="5_04"><a class="header" href="#5_04">5_04</a></h2>
 <pre><code class="language-lisp">;; file: 5_04.rkt
+;; 5_04 / 5_07
+(#%require (prefix racket: racket))
+
+(racket:provide
+ expt-recur-controller
+ expt-iter-controller)
+
+;; ref:
+;;  - Figure 5.11 - factorial
+
+;; controller 랑 data-path다이어그램
+
+;; Recursive exponentiation:
+#|
+(define (expt b n)
+  (if (= n 0)
+      1
+      (* b (expt b (- n 1)))))
+|#
+
+(define expt-recur-data-path
+  '(data-paths
+    (registers
+     ((name b)
+      (buttons ((name b&lt;-b) 
+                (source (register b)))))
+     ((name n)
+      (buttons ((name n&lt;-n-1) 
+                (source (operator -)))))
+     ((name val)
+      (buttons ((name val&lt;-expt-n-1)
+                (source (operator expt)))))
+     ((name continue)
+    
+      ))
+    (operations
+     ((name expt)
+      (inputs (register b) (register n)))
+     ((name =)
+      (inputs (register n) (constant 0)))
+     ((name -)
+      (inputs (register n) (constant 1)))
+     ((name *)
+      (inputs (register b) (register val))))))
+
+(define expt-recur-controller
+  '(controller
+    ;; (assign b (op read))
+    ;; (assign n (op read))
+
+    (assign continue
+            (label done))
+  
+    loop
+    (test (op =) (reg n) (const 0))      ;   (if (= n 0)
+    (branch
+     (label base-case))
+
+    (save continue)
+    ;;(save n)
+    (assign n (op -) (reg n) (const 1))
+    (assign continue
+            (label after))
+    (goto
+     (label loop))
+
+    after
+    ;;(restore n)
+    (restore continue)
+    (assign val (op *) (reg b) (reg val)) ;       (* b (expt b (- n 1)))))
+    (goto
+     (reg continue))
+  
+    base-case
+    (assign val (const 1))                ; 1
+    (goto
+     (reg continue))
+  
+    done
+    ;; (read val)
+    ))
+
+;; Iterative exponentiation:
+#|
+(define (expt b n)
+  (define (expt-iter counter product)
+    (if (= counter 0)
+        product
+        (expt-iter (- counter 1)
+                   (* b product))))
+  (expt-iter n 1))
+|#
+
+(define expt-iter-data-path
+  '(data-paths
+    (registers
+     ((name b))
+     ((name n))
+     ((name counter)
+      (buttons ((name counter&lt;-n) 
+                (source (register n)))
+               ((name counter&lt;-minus)
+                (source (operation -)))))
+     ((name product)
+      (buttons ((name product&lt;-1) 
+                (source (constant 1)))
+               ((name counter&lt;-mul)
+                (source (operation *))))))
+    (operations
+     ((name expt)
+      (inputs (register b) (register n)))
+     ((name expt-iter)
+      (inputs (register n) (constant 1)))
+     ((name =)
+      (inputs (register counter) (constant 0)))
+     ((name -)
+      (inputs (register counter) (constant 1)))
+     ((name *)
+      (inputs (register b) (register product))))))
+
+(define expt-iter-controller
+  '(controller
+    ;; (assign b (op read))
+    ;; (assign n (op read))
+
+    (assign counter (reg n))
+    (assign product (const 1))
+  
+    loop-iter
+    (test (op =) (reg counter) (const 0))
+    (branch
+     (label done-iter))
+
+    (assign counter (op -) (reg counter) (const 1))
+    (assign product (op *) (reg b) (reg product))
+  
+    (goto
+     (label loop-iter))
+  
+    done-iter
+    ;; (read product)
+    ))
 </code></pre>
 <h2 id="5_05"><a class="header" href="#5_05">5_05</a></h2>
 <pre><code class="language-lisp">;; file: 5_05.rkt
+
+;; ref:
+;;  - Figure 5.11 - factorial
+;;  - Figure 5.12 - fibonacchi
+
+#|
+TOOD 팩토리얼(factorial)과 피보나치(Fibonacci) 머신을 손으로 시뮬레이션하시오.
+이때, 최소한 한 번의 재귀 호출이 실행되는 nontrivial 입력을 사용하시오.
+실행의 각 중요한 지점에서 스택의 내용을 보여주시오.
+|#
 </code></pre>
 <h2 id="5_06"><a class="header" href="#5_06">5_06</a></h2>
 <pre><code class="language-lisp">;; file: 5_06.rkt
+
+;; ref:
+;;   - Figure 5.12
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+
+#|
+Ben Bitdiddle 은 피보나치 머신의 컨트롤러 시퀀스에 불필요한 save와 restore 명령이 포함되어 있으며,
+이를 제거하면 더 빠른 머신을 만들 수 있는 것을 알아차렸습니다.
+이 명령들은 어디에 있습니까?
+|#
+
+(#%require "../allcode/ch5-regsim.rkt")
+
+'(define (fib n)
+   (if (&lt; n 2) 
+       n 
+       (+ (fib (- n 1)) (fib (- n 2)))))
+
+
+(define fib-controller
+  '(controller
+    (assign continue
+            (label fib-done))
+   
+    fib-loop
+    (test (op &lt;) (reg n) (const 2))
+    (branch (label immediate-answer))
+    ;; set up to compute Fib(n - 1)
+    (save continue)                                          ; - save1   continue
+    (assign continue
+            (label afterfib-n-1))
+    (save n)           ; save old value of n                 ; - save2   n
+    (assign n 
+            (op -)
+            (reg n)
+            (const 1)) ; clobber n to n-1
+    (goto 
+     (label fib-loop)) ; perform recursive call
+   
+    afterfib-n-1 ; upon return, val contains Fib(n - 1)
+    (restore n)                                             ; - restore1 n
+    ;;(restore continue)                                      ; - restore2 continue &lt;&lt;------
+    ;; set up to compute Fib(n - 2)
+    (assign n (op -) (reg n) (const 2))
+    ;;(save continue)                                         ; - save3    continue  &lt;&lt;------
+    (assign continue
+            (label afterfib-n-2))
+    (save val)         ; save Fib(n - 1)                    ; - save4    val
+    (goto (label fib-loop))
+   
+    afterfib-n-2 ; upon return, val contains Fib(n - 2)
+    (assign n 
+            (reg val)) ; n now contains Fib(n - 2)
+    (restore val)      ; val now contains Fib(n - 1)        ; - restore3 val
+    (restore continue)                                      ; - restore4 continue
+    (assign val        ; Fib(n - 1) + Fib(n - 2)
+            (op +) 
+            (reg val)
+            (reg n))
+    (goto              ; return to caller,
+     (reg continue))   ; answer is in val
+   
+    immediate-answer
+    (assign val 
+            (reg n))   ; base case: Fib(n) = n
+    (goto
+     (reg continue))
+   
+    fib-done))
+
+(define fib-machine
+  (make-machine
+   '(n continue val)
+   (list (list '&lt; &lt;)
+         (list '- -)
+         (list '+ +))
+   (rest fib-controller)
+   ))
+
+(define (fib n)
+  (set-register-contents! fib-machine 'n n)
+  (start fib-machine)
+  (get-register-contents fib-machine 'val))
+
+(check-equal? (fib 0)
+              0)
+(check-equal? (fib 1)
+              1)
+(check-equal? (fib 2)
+              1)
+(check-equal? (fib 3)
+              2)
+(check-equal? (fib 10)
+              55)
 </code></pre>
 <h2 id="5_07"><a class="header" href="#5_07">5_07</a></h2>
 <pre><code class="language-lisp">;; file: 5_07.rkt
+;; 5_04 / 5_07
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+
+;; simulator를 사용해여 머신을 테스트라하(연습문제 5.4에서 디자인한)
+(#%require "../allcode/ch5-regsim.rkt")
+(#%require "5_04.rkt")
+
+(define add-machine
+  (make-machine
+   ;; 레지스터 목록
+   '(n val sum continue)
+
+   ;; 연산 목록
+   (list (list '+ +)
+         (list '- -)
+         (list '= =))
+   
+   ;; 컨트롤러
+   '(
+     #;(assign continue (label done))
+     
+     loop
+     (test (op =) (reg n) (const 0))         ; if n == 0
+     (branch (label done))                   ;    break
+     (assign sum (op +) (reg sum) (reg val)) ; sum += val
+     (assign n (op -) (reg n) (const 1))     ; n -= 1
+     (goto (label loop))
+     
+     done)))
+
+(~&gt; add-machine
+    (set-register-contents! 'val 3)
+    (check-equal? 'done))
+(~&gt; add-machine
+    (set-register-contents! 'n 5)
+    (check-equal? 'done))
+(~&gt; add-machine
+    (set-register-contents!'sum 0)  ; 결과 저장용
+    (check-equal? 'done))
+(~&gt; add-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; add-machine 
+    (get-register-contents 'sum)
+    (check-equal? 15))
+
+
+(define gcd-machine
+  (make-machine
+   '(a b t)
+   (list (list 'rem remainder) (list '= =))
+   '(test-b
+     (test (op =) (reg b) (const 0))
+     (branch (label gcd-done))
+     (assign t (op rem) (reg a) (reg b))
+     (assign a (reg b))
+     (assign b (reg t))
+     (goto (label test-b))
+     gcd-done)))
+
+(~&gt; gcd-machine
+    (set-register-contents! 'a 206)
+    (check-equal? 'done))
+(~&gt; gcd-machine
+    (set-register-contents! 'b 40)
+    (check-equal? 'done))
+(~&gt; gcd-machine 
+    (start)
+    (check-equal? 'done))
+(~&gt; gcd-machine 
+    (get-register-contents 'a)  ; 결과: 2 (206과 40의 GCD)
+    (check-equal? 2))
+
+;; ================
+(define expt-recur-machine
+  (make-machine
+   '(b n continue val)
+   (list (list '= =)
+         (list '- -)
+         (list '* *))
+   (rest expt-recur-controller)))
+
+(define (expr-recur b n)
+  (set-register-contents! expt-recur-machine 'b b)
+  (set-register-contents! expt-recur-machine 'n n)
+  (start expt-recur-machine)
+  (get-register-contents expt-recur-machine 'val))
+
+
+(check-equal? (expr-recur 2 0)
+              1)
+(check-equal? (expr-recur 2 10)
+              1024)
+
+;; ================
+(define expt-iter-machine
+  (make-machine
+   '(b n counter product)
+   (list (list '= =)
+         (list '- -)
+         (list '* *))
+   (rest expt-iter-controller)
+   ))
+
+(define (expr-iter b n)
+  (set-register-contents! expt-iter-machine 'b b)
+  (set-register-contents! expt-iter-machine 'n n)
+  (start expt-iter-machine)
+  (get-register-contents expt-iter-machine 'product))
+
+(check-equal? (expr-iter 2 0)
+              1)
+(check-equal? (expr-iter 2 10)
+              1024)
 </code></pre>
 <h2 id="5_08"><a class="header" href="#5_08">5_08</a></h2>
 <pre><code class="language-lisp">;; file: 5_08.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+(racket:require (racket:rename-in "../allcode/ch5-regsim.rkt"
+                                  (_extract-labels origin-extract-labels)))
+
+;; 시율레이터에서 there까지 돌렸을 때 레지스터 a 값은?
+(define expr
+  '(start
+    (goto (label here))
+    here
+    (assign a (const 3))
+    (goto (label there))
+    here
+    (assign a (const 4))
+    (goto (label there))
+    there))
+
+(define add-machine
+  (make-machine
+   '(a)
+   '()
+   expr))
+
+(~&gt; add-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; add-machine 
+    (get-register-contents 'a)
+    (check-equal? 3))
+
+;; 어셈블러가 서로 다른 위치에 같은 라벨 이름을 썼을 때 에러를 나타내도록 extract-labels 프로시저를 고쳐라.
+(define (extract-labels text receive)
+  (if (null? text)
+      (receive '() '())
+      (extract-labels (cdr text)
+                      (lambda (insts labels)
+                        (let ((next-inst (car text)))
+                          (if (symbol? next-inst)
+                              ;; before
+                              ;; (receive insts
+                              ;;          (cons (make-label-entry next-inst
+                              ;;                                  insts)
+                              ;;                labels))
+                              ;;
+                              ;; after
+                              (if (assoc next-inst labels)
+                                  (error "duplicate labels:" next-inst)
+                                  (receive insts
+                                           (cons (make-label-entry next-inst
+                                                                   insts)
+                                                 labels)))
+                              
+                              (receive (cons (make-instruction next-inst)
+                                             insts)
+                                       labels)))))))
+
+(override-extract-labels! extract-labels)
+
+(check-exn
+ #rx"duplicate labels: here"
+ (lambda ()
+   (extract-labels expr (lambda (insts labels) nil))))
 </code></pre>
 <h2 id="5_09"><a class="header" href="#5_09">5_09</a></h2>
 <pre><code class="language-lisp">;; file: 5_09.rkt

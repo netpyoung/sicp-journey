@@ -190,27 +190,596 @@
 </ul>
 <h2 id="5_01"><a class="header" href="#5_01">5_01</a></h2>
 <pre><code class="language-lisp">;; file: 5_01.rkt
+;; 5_01 / 5_02
+
+;;
+;; ref:
+;; Figure 5.3: A specification of the GCD machine. (data-path + controller)
+;; Figure 5.4: A GCD machine that reads inputs and prints results. (gdc + read / print)
+;; 5.2 A Register-Machine Simulator - (define gcd-machine ...)
+
+
+;; TODO Draw data-path and controller diagrams for this machine.
+'(define (factorial n)
+   (define (iter product counter)
+     (if (&gt; counter n)
+         product
+         (iter (* counter product)
+               (+ counter 1))))
+   (iter 1 1))
 </code></pre>
 <h2 id="5_02"><a class="header" href="#5_02">5_02</a></h2>
 <pre><code class="language-lisp">;; file: 5_02.rkt
+;; 5_01 / 5_02
+
+;; register-machine언어를 사용하여 iterative factorial 머신을 기술하라(연습문제 5.1에서  만든)
+
+'(define (factorial n)
+   (define (iter product counter)
+     (if (&gt; counter n)
+         product
+         (iter (* counter product)
+               (+ counter 1))))
+   (iter 1 1))
+
+'(data-paths
+  (registers
+   ((name n))
+   ((name product)
+    (buttons ((name product&lt;-1) 
+              (source (constant 1)))
+             ((name product&lt;-mul) 
+              (source (operation *)))))
+   ((name count)
+    (buttons ((name counter&lt;-1) 
+              (source (constant 1)))
+             ((name counter&lt;-add)
+              (source (operation +))))))
+  (operations
+   ((name factorial)
+    (inputs (register n)))
+   ((name iter)
+    (inputs (constant 1) (constant 1)))
+   ((name &gt;)
+    (inputs (register a) (register b)))
+   ((name *)
+    (inputs (register a) (register b)))
+   ((name +)
+    (inputs (register a) (constant 0)))))
+
+'(controller
+  (assign n (op read))
+  
+  (assign product (const 1))
+  (assign counter (const 1))
+  
+  loop-iter
+  (test (op =) (reg counter) (reg n))
+  (branch
+   (label done-iter))
+  
+  (assign product (op *) (reg counter) (reg product))
+  (assign counter (op +) (reg counter) (const 1))
+  (goto
+   (label loop-iter))
+  
+  done-iter
+  ;; (read product)
+  )
 </code></pre>
 <h2 id="5_03"><a class="header" href="#5_03">5_03</a></h2>
 <pre><code class="language-lisp">;; file: 5_03.rkt
+
+#|
+(define (sqrt x)
+  (define (good-enough? guess)
+    (&lt; (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
+
+
+- sqrt 각 버전의 머신 설계를 data-path 다이어그램으로, 레지스터 머신 언어로 controller 정의를 작성하여 설명.
+|#
+
+
+;; - good-enough?와 improve 연산자는 primitive로 사용 가능하다고 가정.
+'(controller
+  (assign x (op read))
+  
+  (assign guess (constant 1.0))
+  
+  loop-sqrt-iter
+  (test (op good-enough?) (reg guess) (reg x))
+  (branch
+   (label done-loop-sqrt-iter))
+  
+  (assign guess (op improve) (reg guess) (reg x))
+  (goto
+   (label loop-sqrt-iter))
+  
+  done-loop-sqrt-iter
+  ;; (read guess)
+  )
+
+
+;; - 두 연산자를 산술 연산으로 확장하여 구현
+'(controller
+  (assign x (op read))
+  
+  (assign guess (constant 1.0))
+  
+  loop
+
+  ;; (define (good-enough? guess)
+  ;;   (&lt; (abs (- (square guess) x)) 0.001)) 
+  (assign good-enough-s   (op square) (reg guess))                  ; (square guess)
+  (assign good-enough-m   (op -)      (reg good-enough-s) (reg x))  ; (- x)
+  (assign good-enough-abs (op abs)    (reg good-enough-m))          ; (abs)
+  (test (op &lt;) (register good-enough-abs) (constant 0.001))         ; (&lt; 0.001)
+  (branch
+   (label done))
+
+  ;; (define (improve guess)
+  ;;   (average guess (/ x guess)))
+  (assign improve-d   (op /)       (reg x)     (reg guess))          ; (/ x guess)
+  (assign guess       (op average) (reg guess) (reg improve-d))      ; (average)
+  (goto
+   (label loop))
+  
+  done
+  ;; (read guess)
+  )
 </code></pre>
 <h2 id="5_04"><a class="header" href="#5_04">5_04</a></h2>
 <pre><code class="language-lisp">;; file: 5_04.rkt
+;; 5_04 / 5_07
+(#%require (prefix racket: racket))
+
+(racket:provide
+ expt-recur-controller
+ expt-iter-controller)
+
+;; ref:
+;;  - Figure 5.11 - factorial
+
+;; controller 랑 data-path다이어그램
+
+;; Recursive exponentiation:
+#|
+(define (expt b n)
+  (if (= n 0)
+      1
+      (* b (expt b (- n 1)))))
+|#
+
+(define expt-recur-data-path
+  '(data-paths
+    (registers
+     ((name b)
+      (buttons ((name b&lt;-b) 
+                (source (register b)))))
+     ((name n)
+      (buttons ((name n&lt;-n-1) 
+                (source (operator -)))))
+     ((name val)
+      (buttons ((name val&lt;-expt-n-1)
+                (source (operator expt)))))
+     ((name continue)
+    
+      ))
+    (operations
+     ((name expt)
+      (inputs (register b) (register n)))
+     ((name =)
+      (inputs (register n) (constant 0)))
+     ((name -)
+      (inputs (register n) (constant 1)))
+     ((name *)
+      (inputs (register b) (register val))))))
+
+(define expt-recur-controller
+  '(controller
+    ;; (assign b (op read))
+    ;; (assign n (op read))
+
+    (assign continue
+            (label done))
+  
+    loop
+    (test (op =) (reg n) (const 0))      ;   (if (= n 0)
+    (branch
+     (label base-case))
+
+    (save continue)
+    ;;(save n)
+    (assign n (op -) (reg n) (const 1))
+    (assign continue
+            (label after))
+    (goto
+     (label loop))
+
+    after
+    ;;(restore n)
+    (restore continue)
+    (assign val (op *) (reg b) (reg val)) ;       (* b (expt b (- n 1)))))
+    (goto
+     (reg continue))
+  
+    base-case
+    (assign val (const 1))                ; 1
+    (goto
+     (reg continue))
+  
+    done
+    ;; (read val)
+    ))
+
+;; Iterative exponentiation:
+#|
+(define (expt b n)
+  (define (expt-iter counter product)
+    (if (= counter 0)
+        product
+        (expt-iter (- counter 1)
+                   (* b product))))
+  (expt-iter n 1))
+|#
+
+(define expt-iter-data-path
+  '(data-paths
+    (registers
+     ((name b))
+     ((name n))
+     ((name counter)
+      (buttons ((name counter&lt;-n) 
+                (source (register n)))
+               ((name counter&lt;-minus)
+                (source (operation -)))))
+     ((name product)
+      (buttons ((name product&lt;-1) 
+                (source (constant 1)))
+               ((name counter&lt;-mul)
+                (source (operation *))))))
+    (operations
+     ((name expt)
+      (inputs (register b) (register n)))
+     ((name expt-iter)
+      (inputs (register n) (constant 1)))
+     ((name =)
+      (inputs (register counter) (constant 0)))
+     ((name -)
+      (inputs (register counter) (constant 1)))
+     ((name *)
+      (inputs (register b) (register product))))))
+
+(define expt-iter-controller
+  '(controller
+    ;; (assign b (op read))
+    ;; (assign n (op read))
+
+    (assign counter (reg n))
+    (assign product (const 1))
+  
+    loop-iter
+    (test (op =) (reg counter) (const 0))
+    (branch
+     (label done-iter))
+
+    (assign counter (op -) (reg counter) (const 1))
+    (assign product (op *) (reg b) (reg product))
+  
+    (goto
+     (label loop-iter))
+  
+    done-iter
+    ;; (read product)
+    ))
 </code></pre>
 <h2 id="5_05"><a class="header" href="#5_05">5_05</a></h2>
 <pre><code class="language-lisp">;; file: 5_05.rkt
+
+;; ref:
+;;  - Figure 5.11 - factorial
+;;  - Figure 5.12 - fibonacchi
+
+#|
+TOOD 팩토리얼(factorial)과 피보나치(Fibonacci) 머신을 손으로 시뮬레이션하시오.
+이때, 최소한 한 번의 재귀 호출이 실행되는 nontrivial 입력을 사용하시오.
+실행의 각 중요한 지점에서 스택의 내용을 보여주시오.
+|#
 </code></pre>
 <h2 id="5_06"><a class="header" href="#5_06">5_06</a></h2>
 <pre><code class="language-lisp">;; file: 5_06.rkt
+
+;; ref:
+;;   - Figure 5.12
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+
+#|
+Ben Bitdiddle 은 피보나치 머신의 컨트롤러 시퀀스에 불필요한 save와 restore 명령이 포함되어 있으며,
+이를 제거하면 더 빠른 머신을 만들 수 있는 것을 알아차렸습니다.
+이 명령들은 어디에 있습니까?
+|#
+
+(#%require "../allcode/ch5-regsim.rkt")
+
+'(define (fib n)
+   (if (&lt; n 2) 
+       n 
+       (+ (fib (- n 1)) (fib (- n 2)))))
+
+
+(define fib-controller
+  '(controller
+    (assign continue
+            (label fib-done))
+   
+    fib-loop
+    (test (op &lt;) (reg n) (const 2))
+    (branch (label immediate-answer))
+    ;; set up to compute Fib(n - 1)
+    (save continue)                                          ; - save1   continue
+    (assign continue
+            (label afterfib-n-1))
+    (save n)           ; save old value of n                 ; - save2   n
+    (assign n 
+            (op -)
+            (reg n)
+            (const 1)) ; clobber n to n-1
+    (goto 
+     (label fib-loop)) ; perform recursive call
+   
+    afterfib-n-1 ; upon return, val contains Fib(n - 1)
+    (restore n)                                             ; - restore1 n
+    ;;(restore continue)                                      ; - restore2 continue &lt;&lt;------
+    ;; set up to compute Fib(n - 2)
+    (assign n (op -) (reg n) (const 2))
+    ;;(save continue)                                         ; - save3    continue  &lt;&lt;------
+    (assign continue
+            (label afterfib-n-2))
+    (save val)         ; save Fib(n - 1)                    ; - save4    val
+    (goto (label fib-loop))
+   
+    afterfib-n-2 ; upon return, val contains Fib(n - 2)
+    (assign n 
+            (reg val)) ; n now contains Fib(n - 2)
+    (restore val)      ; val now contains Fib(n - 1)        ; - restore3 val
+    (restore continue)                                      ; - restore4 continue
+    (assign val        ; Fib(n - 1) + Fib(n - 2)
+            (op +) 
+            (reg val)
+            (reg n))
+    (goto              ; return to caller,
+     (reg continue))   ; answer is in val
+   
+    immediate-answer
+    (assign val 
+            (reg n))   ; base case: Fib(n) = n
+    (goto
+     (reg continue))
+   
+    fib-done))
+
+(define fib-machine
+  (make-machine
+   '(n continue val)
+   (list (list '&lt; &lt;)
+         (list '- -)
+         (list '+ +))
+   (rest fib-controller)
+   ))
+
+(define (fib n)
+  (set-register-contents! fib-machine 'n n)
+  (start fib-machine)
+  (get-register-contents fib-machine 'val))
+
+(check-equal? (fib 0)
+              0)
+(check-equal? (fib 1)
+              1)
+(check-equal? (fib 2)
+              1)
+(check-equal? (fib 3)
+              2)
+(check-equal? (fib 10)
+              55)
 </code></pre>
 <h2 id="5_07"><a class="header" href="#5_07">5_07</a></h2>
 <pre><code class="language-lisp">;; file: 5_07.rkt
+;; 5_04 / 5_07
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+
+;; simulator를 사용해여 머신을 테스트라하(연습문제 5.4에서 디자인한)
+(#%require "../allcode/ch5-regsim.rkt")
+(#%require "5_04.rkt")
+
+(define add-machine
+  (make-machine
+   ;; 레지스터 목록
+   '(n val sum continue)
+
+   ;; 연산 목록
+   (list (list '+ +)
+         (list '- -)
+         (list '= =))
+   
+   ;; 컨트롤러
+   '(
+     #;(assign continue (label done))
+     
+     loop
+     (test (op =) (reg n) (const 0))         ; if n == 0
+     (branch (label done))                   ;    break
+     (assign sum (op +) (reg sum) (reg val)) ; sum += val
+     (assign n (op -) (reg n) (const 1))     ; n -= 1
+     (goto (label loop))
+     
+     done)))
+
+(~&gt; add-machine
+    (set-register-contents! 'val 3)
+    (check-equal? 'done))
+(~&gt; add-machine
+    (set-register-contents! 'n 5)
+    (check-equal? 'done))
+(~&gt; add-machine
+    (set-register-contents!'sum 0)  ; 결과 저장용
+    (check-equal? 'done))
+(~&gt; add-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; add-machine 
+    (get-register-contents 'sum)
+    (check-equal? 15))
+
+
+(define gcd-machine
+  (make-machine
+   '(a b t)
+   (list (list 'rem remainder) (list '= =))
+   '(test-b
+     (test (op =) (reg b) (const 0))
+     (branch (label gcd-done))
+     (assign t (op rem) (reg a) (reg b))
+     (assign a (reg b))
+     (assign b (reg t))
+     (goto (label test-b))
+     gcd-done)))
+
+(~&gt; gcd-machine
+    (set-register-contents! 'a 206)
+    (check-equal? 'done))
+(~&gt; gcd-machine
+    (set-register-contents! 'b 40)
+    (check-equal? 'done))
+(~&gt; gcd-machine 
+    (start)
+    (check-equal? 'done))
+(~&gt; gcd-machine 
+    (get-register-contents 'a)  ; 결과: 2 (206과 40의 GCD)
+    (check-equal? 2))
+
+;; ================
+(define expt-recur-machine
+  (make-machine
+   '(b n continue val)
+   (list (list '= =)
+         (list '- -)
+         (list '* *))
+   (rest expt-recur-controller)))
+
+(define (expr-recur b n)
+  (set-register-contents! expt-recur-machine 'b b)
+  (set-register-contents! expt-recur-machine 'n n)
+  (start expt-recur-machine)
+  (get-register-contents expt-recur-machine 'val))
+
+
+(check-equal? (expr-recur 2 0)
+              1)
+(check-equal? (expr-recur 2 10)
+              1024)
+
+;; ================
+(define expt-iter-machine
+  (make-machine
+   '(b n counter product)
+   (list (list '= =)
+         (list '- -)
+         (list '* *))
+   (rest expt-iter-controller)
+   ))
+
+(define (expr-iter b n)
+  (set-register-contents! expt-iter-machine 'b b)
+  (set-register-contents! expt-iter-machine 'n n)
+  (start expt-iter-machine)
+  (get-register-contents expt-iter-machine 'product))
+
+(check-equal? (expr-iter 2 0)
+              1)
+(check-equal? (expr-iter 2 10)
+              1024)
 </code></pre>
 <h2 id="5_08"><a class="header" href="#5_08">5_08</a></h2>
 <pre><code class="language-lisp">;; file: 5_08.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+(racket:require (racket:rename-in "../allcode/ch5-regsim.rkt"
+                                  (_extract-labels origin-extract-labels)))
+
+;; 시율레이터에서 there까지 돌렸을 때 레지스터 a 값은?
+(define expr
+  '(start
+    (goto (label here))
+    here
+    (assign a (const 3))
+    (goto (label there))
+    here
+    (assign a (const 4))
+    (goto (label there))
+    there))
+
+(define add-machine
+  (make-machine
+   '(a)
+   '()
+   expr))
+
+(~&gt; add-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; add-machine 
+    (get-register-contents 'a)
+    (check-equal? 3))
+
+;; 어셈블러가 서로 다른 위치에 같은 라벨 이름을 썼을 때 에러를 나타내도록 extract-labels 프로시저를 고쳐라.
+(define (extract-labels text receive)
+  (if (null? text)
+      (receive '() '())
+      (extract-labels (cdr text)
+                      (lambda (insts labels)
+                        (let ((next-inst (car text)))
+                          (if (symbol? next-inst)
+                              ;; before
+                              ;; (receive insts
+                              ;;          (cons (make-label-entry next-inst
+                              ;;                                  insts)
+                              ;;                labels))
+                              ;;
+                              ;; after
+                              (if (assoc next-inst labels)
+                                  (error "duplicate labels:" next-inst)
+                                  (receive insts
+                                           (cons (make-label-entry next-inst
+                                                                   insts)
+                                                 labels)))
+                              
+                              (receive (cons (make-instruction next-inst)
+                                             insts)
+                                       labels)))))))
+
+(override-extract-labels! extract-labels)
+
+(check-exn
+ #rx"duplicate labels: here"
+ (lambda ()
+   (extract-labels expr (lambda (insts labels) nil))))
 </code></pre>
 <h2 id="5_09"><a class="header" href="#5_09">5_09</a></h2>
 <pre><code class="language-lisp">;; file: 5_09.rkt

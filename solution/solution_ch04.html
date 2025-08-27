@@ -7068,33 +7068,415 @@
 </code></pre>
 <h2 id="4_70"><a class="header" href="#4_70">4_70</a></h2>
 <pre><code class="language-lisp">;; file: 4_70.rkt
+
+;; Q. 프로시저 add-assertion! 과 add-rule! 에서 let을 쓰는 목적이 무엇인가?
+;;
+;; cons-stream을 쓰는데 이게 두번째(cdr)위치에 있는 것을 dealy시킴.
+;; delay되면서 자기 자신을 참조하게되는데 그걸 방지할 목적으로 let으로 미리 저장해둔걸 사용.
+;;
+;; Q. 다음과 같이 add-assertion!을 구현하면 무엇이 잘못인가?
+;;  - 3.5.2절에서 끝없는 스트림의 정의를 되새겨 보라
+;;    - (define ones (cons-stream 1 ones))
+;;
+;; (define (add-assertion! assertion)
+;;   (store-assertion-in-index assertion)
+;;   (set! THE-ASSERTIONS (cons-stream assertion THE-ASSERTIONS))
+;;   'ok)
+
+;; 예를들어 (add-assertion! '(a 1)) 라고 하면
+;; THE-ASSERTIONS 는 다음과 같이 무한으로 나가게 된다.
+;; (a 1) THE-ASSERTIONS
+;;       (a 1) THE-ASSERTIONS
+;;             (a 1) THE-ASSERTIONS
+;;                   ...
 </code></pre>
 <h2 id="4_71"><a class="header" href="#4_71">4_71</a></h2>
 <pre><code class="language-lisp">;; file: 4_71.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(racket:require (racket:rename-in "../allcode/ch4-4.4.4.1-query.rkt"
+                                  (_simple-query simple-query-before)
+                                  (_disjoin disjoin-before)))
+
+;; simple-query과 disjoin에서 delay시키느냐 안시키느냐의 차이.
+
+
+;; simple-query
+;; rule적용을 delay시키는데, 이상한 룰이 있으면 무한루프에 빠지게됨.
+
+
+(~&gt; '(
+      
+      (married Minnie Mickey)
+
+      (rule (married ?x ?y)
+            (married ?y ?x))
+      
+      )
+    (initialize-data-base))
+
+(define query
+  '(married Mickey (? x))
+  )
+
+(~&gt; (simple-query query (singleton-stream '()))
+    (stream-car)
+    (check-equal? '(((? 1 y) . Minnie) ((? x) ? 1 y) ((? 1 x) . Mickey))))
+
+(define (simple-query-after query-pattern frame-stream)
+  (stream-flatmap (lambda (frame)
+                    ;; before
+                    ;; (stream-append-delayed (find-assertions query-pattern frame)
+                    ;;                        (delay (apply-rules query-pattern frame)))
+                    ;;
+                    ;; after
+                    (stream-append (find-assertions query-pattern frame)
+                                   (apply-rules query-pattern frame))
+                    )
+                  frame-stream))
+
+(override-simple-query! simple-query-after)
+
+;; endless loop
+;;
+;; (simple-query query (singleton-stream '()))
+
+
+;; disjoin
+;;
+;; or 연산을 담당하는데, or의 두번째에 이상한걸 넣게되면 무한루프에 빠지게 됨.
+
+(reset!)
+
+(~&gt; '(
+      
+      (married Minnie Mickey)
+
+      (rule (married ?x ?y)
+            (married ?y ?x))
+      
+      )
+    (initialize-data-base))
+
+(define query2
+  '((married Mickey (? x)) (married (? x) 1))
+  )
+
+(~&gt; (disjoin query2 (singleton-stream '()))
+    (stream-car)
+    (check-equal? '(((? 1 y) . Minnie) ((? x) ? 1 y) ((? 1 x) . Mickey))))
+
+(define (disjoin-after disjuncts frame-stream)
+  (if (empty-disjunction? disjuncts)
+      the-empty-stream
+      ;; before
+      ;; (interleave-delayed (qeval (first-disjunct disjuncts) frame-stream)
+      ;;                     (delay (disjoin (rest-disjuncts disjuncts) frame-stream)))
+      (interleave (qeval (first-disjunct disjuncts) frame-stream)
+                  (disjoin-after (rest-disjuncts disjuncts) frame-stream))
+      ))
+
+(override-disjoin! disjoin-after)
+
+
+;; endless loop
+;;
+;; (disjoin query2 (singleton-stream '()))
 </code></pre>
 <h2 id="4_72"><a class="header" href="#4_72">4_72</a></h2>
 <pre><code class="language-lisp">;; file: 4_72.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; 왜 disjoin 와 stream-flatmap에서 스트림을 병합할때 append가 아닌 interleave를 사용하는가?
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+'(define (disjoin disjuncts frame-stream)
+   (if (empty-disjunction? disjuncts)
+       the-empty-stream
+       (interleave-delayed (qeval (first-disjunct disjuncts) frame-stream)
+                           (delay (disjoin (rest-disjuncts disjuncts) frame-stream)))))
+
+'(define (stream-flatmap proc s)
+   (flatten-stream (stream-map proc s)))
+
+
+'(define (flatten-stream stream)
+   (if (stream-null? stream)
+       the-empty-stream
+       (interleave-delayed (stream-car stream)
+                           (delay (flatten-stream (stream-cdr stream))))))
+
+'(define (interleave-delayed s1 delayed-s2)
+   (if (stream-null? s1)
+       (force delayed-s2)
+       (cons-stream (stream-car s1)
+                    (interleave-delayed (force delayed-s2)
+                                        (delay (stream-cdr s1))))))
+
+
+'(define (stream-append-delayed s1 delayed-s2)
+   (if (stream-null? s1)
+       (force delayed-s2)
+       (cons-stream (stream-car s1)
+                    (stream-append-delayed (stream-cdr s1)
+                                           delayed-s2))))
+
+
+(define ones (cons-stream 1 ones))
+(define twos (cons-stream 2 twos))
+
+;; append시 첫번째 스트림이 무한일때, 두번째 스트림에 접근이 불가.
+(~&gt; (stream-append-delayed ones (delay twos))
+    (stream-cdr)
+    (stream-cdr)
+    (stream-cdr)
+    (stream-car)
+    (check-equal? 1))
+
+;; interleave면 첫번째 스트림이 무한이라도 번갈아 기회가 생김.
+(~&gt; (interleave-delayed ones (delay twos))
+    (stream-cdr)
+    (stream-cdr)
+    (stream-cdr)
+    (stream-car)
+    (check-equal? 2))
 </code></pre>
 <h2 id="4_73"><a class="header" href="#4_73">4_73</a></h2>
 <pre><code class="language-lisp">;; file: 4_73.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; flatten-stream 는 왜 delay 사용하나?
+;; 계산을 미뤄 무한 스트림에 대한 무한루프 방지.
+(racket:require (racket:rename-in "../allcode/ch4-4.4.4.1-query.rkt"
+                                  (_flatten-stream flatten-stream-before)))
+
+
+(define ones (cons-stream 1 ones))
+(define twos (cons-stream 2 twos))
+
+
+
+#;(flatten-stream (list-&gt;stream (list (list-&gt;stream '(1 2 3)) ones)))
+
+
+(~&gt; (flatten-stream (cons-stream (list-&gt;stream '(1 2 3)) ones))
+    (stream-car)
+    (check-equal? 1))
+
+(define (flatten-stream-after stream)
+  ;; before
+  ;; (if (stream-null? stream)
+  ;;     the-empty-stream
+  ;;     (interleave-delayed (stream-car stream)
+  ;;                         (delay (flatten-stream (stream-cdr stream)))))
+
+  ;; after
+  (if (stream-null? stream)
+      the-empty-stream
+      (interleave (stream-car stream)
+                  (flatten-stream-after (stream-cdr stream)))))
+
+(override-flatten-stream! flatten-stream-after)
+
+;; 무한 루프
+;; (~&gt; (flatten-stream (cons-stream (list-&gt;stream '(1 2 3)) ones))
+;;     (stream-car)
+;;     (check-equal? 1))
 </code></pre>
 <h2 id="4_74"><a class="header" href="#4_74">4_74</a></h2>
-<pre><code class="language-lisp">;; file: 4_74.rkt
+<pre><code class="language-lisp">
+;; file: 4_74.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;;
+;; simple-flatten을 구현하라
+
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+(define (simple-stream-flatmap proc s)
+  (simple-flatten (stream-map proc s)))
+
+(define (simple-flatten stream)
+  (stream-map stream-car
+              (stream-filter (lambda (s)
+                               (not (stream-null? s)))
+                             stream)))
+
+'(define (flatten-stream stream)
+   (if (stream-null? stream)
+       the-empty-stream
+       (interleave-delayed (stream-car stream)
+                           (delay (flatten-stream (stream-cdr stream))))))
+
+
+
+(define test-stream
+  (list-&gt;stream (list (list-&gt;stream '(1))
+                      (list-&gt;stream '(2))
+                      (list-&gt;stream '())
+                      (list-&gt;stream '(3)))))
+
+(~&gt; (flatten-stream test-stream)
+    (stream-&gt;list )
+    (check-equal?'(1 2 3)))
+
+(~&gt; (simple-flatten test-stream)
+    (stream-&gt;list )
+    (check-equal?'(1 2 3)))
+
+
+(override-flatten-stream! flatten-stream)
+(override-stream-flatmap! simple-stream-flatmap)
+
+;; 쿼리 시스템의 행동이 달라지는가?
+;; 달라지지 않는다.
+;; frame 스트림에 프로시저를 적용하면 언제나 빈 스트림이나 원소 한 개짜리 스트림이 나오므로, 스트림을 번갈아 끼워넣을 필요가 없다.
 </code></pre>
 <h2 id="4_75"><a class="header" href="#4_75">4_75</a></h2>
 <pre><code class="language-lisp">;; file: 4_75.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+(racket:provide
+ uniquely-asserted)
+
+
+;; 쿼리 시스템에 unique 라는 special form을 추가하라.
+
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(define (uniquely-asserted content frame-stream)
+  (let* ((q (first content)))
+    ;; 남은 스트림을 다시 커다란 스트림 하나로 묶어서 unique 쿼리의 결과를 내놓게 된다.
+    (stream-flatmap (lambda (frame)
+                      ;; qeval을 사용하여, 스트림 속의 각 일람표에 대해 정해진 쿼리를 만족하도록 확장된 모든 일람표의 스트림을 찾아낸다
+                      (let ((qstream (qeval q (singleton-stream frame))))
+                        ;; 이로부터 정확히 원소 하나만 들지 않은 스트림은 걸러내야 한다.
+                        (cond ((stream-null? qstream)              the-empty-stream)
+                              ((stream-null? (stream-cdr qstream)) qstream)
+                              (else                                the-empty-stream))))
+                    frame-stream)))
+
+(put 'unique 'qeval uniquely-asserted)
+
+(~&gt; '(unique (job ?x (computer wizard)))
+    (run)
+    (check-equal? '((unique (job (Bitdiddle Ben) (computer wizard))))))
+
+
+(~&gt; '(unique (job (Bitdiddle Ben) (computer wizard)))
+    (run)
+    (check-equal? '((unique (job (Bitdiddle Ben) (computer wizard))))))
+
+
+(~&gt; '(unique (job ?x (computer programmer)))
+    (run)
+    (check-equal? '()))
+
+(~&gt; '(and (job ?x ?j) 
+          (unique (job ?anyone ?j)))
+    (run)
+    (check-equal? '(
+                    (and (job (Aull DeWitt) (administration secretary))
+                         (unique (job (Aull DeWitt) (administration secretary))))
+                    (and (job (Cratchet Robert) (accounting scrivener))
+                         (unique (job (Cratchet Robert) (accounting scrivener))))
+                    (and (job (Scrooge Eben) (accounting chief accountant))
+                         (unique (job (Scrooge Eben) (accounting chief accountant))))
+                    (and (job (Warbucks Oliver) (administration big wheel))
+                         (unique (job (Warbucks Oliver) (administration big wheel))))
+                    (and (job (Reasoner Louis) (computer programmer trainee))
+                         (unique (job (Reasoner Louis) (computer programmer trainee))))
+                    (and (job (Tweakit Lem E) (computer technician))
+                         (unique (job (Tweakit Lem E) (computer technician))))
+                    (and (job (Bitdiddle Ben) (computer wizard))
+                         (unique (job (Bitdiddle Ben) (computer wizard)))))
+                  ))
 </code></pre>
 <h2 id="4_76"><a class="header" href="#4_76">4_76</a></h2>
 <pre><code class="language-lisp">;; file: 4_76.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require threading)
+(#%require profile)
+(#%require (prefix r5rs: r5rs))
+(#%require (prefix racket: racket))
+
+;; TODO and의 두번째 쿼리를처리하는 과정에서 첫 번째 쿼리가 만들어낸 모든 일람표에 대해 데이터베이스를 훌어보아야 하기 때문에 효율이 떨어진다.
+;; 이와달리, and의 두절을 따로 처리한 다음에, 출력 일람표들의 모든쌍이 서로 어긋나지 않는지 살펴보는 방법도 있다.
+;; 그리하려면, 두 일람표를 인자로 받아, 두 일람표 속의 정의가 서로 맞아떨어진다면 두 정의를 한데 합쳐 하나의 일람표를 만들어내는 프로시저를 짜야한다.
+;; 이 연산은 unification과 유사하다.
+
+
+(racket:require "../allcode/ch4-4.4.4.1-query.rkt")
+
+(~&gt; microshaft-data-base
+    (initialize-data-base))
+
+(define (conjoin-origin conjuncts frame-stream)
+  (if (empty-conjunction? conjuncts)
+      frame-stream
+      (conjoin-origin (rest-conjuncts conjuncts)
+                      (qeval (first-conjunct conjuncts)
+                             frame-stream))))
+
+(put 'and 'qeval conjoin-origin)
+
+
+(define (conjoin-after conjuncts frame-stream)
+  (if (empty-conjunction? conjuncts)
+      frame-stream
+      (conjoin-after (rest-conjuncts conjuncts)
+                     (qeval (first-conjunct conjuncts)
+                            frame-stream))))
+
+(put 'and 'qeval conjoin-after)
 </code></pre>
 <h2 id="4_77"><a class="header" href="#4_77">4_77</a></h2>
 <pre><code class="language-lisp">;; file: 4_77.rkt
+
+;; TODO
 </code></pre>
 <h2 id="4_78"><a class="header" href="#4_78">4_78</a></h2>
 <pre><code class="language-lisp">;; file: 4_78.rkt
+
+;; TODO
 </code></pre>
 <h2 id="4_79"><a class="header" href="#4_79">4_79</a></h2>
 <pre><code class="language-lisp">;; file: 4_79.rkt
+
+;; TODO
 </code></pre>
 
                     </main>

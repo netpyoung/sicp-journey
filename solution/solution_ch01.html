@@ -1162,12 +1162,125 @@ graph TD
 </code></pre>
 <h2 id="1_16"><a class="header" href="#1_16">1_16</a></h2>
 <pre><code class="language-lisp">;; file: 1_16.rkt
+;; 1_16 / 1_17 / 1_18
+(#%require threading)
+(#%require rackunit)
+(#%require profile)
+
+;; fast-expt를 iterate하게 바꿔라
+
+
+(define (square x)
+  (* x x))
+
+(define (fast-expt b n)
+  (cond (( = n 0)
+         1)
+        ((even? n)
+         (square (fast-expt b (/ n 2))))
+        (else
+         (* b (fast-expt b (- n 1))))))
+
+(define (fast-expt-iter b n)
+  (define (iter acc b n)
+    (cond (( = n 0)
+           acc)
+          ((even? n)
+           (iter acc (square b) (/ n 2)))
+          (else
+           (iter (* acc b) b (- n 1)))))
+  (iter 1 b n))
+
+(~&gt; (fast-expt 2 0)
+    (check-equal? 1))
+(~&gt; (fast-expt 2 1)
+    (check-equal? 2))
+(~&gt; (fast-expt 2 5)
+    (check-equal? 32))
+(~&gt; (fast-expt 2 10)
+    (check-equal? 1024))
+
+
+(~&gt; (fast-expt-iter 2 0)
+    (check-equal? 1))
+(~&gt; (fast-expt-iter 2 1)
+    (check-equal? 2))
+(~&gt; (fast-expt-iter 2 5)
+    (check-equal? 32))
+(~&gt; (fast-expt-iter 2 10)
+    (check-equal? 1024))
 </code></pre>
 <h2 id="1_17"><a class="header" href="#1_17">1_17</a></h2>
 <pre><code class="language-lisp">;; file: 1_17.rkt
+;; 1_16 / 1_17 / 1_18
+
+(#%require rackunit)
+
+;; Mul구현. fast-expt처럼 계산단계가 로그로 자라도록 짜라.
+
+(define (double x)
+  (* 2 x))
+
+(define (halve x)
+  (/ x 2))
+
+(define (mul a b)
+  (if (= b 0)
+      0
+      (+ a (mul a (- b 1)))))
+
+(define (fast-mul a b)
+  (cond ((= b 0)
+         0)
+        ((even? b)
+         (double (fast-mul a (halve b))))
+        (else
+         (+ a (fast-mul a (- b 1))))))
+
+
+(check-equal? (mul 2 0)  0)
+(check-equal? (mul 2 1)  2)
+(check-equal? (mul 2 2)  4)
+(check-equal? (mul 2 10) 20)
+(check-equal? (mul 2 11) 22)
+
+(check-equal? (fast-mul 2 0)  0)
+(check-equal? (fast-mul 2 1)  2)
+(check-equal? (fast-mul 2 2)  4)
+(check-equal? (fast-mul 2 10) 20)
+(check-equal? (fast-mul 2 11) 22)
 </code></pre>
 <h2 id="1_18"><a class="header" href="#1_18">1_18</a></h2>
 <pre><code class="language-lisp">;; file: 1_18.rkt
+;; 1_16 / 1_17 / 1_18
+
+(#%require rackunit)
+
+;; Mul구현. 1.16와 1.17를 합쳐 계산 단계가 로그로 자라되 iterative형태로 짜라.
+
+(define (double x)
+  (* 2 x))
+
+(define (halve x)
+  (/ x 2))
+
+
+(define (fast-mul-iter a b)
+  (define (iter acc a b)
+    (cond ((= b 0)
+           acc)
+          ((even? b)
+           (iter acc (double a) (halve b)))
+          (else
+           (iter (+ acc a) a (- b 1)))))
+  (iter 0 a b))
+
+
+(check-equal? (fast-mul-iter 2 0)  0)
+(check-equal? (fast-mul-iter 2 1)  2)
+(check-equal? (fast-mul-iter 2 2)  4)
+(check-equal? (fast-mul-iter 2 10) 20)
+(check-equal? (fast-mul-iter 2 11) 22)
 </code></pre>
 <h2 id="1_19"><a class="header" href="#1_19">1_19</a></h2>
 <pre><code class="language-lisp">;; file: 1_19.rkt
