@@ -7,7 +7,22 @@
 
 
         <!-- Custom HTML head -->
-
+        <!-- #region: Google tag (gtag.js) -->
+        <!--<script async src="https://www.googletagmanager.com/gtag/js?id=G-855BJNV9VD"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+        
+          gtag('config', 'G-855BJNV9VD');
+        </script>-->
+        <!-- #endregion: Google tag (gtag.js) -->
+        
+        
+        <script type="module">
+          import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+          mermaid.initialize({ startOnLoad: true });
+        </script>
         <meta name="description" content="SICP 여정">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -783,9 +798,132 @@ Ben Bitdiddle 은 피보나치 머신의 컨트롤러 시퀀스에 불필요한 
 </code></pre>
 <h2 id="5_09"><a class="header" href="#5_09">5_09</a></h2>
 <pre><code class="language-lisp">;; file: 5_09.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+machine operation을 다룰때 (constant / register 뿐만 아니라) label에도 다룰 수 있도록 되었는데,
+expression을 처리하는 프로시져를 수정하여  constant / register 에만 사용 가능하도록 조건을 강제해라.
+|#
+
+(racket:require (racket:rename-in "../allcode/ch5-regsim.rkt"
+                                  (_make-operation-exp origin-make-operation-exp)))
+
+(define (is-operation-operand-exp? exp)
+  (cond ((constant-exp? exp)
+         true)
+        ((register-exp? exp)
+         true)
+        ((label-exp? exp)
+         false)
+        (else
+         false)))
+
+(define (make-operation-exp exp machine labels operations)
+  (let ((op (lookup-prim (operation-exp-op exp) operations))
+        (aprocs
+         (map (lambda (e)
+                ;; before
+                ;; (make-primitive-exp e machine labels)
+                ;;
+                ;; after
+                (if (not (is-operation-operand-exp? e))
+                    (error "is not operation operand exp:" e)
+                    (make-primitive-exp e machine labels))
+                )
+              (operation-exp-operands exp))))
+    (lambda ()
+      (apply op (map (lambda (p) (p)) aprocs)))))
+
+(override-make-operation-exp! make-operation-exp)
+
+
+(check-exn
+ #rx"is not operation operand exp: \\(label hello\\)"
+ (lambda ()
+  
+   (make-machine
+    '(a b c x)
+    (list (list '+ +))
+    '(
+      hello
+     
+      (assign x (const 1))
+     
+      (assign a (op +) (reg x) (reg x))
+      (assign b (op +) (const 1) (const 2))
+      (assign c (op +) (label hello) (label hello))
+     
+      ))
+   ))
 </code></pre>
 <h2 id="5_10"><a class="header" href="#5_10">5_10</a></h2>
 <pre><code class="language-lisp">;; file: 5_10.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+새로운 문법을 추가할 수 있으면 추가해봐라.
+|#
+
+(racket:require (racket:rename-in "../allcode/ch5-regsim.rkt"
+                                  (_make-execution-procedure origin-make-execution-procedure)))
+
+(define (make-inc inst machine labels operations pc)
+  (display (second inst))
+  (newline)
+  (let* ((register-name (second inst))
+         (target (get-register machine register-name))
+         (r (get-register machine register-name)))
+    (lambda ()
+      (set-contents! target (inc (get-contents r)))
+      (advance-pc pc))))
+
+
+(define (make-execution-procedure inst labels machine
+                                  pc flag stack ops)
+  (cond ((eq? (car inst) 'assign)
+         (make-assign inst machine labels ops pc))
+        ((eq? (car inst) 'test)
+         (make-test inst machine labels ops flag pc))
+        ((eq? (car inst) 'branch)
+         (make-branch inst machine labels flag pc))
+        ((eq? (car inst) 'goto)
+         (make-goto inst machine labels pc))
+        ((eq? (car inst) 'save)
+         (make-save inst machine stack pc))
+        ((eq? (car inst) 'restore)
+         (make-restore inst machine stack pc))
+        ((eq? (car inst) 'perform)
+         (make-perform inst machine labels ops pc))
+        ((eq? (first inst) 'inc)
+         (make-inc inst machine labels ops pc))
+        (else (error "Unknown instruction type -- ASSEMBLE"
+                     inst))))
+
+(override-make-execution-procedure! make-execution-procedure)
+
+(define dummy-machine 
+  (make-machine
+   '(x)
+   '()
+   '((assign x (const 1))
+     
+     (inc x)
+     (inc x)
+     )))
+
+(~&gt; dummy-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; dummy-machine 
+    (get-register-contents 'x)
+    (check-equal? 3))
 </code></pre>
 <h2 id="5_11"><a class="header" href="#5_11">5_11</a></h2>
 <pre><code class="language-lisp">;; file: 5_11.rkt
