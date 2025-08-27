@@ -2,6 +2,16 @@
 
 - [문제 목록](https://sarabander.github.io/sicp/html/Exercises.xhtml#Exercises)
 
+## todo
+
+- 4
+  - 4_34
+  - 4_44
+  - 4_67
+  - 4_77
+  - 4_78
+  - 4_79
+
 ## Chapter 1 - Building Abstractions with Procedures
 
 ### 1.1 – The Elements of Programming
