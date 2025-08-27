@@ -50,7 +50,7 @@
                               ;;
                               ;; after
                               (if (assoc next-inst labels)
-                                  (error "duplicate labels: " next-inst)
+                                  (error "duplicate labels:" next-inst)
                                   (receive insts
                                            (cons (make-label-entry next-inst
                                                                    insts)
@@ -63,6 +63,6 @@
 (override-extract-labels! extract-labels)
 
 (check-exn
- #rx"duplicate labels:  here"
+ #rx"duplicate labels: here"
  (lambda ()
    (extract-labels expr (lambda (insts labels) nil))))

@@ -1,6 +1,8 @@
 #lang sicp
 
+(#%require "./helper/my-util.rkt")
 (#%require (prefix racket: racket))
+
 (racket:provide (racket:all-defined-out))
 (racket:require (racket:only-in "ch5-syntax.rkt" tagged-list?))
 
@@ -183,7 +185,7 @@
       (update-insts! insts labels machine)
       insts)))
 
-(define (extract-labels text receive)
+(overridable-define (extract-labels text receive)
   (if (null? text)
       (receive '() '())
       (extract-labels (cdr text)
@@ -413,5 +415,11 @@
   (if (pair? exp)
       (eq? (car exp) tag)
       false))
+
+(define (reset!)
+  (override-extract-labels! _extract-labels)
+  )
+
+(reset!)
 
 '(REGISTER SIMULATOR LOADED)
