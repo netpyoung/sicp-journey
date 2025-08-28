@@ -48,6 +48,8 @@
   ((register 'set) value))
 
 (define make-stack nil)
+(define (override-make-stack! func)
+  (set! make-stack func))
 
 ;;**original (unmonitored) version from section 5.2.1
 (define (make-stack-5-2-1)
@@ -71,7 +73,7 @@
                          message))))
     dispatch))
 
-(set! make-stack make-stack-5-2-1)
+(override-make-stack! make-stack-5-2-1)
 
 (define (pop stack)
   (stack 'pop))
@@ -117,7 +119,7 @@
              (error "Unknown request -- STACK" message))))
     dispatch))
 
-(define (make-new-machine)
+(overridable-define (make-new-machine)
   (let ((pc (make-register 'pc))
         (flag (make-register 'flag))
         (stack (make-stack))
@@ -236,7 +238,7 @@
         (error "Undefined label -- ASSEMBLE" label-name))))
 
 
-(define (make-execution-procedure inst labels machine
+(overridable-define (make-execution-procedure inst labels machine
                                   pc flag stack ops)
   (cond ((eq? (car inst) 'assign)
          (make-assign inst machine labels ops pc))
@@ -262,7 +264,7 @@
         (value-exp (assign-value-exp inst)))
     (let ((value-proc
            (if (operation-exp? value-exp)
-               (make-operation-exp
+               (make-operation-exp  
                 value-exp machine labels operations)
                (make-primitive-exp
                 (car value-exp) machine labels))))
@@ -328,14 +330,14 @@
 (define (goto-dest goto-instruction)
   (cadr goto-instruction))
 
-(define (make-save inst machine stack pc)
+(overridable-define (make-save inst machine stack pc)
   (let ((reg (get-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
       (push stack (get-contents reg))
       (advance-pc pc))))
 
-(define (make-restore inst machine stack pc)
+(overridable-define (make-restore inst machine stack pc)
   (let ((reg (get-register machine
                            (stack-inst-reg-name inst))))
     (lambda ()
@@ -387,7 +389,7 @@
 (define (label-exp-label exp) (cadr exp))
 
 
-(define (make-operation-exp exp machine labels operations)
+(overridable-define (make-operation-exp exp machine labels operations)
   (let ((op (lookup-prim (operation-exp-op exp) operations))
         (aprocs
          (map (lambda (e)
@@ -417,7 +419,15 @@
       false))
 
 (define (reset!)
+  (override-make-stack! make-stack-5-2-1)
+
   (override-extract-labels! _extract-labels)
+  (override-make-operation-exp! _make-operation-exp)
+  (override-make-execution-procedure! _make-execution-procedure)
+  (override-make-save! _make-save)
+  (override-make-restore! _make-restore)
+  (override-make-new-machine! _make-new-machine)
+  
   )
 
 (reset!)
