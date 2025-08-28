@@ -34,7 +34,7 @@
     (get-register-contents 'a)
     (check-equal? 3))
 
-;; 어셈블러가 서로 다른 위치에 같은 라벨 이름을 썼을 때 에러를 나타내도록 extract-labels 프로시저를 고쳐라.
+;; 어셈블러가 서로 다른 위치에 같은 레이블 이름을 썼을 때 에러를 나타내도록 extract-labels 프로시저를 고쳐라.
 (define (extract-labels text receive)
   (if (null? text)
       (receive '() '())
