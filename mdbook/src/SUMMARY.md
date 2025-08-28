@@ -2,8 +2,15 @@
 
 - [대문](./Index.md)
 - [들어가며](./intro.md)
-  - [DrRacket](./etc/drracket.md)
-  - [VsCode](./etc/sicp-vscode.md)
+
+# Racket
+
+- [DrRacket](./racket/drracket.md)
+- [VsCode](./racket/racket-vscode.md)
+
+# Scheme
+
+- [Scheme](./scheme/scheme.md)
 
 # 챕터
 
