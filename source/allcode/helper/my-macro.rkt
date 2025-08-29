@@ -1,5 +1,6 @@
 #lang racket
 
+(#%require rackunit)
 (provide (all-defined-out))
 
 (define-syntax (overridable-define stx)
@@ -36,3 +37,9 @@
 ;; (define hello _hello)
 ;; (define (override-hello! func)
 ;;   (set! hello func))
+
+
+(define-syntax-rule
+  (check-output? expected body ...)
+  (let ([actual (with-output-to-string (lambda () body ...))])
+    (check-equal? actual expected)))
