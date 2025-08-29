@@ -88,3 +88,6 @@
 - 수학
   - [Structure and Interpretation of Classical Mechanics (SICM) ](https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/9579/sicm_edition_2.zip/book.html)
   - Functional Differential Geometry
+- EoPL Essentials of Programming Languages
+- CPTT Compilers: Principles, Techniques, and Tools
+
