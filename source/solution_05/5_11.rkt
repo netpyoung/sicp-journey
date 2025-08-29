@@ -5,6 +5,8 @@
 (#%require (prefix racket: racket))
 (#%require threading)
 
+(racket:provide
+ make-kv-stack)
 #|
 a)
 
@@ -176,58 +178,54 @@ initialize-stack 작업이 모든 레지스터 스택을 초기화하도록 해�
 |#
 (reset!)
 
-
-(define (kv-stack-init!)
-  (list 'kv-stack))
-
-(define (kv-stack-push! kv-pop key new-value)
+(define (make-kv-stack)
+  (define (kv-stack-init!)
+    (list 'kv-stack))
   
-  (define (last-pair lst)
-    (if (null? (rest lst))
-        lst
-        (last-pair (rest lst))))
+  (define (kv-stack-push! kv-pop key new-value)
+    (define (last-pair lst)
+      (if (null? (rest lst))
+          lst
+          (last-pair (rest lst))))
+    (let ((rest-kv-pop (rest kv-pop)))
+      (if (null? rest-kv-pop)
+          (begin
+            (set-cdr! kv-pop (list (list key (list new-value))))
+            kv-pop)
+          (let loop ((current rest-kv-pop))
+            (cond
+              ((null? current)
+               (set-cdr! (last-pair rest-kv-pop)
+                         (list (list key (list new-value))))
+               kv-pop)
+              (else
+               (let* ((key-stack (first current))
+                      (k (first key-stack))
+                      (stack (second key-stack)))
+                 (if (eq? k key)
+                     (begin
+                       (set-car! (rest key-stack) (cons new-value stack))
+                       kv-pop)
+                     (loop (rest current))))))))))
+
+  (define (kv-stack-pop! kv-pop key)
+    (let ((rest-kv-pop (rest kv-pop)))
+      (let loop ((current rest-kv-pop))
+        (cond
+          ((null? current)
+           (error "Key not found:" key))
+          (else
+           (let* ((key-stack (first current))
+                  (k (first key-stack))
+                  (stack (second key-stack)))
+             (if (eq? k key)
+                 (if (null? (second key-stack))
+                     (error "Value list is empty for key:" key)
+                     (let ((value (first stack)))
+                       (set-car! (rest key-stack) (rest stack))
+                       value))
+                 (loop (rest current)))))))))
   
-  (let ((rest-kv-pop (rest kv-pop)))
-    (if (null? rest-kv-pop)
-        (begin
-          (set-cdr! kv-pop (list (list key (list new-value))))
-          kv-pop)
-        (let loop ((current rest-kv-pop))
-          (cond
-            ((null? current)
-             (set-cdr! (last-pair rest-kv-pop)
-                       (list (list key (list new-value))))
-             kv-pop)
-            (else
-             (let* ((key-stack (first current))
-                    (k (first key-stack))
-                    (stack (second key-stack)))
-               (if (eq? k key)
-                   (begin
-                     (set-car! (rest key-stack) (cons new-value stack))
-                     kv-pop)
-                   (loop (rest current))))))))))
-
-(define (kv-stack-pop! kv-pop key)
-  (let ((rest-kv-pop (rest kv-pop)))
-    (let loop ((current rest-kv-pop))
-      (cond
-        ((null? current)
-         (error "Key not found:" key))
-        (else
-         (let* ((key-stack (first current))
-                (k (first key-stack))
-                (stack (second key-stack)))
-           (if (eq? k key)
-               (if (null? (second key-stack))
-                   (error "Value list is empty for key:" key)
-                   (let ((value (first stack)))
-                     (set-car! (rest key-stack) (rest stack))
-                     value))
-               (loop (rest current)))))))))
-
-
-(define (make-stack-c)
   (let ((s (kv-stack-init!)))
     (define (push x)
       (let ((k (first x))
@@ -238,10 +236,13 @@ initialize-stack 작업이 모든 레지스터 스택을 초기화하도록 해�
     (define (initialize)
       (set! s (kv-stack-init!))
       'done)
+    (define (stack)
+      s)
     (define (dispatch message)
       (cond ((eq? message 'push) push)
             ((eq? message 'pop) pop)
             ((eq? message 'initialize) (initialize))
+            ((eq? message 'stack) (stack))
             (else (error "Unknown request -- STACK"
                          message))))
     dispatch))
@@ -264,7 +265,7 @@ initialize-stack 작업이 모든 레지스터 스택을 초기화하도록 해�
         (set-contents! reg poped)
         (advance-pc pc)))))
 
-(override-make-stack! make-stack-c)
+(override-make-stack! make-kv-stack)
 (override-make-save! make-save-c)
 (override-make-restore! make-restore-c)
 
@@ -279,3 +280,6 @@ initialize-stack 작업이 모든 레지스터 스택을 초기화하도록 해�
 (~> dummy-machine
     (get-register-contents 'y)
     (check-equal? 2))
+(~> ((dummy-machine 'stack) 'stack)
+    (check-equal? 
+     '(kv-stack (y ()) (x (1)))))

@@ -21,7 +21,7 @@
 ;;; To find this stack code below, look for comments with **
 
 
-(define (make-machine register-names ops controller-text)
+(overridable-define (make-machine register-names ops controller-text)
   (let ((machine (make-new-machine)))
     (for-each (lambda (register-name)
                 ((machine 'allocate-register) register-name))
@@ -426,6 +426,7 @@
   (override-make-execution-procedure! _make-execution-procedure)
   (override-make-save! _make-save)
   (override-make-restore! _make-restore)
+  (override-make-machine! _make-machine)
   (override-make-new-machine! _make-new-machine)
   
   )
