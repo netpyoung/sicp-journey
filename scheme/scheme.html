@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>DrRacket - SICP 여정</title>
+        <title>Scheme - SICP 여정</title>
 
 
         <!-- Custom HTML head -->
@@ -165,7 +165,7 @@
                         <a href="https://github.com/netpyoung/sicp-journey" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
-                        <a href="https://github.com/netpyoung/sicp-journey/edit/main/src/etc/drracket.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                        <a href="https://github.com/netpyoung/sicp-journey/edit/main/src/scheme/scheme.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
                             <i id="git-edit-button" class="fa fa-edit"></i>
                         </a>
 
@@ -199,235 +199,44 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="drracket"><a class="header" href="#drracket">DrRacket</a></h1>
-<p>The Racket Programming Environment</p>
-<h2 id="racket-설치-raco-도-같이-설치된다"><a class="header" href="#racket-설치-raco-도-같이-설치된다">racket 설치 (raco 도 같이 설치된다)</a></h2>
-<h3 id="windows"><a class="header" href="#windows">Windows</a></h3>
-<ul>
-<li><a href="https://download.racket-lang.org/">다운로드</a>
-<ul>
-<li><a href="https://kkalkkalparrot.tistory.com/31">깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(1)</a></li>
-<li><a href="https://kkalkkalparrot.tistory.com/32">깔깔앵무의 정리노트 - [프로그래밍언어] Racket 설치 및 SICP 모듈 설정(2)</a></li>
-</ul>
-</li>
-</ul>
-<h3 id="linux-ubuntu"><a class="header" href="#linux-ubuntu">linux (ubuntu)</a></h3>
-<pre><code class="language-zsh">sudo apt-get install racket
-</code></pre>
-<h3 id="macos"><a class="header" href="#macos">macOs</a></h3>
-<pre><code class="language-zsh">brew install --cask racket
-</code></pre>
-<h2 id="왜-drracket"><a class="header" href="#왜-drracket">왜 DrRacket</a></h2>
-<ul>
-<li>ref: <a href="https://github.com/zv/SICP-guile?tab=readme-ov-file#language">https://github.com/zv/SICP-guile?tab=readme-ov-file#language</a>
-<ul>
-<li>Zetavolt이란 분은 GNU Guile을 추천함.</li>
-</ul>
-</li>
-</ul>
-<div class="table-wrapper"><table><thead><tr><th></th><th>PL</th><th>r5rs</th><th>함수 재정의</th><th>GUI IDE</th></tr></thead><tbody>
-<tr><td>DrRacket</td><td>Racket</td><td>O</td><td>X</td><td>DrRacket</td></tr>
-<tr><td>MITScheme</td><td>Scheme</td><td>O</td><td>O</td><td><a href="https://www.gnu.org/software/mit-scheme/documentation/stable/mit-scheme-user/Edwin.html">Edwin (GNU Emacs clone)</a></td></tr>
-<tr><td>GNU Guile</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
-<tr><td>CHICKEN Scheme</td><td>Scheme</td><td>O</td><td>O</td><td>X</td></tr>
-<tr><td>SBCL</td><td>Common Lisp</td><td>X</td><td>O</td><td>Slt Plugin for JetBrains IDEs</td></tr>
-<tr><td>LispWorks</td><td>Common Lisp</td><td>X</td><td>O</td><td>LispWorks</td></tr>
-</tbody></table>
-</div>
-<ul>
-<li>Common Lisp로 하는건 일단 배제하고,</li>
-<li><strong>Emacs 사용이 자유로운 사람</strong>이라면, 함수를 계속 덮어쓰므로 Scheme구현체 중 하나를 선택하면 좋다.</li>
-<li><strong>단점!</strong> 물론 불러온 함수 재정의가 안되는 치명적인 단점과 필요에 따라 추가적인 racket문법을 익혀야 한다는 단점이 있다.</li>
-<li><strong>장점!</strong> 설치도 간편. IDE를 지원하는게 DrRacket이 유일. 디버거도 그럭저럭 쓸만하고, racket 패키지들도 유용하고 문서화가 잘 되어 있다.</li>
-<li>단점도 엄청 치명적이긴 한데 IDE지원이라는 장점이 진입장벽을 낮춤으로써 단점보다 조금 더 낫다고 생각했다.</li>
-</ul>
-<h2 id="흔히-쓰게될-단축키"><a class="header" href="#흔히-쓰게될-단축키">흔히 쓰게될 단축키</a></h2>
-<div class="table-wrapper"><table><thead><tr><th></th><th>단축키</th><th></th><th></th></tr></thead><tbody>
-<tr><td>파일 실행</td><td>Ctrl + R  / F5</td><td></td><td></td></tr>
-<tr><td>코드 포맷</td><td>Ctrl + I</td><td></td><td></td></tr>
-<tr><td>코드 &lt;=&gt; Repl 전환</td><td>Ctrl + F6</td><td>shift-focus</td><td></td></tr>
-<tr><td>λ 문자 삽입</td><td>Ctrl + \</td><td>insert λ</td><td>#lang racket에선 lambda대신 λ도 가능</td></tr>
-<tr><td>자동완성</td><td>Ctrl + /</td><td>Complete Word</td><td></td></tr>
-<tr><td>파일 버퍼 되돌리기</td><td>Ctrl + Shift + E</td><td>Revert</td><td>외부 에디터에서 파일을 수정해도 자동으로 버퍼를 갱신하지 않으니 외부에서 파일 수정시 버퍼 초기화 용도</td></tr>
-<tr><td>인덴트 가이드</td><td>Ctrl + Shift + I</td><td>Show Indent Guides</td><td></td></tr>
-</tbody></table>
-</div>
-<ul>
-<li>정의로 가기는 단축키가 없다
-<ul>
-<li>함수 이름 우클릭 &gt; Jump to definition of {blabla}? 클릭</li>
-</ul>
-</li>
-</ul>
-<h2 id="tip"><a class="header" href="#tip">Tip</a></h2>
-<h3 id="sicp가-설치가-안되어-있다면"><a class="header" href="#sicp가-설치가-안되어-있다면">SICP가 설치가 안되어 있다면</a></h3>
-<ul>
-<li>File &gt; Package Manager... 쪽에서 sicp를 찾아보면 된다
-<ul>
-<li><a href="https://docs.racket-lang.org/sicp-manual/SICP_Language.html">https://docs.racket-lang.org/sicp-manual/SICP_Language.html</a></li>
-<li><a href="https://github.com/sicp-lang/sicp/tree/master">https://github.com/sicp-lang/sicp/tree/master</a></li>
-</ul>
-</li>
-</ul>
-<h3 id="코드-색깔-바꾸기"><a class="header" href="#코드-색깔-바꾸기">코드 색깔 바꾸기</a></h3>
+                        <h1 id="scheme"><a class="header" href="#scheme">Scheme</a></h1>
 <ul>
 <li>
-<p>define이라도 색깔이 다르면 좀 더 코드가 보기 편해진다.</p>
-</li>
-<li>
-<p>다음 사이트에서 원하는 테마를 고르고</p>
+<p><a href="https://get.scheme.org/">Scheme Implementations</a></p>
 <ul>
-<li><a href="https://github.com/tuirgin/base16-drracket">https://github.com/tuirgin/base16-drracket</a></li>
-<li><a href="https://github.com/catppuccin/drracket">https://github.com/catppuccin/drracket</a></li>
+<li><a href="https://github.com/cisco/ChezScheme">Chez Scheme</a></li>
+<li><a href="https://www.gnu.org/software/guile/">GNU Guile</a></li>
+<li><a href="https://www.gnu.org/software/mit-scheme/">MIT Scheme</a></li>
+<li><a href="https://call-cc.org/">Chiken Scheme</a></li>
+<li><a href="https://gambitscheme.org/">Gambit Scheme</a></li>
 </ul>
 </li>
 <li>
-<p>File &gt; Package Manager... 쪽에서</p>
-<ul>
-<li><code>https://github.com/tuirgin/base16-drracket</code> 를 붙여넣어서 설치 하거나</li>
-<li><code>https://github.com/catppuccin/drracket</code> 를 붙여넣어서 설치</li>
-</ul>
-</li>
-</ul>
-<h3 id="코드-포맷"><a class="header" href="#코드-포맷">코드 포맷</a></h3>
-<ul>
-<li>메뉴&gt; Racket &gt; Reindent All</li>
-<li>혹은 단축키 Ctrl + I</li>
-<li>혹은 전체 선택(Ctrl + A) 후 Tab</li>
-</ul>
-<h3 id="백업파일bak-생성-안되게"><a class="header" href="#백업파일bak-생성-안되게">백업파일(.bak) 생성 안되게</a></h3>
-<ul>
-<li>메뉴&gt; Edit &gt; Preferences...
-<ul>
-<li>General 탭
-<ul>
-<li>Make backups for unsaved files 체크 해제</li>
-<li>Create first-change files 체크 해제</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="emacs-키-바인딩이-그립다면"><a class="header" href="#emacs-키-바인딩이-그립다면">Emacs 키 바인딩이 그립다면</a></h3>
-<ul>
-<li>
-<p>메뉴&gt; Edit &gt; Preferences...</p>
-<ul>
-<li>Editing 탭
-<ul>
-<li>General Editing탭
-<ul>
-<li>Enable keybindings in menus (overrides Emacs keybindings) 체크 해제</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+<p><a href="https://books.scheme.org/">도서</a></p>
 </li>
 <li>
-<p>ref</p>
-<ul>
-<li><a href="https://docs.racket-lang.org/drracket/Keyboard_Shortcuts.html">https://docs.racket-lang.org/drracket/Keyboard_Shortcuts.html</a></li>
-<li><a href="https://blog.racket-lang.org/2009/03/the-drscheme-repl-isnt-the-one-in-emacs.html">https://blog.racket-lang.org/2009/03/the-drscheme-repl-isnt-the-one-in-emacs.html</a></li>
-<li><a href="https://stackoverflow.com/questions/56916606/drracket-custom-keybindings">https://stackoverflow.com/questions/56916606/drracket-custom-keybindings</a></li>
-</ul>
+<p><a href="https://planet.scheme.org/">https://planet.scheme.org/</a></p>
 </li>
 <li>
-<p>emacs</p>
-<ul>
-<li><a href="https://docs.racket-lang.org/guide/Emacs.html">https://docs.racket-lang.org/guide/Emacs.html</a>
-<ul>
-<li><a href="https://www.nongnu.org/geiser/">https://www.nongnu.org/geiser/</a></li>
-<li><a href="https://github.com/emacsmirror/geiser?tab=readme-ov-file">https://github.com/emacsmirror/geiser?tab=readme-ov-file</a></li>
-</ul>
+<p><a href="https://cookbook.scheme.org/">Scheme Cookbook</a></p>
+</li>
+<li>
+<p><a href="https://www.r6rs.org/">https://www.r6rs.org/</a></p>
+</li>
+<li>
+<p><a href="https://www.youtube.com/@acmsigplan/search?query=scheme">https://www.youtube.com/@acmsigplan/search?query=scheme</a></p>
 </li>
 </ul>
-</li>
-</ul>
-<h3 id="쓰레딩-매크로----를-사용하고-싶다면"><a class="header" href="#쓰레딩-매크로----를-사용하고-싶다면">쓰레딩 매크로( ~&gt; / ~&gt;&gt; )를 사용하고 싶다면</a></h3>
-<ul>
-<li><a href="https://github.com/lexi-lambda/threading">threading</a>
-<ul>
-<li>clojure -&gt; / -&gt;&gt; 와는 다르게 ~&gt; / ~&gt;&gt; 이다</li>
-</ul>
-</li>
-</ul>
-<pre><code class="language-lisp">#lang sicp
-(#%require threading)
-
-(~&gt; 2 (/ 5))
-;;=&gt; 2/5
-
-(~&gt;&gt; 2 (/ 5))
-;;=&gt; 5/2
-</code></pre>
-<h3 id="유닛테스트를-하고-싶다면"><a class="header" href="#유닛테스트를-하고-싶다면">유닛테스트를 하고 싶다면?</a></h3>
-<ul>
-<li><a href="https://docs.racket-lang.org/rackunit/">rackunit</a></li>
-</ul>
-<pre><code class="language-lisp">#lang sicp
-
-(#%require rackunit)
-
-(check-equal? (+ 1 2) 3)
-;; (check-equal? &lt;expected&gt; &lt;actual&gt; &lt;message&gt;)
-</code></pre>
-<h3 id="drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면"><a class="header" href="#drracket-디버거-사용이-힘들어-그냥-쉽게-출력해서-보고-싶다면">DrRacket 디버거 사용이 힘들어 그냥 쉽게 출력해서 보고 싶다면</a></h3>
-<ul>
-<li><a href="https://docs.racket-lang.org/debug/index.html">https://docs.racket-lang.org/debug/index.html</a></li>
-</ul>
-<pre><code class="language-lisp">#lang debug sicp
-(+ 1 2 #R(* 3 4))
-;;&gt;&gt; {* 3 4} = 12
-;;=&gt; 15
-</code></pre>
-<h3 id="함수-수행을-따라가-보고-싶다면"><a class="header" href="#함수-수행을-따라가-보고-싶다면">함수 수행을 따라가 보고 싶다면</a></h3>
-<ul>
-<li><a href="https://docs.racket-lang.org/reference/debugging.html">https://docs.racket-lang.org/reference/debugging.html</a></li>
-</ul>
-<pre><code>#lang sicp
-
-(define (f x)
-  (if (zero? x) 0
-      (add1 (f (sub1 x)))))
-
-(#%require (prefix trace: racket/trace))
-(trace:trace f)
-</code></pre>
-<h3 id="todo-errortrace"><a class="header" href="#todo-errortrace">todo errortrace</a></h3>
-<p>"C:\Program Files\Racket\Racket.exe" -l errortrace -t 4_08.rkt</p>
-<ul>
-<li>https://docs.racket-lang.org/errortrace/using-errortrace.html</li>
-</ul>
-<h3 id="todo-pretty-print"><a class="header" href="#todo-pretty-print">todo pretty print</a></h3>
-<ul>
-<li>https://docs.racket-lang.org/reference/pretty-print.html</li>
-</ul>
-<h3 id="todo-sandbox"><a class="header" href="#todo-sandbox">TODO sandbox</a></h3>
-<ul>
-<li>https://docs.racket-lang.org/reference/Sandboxed_Evaluation.html</li>
-</ul>
-<h3 id="기타-문법"><a class="header" href="#기타-문법">기타 문법</a></h3>
-<pre><code class="language-lisp">
-;; 블록 코맨트( #; )
-#;(error "wtf")
-
-
-;; TODO 설명 필요
-
-(#%require (prefix racket: racket))
-(racket:provide (racket:all-defined-out))
-</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../racket/racket-vscode.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../etc/sicp-vscode.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../chapter/ch01.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -437,11 +246,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../racket/racket-vscode.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../etc/sicp-vscode.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../chapter/ch01.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

@@ -763,7 +763,7 @@ Ben Bitdiddle 은 피보나치 머신의 컨트롤러 시퀀스에 불필요한 
     (get-register-contents 'a)
     (check-equal? 3))
 
-;; 어셈블러가 서로 다른 위치에 같은 라벨 이름을 썼을 때 에러를 나타내도록 extract-labels 프로시저를 고쳐라.
+;; 어셈블러가 서로 다른 위치에 같은 레이블 이름을 썼을 때 에러를 나타내도록 extract-labels 프로시저를 고쳐라.
 (define (extract-labels text receive)
   (if (null? text)
       (receive '() '())
@@ -927,21 +927,1220 @@ expression을 처리하는 프로시져를 수정하여  constant / register 에
 </code></pre>
 <h2 id="5_11"><a class="header" href="#5_11">5_11</a></h2>
 <pre><code class="language-lisp">;; file: 5_11.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+(racket:provide
+ make-kv-stack)
+#|
+a)
+
+(restore y)는 스택에 저장된 마지막 값을, 그 값이 어떤 레지스터에서 왔는지 상관없이 y에 넣습니다.
+이것이 우리 시뮬레이터의 동작 방식입니다.
+이 동작을 활용하여 5.1.4의 피보나치 머신(그림 5.12)에서 하나의 명령어를 제거하는 방법을 보여주세요.
+|#
+
+(racket:require (racket:rename-in "../allcode/ch5-regsim.rkt"
+                                  (_make-save origin-make-save)
+                                  (_make-restore origin-make-restore)))
+
+
+(define (dummy-machine-maker)
+  (make-machine
+   '(x y)
+   '()
+   '((assign x (const 1))
+     (assign y (const 2))
+
+     (save y)
+     (save x)
+     (restore y)
+     )
+   ))
+
+(define dummy-machine (dummy-machine-maker))
+
+(~&gt; dummy-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; dummy-machine
+    (get-register-contents 'x)
+    (check-equal? 1))
+(~&gt; dummy-machine
+    (get-register-contents 'y)
+    (check-equal? 1))
+
+
+
+;; a) (restore y)는 스택에 마지막 저장한 값으로 y를 설정.
+
+(define fib-controller
+  '(controller
+    (assign continue
+            (label fib-done))
+   
+    fib-loop
+    (test (op &lt;) (reg n) (const 2))
+    (branch (label immediate-answer))
+    ;; set up to compute Fib(n - 1)
+    (save continue)                                          ; - save1   continue
+    (assign continue
+            (label afterfib-n-1))
+    (save n)           ; save old value of n                 ; - save2   n
+    (assign n 
+            (op -)
+            (reg n)
+            (const 1)) ; clobber n to n-1
+    (goto 
+     (label fib-loop)) ; perform recursive call
+   
+    afterfib-n-1 ; upon return, val contains Fib(n - 1)
+    (restore n)                                             ; - restore1 n
+    (restore continue)                                      ; - restore2 continue
+    ;; set up to compute Fib(n - 2)
+    (assign n (op -) (reg n) (const 2))
+    (save continue)                                         ; - save3    continue
+    (assign continue
+            (label afterfib-n-2))
+    (save val)         ; save Fib(n - 1)                    ; - save4    val
+    (goto (label fib-loop))
+   
+    afterfib-n-2 ; upon return, val contains Fib(n - 2)
+
+    ;; before a)
+    ;; (assign n (reg val)) ; n now contains Fib(n - 2)
+    ;; (restore val)      ; val now contains Fib(n - 1)        ; - restore3 val
+    ;;
+    ;; after a)
+    (restore n) ; &lt;&lt;&lt;&lt;&lt;&lt;&lt;
+    
+    (restore continue)                                      ; - restore4 continue
+    (assign val        ; Fib(n - 1) + Fib(n - 2)
+            (op +) 
+            (reg val)
+            (reg n))
+    (goto              ; return to caller,
+     (reg continue))   ; answer is in val
+   
+    immediate-answer
+    (assign val 
+            (reg n))   ; base case: Fib(n) = n
+    (goto
+     (reg continue))
+   
+    fib-done))
+
+(define fib-machine
+  (make-machine
+   '(n continue val)
+   (list (list '&lt; &lt;)
+         (list '- -)
+         (list '+ +))
+   (rest fib-controller)
+   ))
+
+(define (fib n)
+  (set-register-contents! fib-machine 'n n)
+  (start fib-machine)
+  (get-register-contents fib-machine 'val))
+
+(check-equal? (fib 0)
+              0)
+(check-equal? (fib 1)
+              1)
+(check-equal? (fib 2)
+              1)
+(check-equal? (fib 3)
+              2)
+(check-equal? (fib 10)
+              55)
+
+#|
+b)
+
+(restore y)는 스택에 저장된 마지막 값을 y에 넣지만, 그 값이 y에서 저장된 경우에만 해당됩니다.
+그렇지 않으면 오류를 표시합니다.
+시뮬레이터를 이 방식으로 동작하도록 수정하세요.
+save를 변경하여 값과 함께 레지스터 이름을 스택에 저장해야 합니다.
+|#
+
+(define (make-save-b inst machine stack pc)
+  (let* ((reg-name (stack-inst-reg-name inst))
+         (reg (get-register machine reg-name)))
+    (lambda ()
+      (push stack (cons reg-name (get-contents reg)))
+      (advance-pc pc))))
+
+(define (make-restore-b inst machine stack pc)
+  (let* ((restore-reg-name (stack-inst-reg-name inst))
+         (reg (get-register machine restore-reg-name)))
+    (lambda ()
+      (let* ((poped (pop stack))
+             (pop-reg-name (first poped))
+             (pop-reg-val  (rest poped)))
+        (if (not (eq? restore-reg-name pop-reg-name))
+            (error "restore-reg-name:" restore-reg-name 'pop-reg-name: pop-reg-name))
+        (set-contents! reg pop-reg-val)
+        (advance-pc pc)))))
+
+(override-make-save! make-save-b)
+(override-make-restore! make-restore-b)
+
+
+(set! dummy-machine (dummy-machine-maker))
+(check-exn
+ #rx"restore-reg-name: y pop-reg-name: x"
+ (lambda ()
+   (start dummy-machine)))
+
+#|
+c)
+
+(restore y)는 y 이후에 다른 레지스터들이 저장되고 복원되지 않았더라도, y에서 저장된 마지막 값을 y에 넣습니다.
+시뮬레이터를 이 방식으로 동작하도록 수정하세요.
+각 레지스터에 별도의 스택을 연결해야 합니다.
+initialize-stack 작업이 모든 레지스터 스택을 초기화하도록 해야 합니다.
+|#
+(reset!)
+
+(define (make-kv-stack)
+  (define (kv-stack-init!)
+    (list 'kv-stack))
+  
+  (define (kv-stack-push! kv-pop key new-value)
+    (define (last-pair lst)
+      (if (null? (rest lst))
+          lst
+          (last-pair (rest lst))))
+    (let ((rest-kv-pop (rest kv-pop)))
+      (if (null? rest-kv-pop)
+          (begin
+            (set-cdr! kv-pop (list (list key (list new-value))))
+            kv-pop)
+          (let loop ((current rest-kv-pop))
+            (cond
+              ((null? current)
+               (set-cdr! (last-pair rest-kv-pop)
+                         (list (list key (list new-value))))
+               kv-pop)
+              (else
+               (let* ((key-stack (first current))
+                      (k (first key-stack))
+                      (stack (second key-stack)))
+                 (if (eq? k key)
+                     (begin
+                       (set-car! (rest key-stack) (cons new-value stack))
+                       kv-pop)
+                     (loop (rest current))))))))))
+
+  (define (kv-stack-pop! kv-pop key)
+    (let ((rest-kv-pop (rest kv-pop)))
+      (let loop ((current rest-kv-pop))
+        (cond
+          ((null? current)
+           (error "Key not found:" key))
+          (else
+           (let* ((key-stack (first current))
+                  (k (first key-stack))
+                  (stack (second key-stack)))
+             (if (eq? k key)
+                 (if (null? (second key-stack))
+                     (error "Value list is empty for key:" key)
+                     (let ((value (first stack)))
+                       (set-car! (rest key-stack) (rest stack))
+                       value))
+                 (loop (rest current)))))))))
+  
+  (let ((s (kv-stack-init!)))
+    (define (push x)
+      (let ((k (first x))
+            (v (rest x)))
+        (kv-stack-push! s k v)))
+    (define (pop k)
+      (kv-stack-pop! s k))
+    (define (initialize)
+      (set! s (kv-stack-init!))
+      'done)
+    (define (stack)
+      s)
+    (define (dispatch message)
+      (cond ((eq? message 'push) push)
+            ((eq? message 'pop) pop)
+            ((eq? message 'initialize) (initialize))
+            ((eq? message 'stack) (stack))
+            (else (error "Unknown request -- STACK"
+                         message))))
+    dispatch))
+
+(define (make-save-c inst machine stack pc)
+  (let* ((reg-name (stack-inst-reg-name inst))
+         (reg (get-register machine reg-name)))
+    (lambda ()
+      (push stack (cons reg-name (get-contents reg)))
+      (advance-pc pc))))
+
+(define (make-restore-c inst machine stack pc)
+  (let* ((restore-reg-name (stack-inst-reg-name inst))
+         (reg (get-register machine restore-reg-name)))
+    (lambda ()
+      ;; (pop stack) 함수를 호출하는 곳이 여기에만 있음.
+      ;; (pop stack)함수를 override 할 수 있게 수정하는 대신
+      ;; (stack 'pop)으로 직접 콜하는 방식으로 대신함.
+      (let* ((poped ((stack 'pop) restore-reg-name)))
+        (set-contents! reg poped)
+        (advance-pc pc)))))
+
+(override-make-stack! make-kv-stack)
+(override-make-save! make-save-c)
+(override-make-restore! make-restore-c)
+
+(set! dummy-machine (dummy-machine-maker))
+
+(~&gt; dummy-machine
+    (start)
+    (check-equal? 'done))
+(~&gt; dummy-machine
+    (get-register-contents 'x)
+    (check-equal? 1))
+(~&gt; dummy-machine
+    (get-register-contents 'y)
+    (check-equal? 2))
+(~&gt; ((dummy-machine 'stack) 'stack)
+    (check-equal? 
+     '(kv-stack (y ()) (x (1)))))
 </code></pre>
 <h2 id="5_12"><a class="header" href="#5_12">5_12</a></h2>
 <pre><code class="language-lisp">;; file: 5_12.rkt
+;; ref:
+;;    - Figure 5.11: A recursive factorial machine.
+;;    - Figure 5.12: Controller for a machine to compute Fibonacci numbers.
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+(racket:provide
+ make-set
+ make-kv-set)
+
+#|
+어셈블러를 확장하여 기계 모델에 다음 정보를 저장하도록 하세요:
+
+1. 모든 명령어의 목록(중복 제거, 명령어 유형(assign, goto 등)으로 정렬됨).
+2. 진입점(entry point)을 저장하는 데 사용되는 레지스터의 목록(중복 없이, goto 명령어에서 참조된 레지스터).
+3. save되거나 restore되는 레지스터의 목록(중복 없이).
+4. 각 레지스터에 대해, 해당 레지스터에 할당되는 소스(source)의 목록(중복 없이).
+  - 예를 들어, 그림 5.11의 팩토리얼 기계에서 레지스터 val의 소스는 (const 1)과 ((op *) (reg n) (reg val))입니다.
+
+기계의 메시지 패싱 인터페이스를 확장하여 이 새로운 정보에 접근할 수 있도록 하세요.
+분석기를 테스트하기 위해 그림 5.12의 피보나치 기계를 정의하고, 생성한 목록들을 확인하세요.
+|#
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+
+#|
+중복 안되며서 추가가능한 자료구조가 필요함.
+set / 그리고 kv-set
+
+1~4 이름 짓고
+1. instruction-set
+2. entry-register-set
+3. save-restore-register-set
+4. register-source-kv-set
+
+그리고 controller-text처리하는 곳을 따라가야함
+
+- 호출부 make-machine
+- 정보 저장하려면 make-new-machine
+- 그리고 참고용 install-instruction-sequence를 처리하는
+  -(assemble controller-text machine)함수를 보면 extract-labels로 insts를 얻어올 수 있음.
+|#
+
+
+
+(define (make-set)
+  (define (set-init!)
+    (list 'set))
+  (define (contains? set x)
+    (member x (rest set)))
+  (define (add! set x)
+    (if (contains? set x)
+        set
+        (let ((y (rest set)))
+          (set-cdr! set (cons x (rest set)))
+          set)))
+  
+  (let ((s (set-init!)))
+    (define (add x)
+      (add! s x))
+    (define (set)
+      s)
+    (define (dispatch message)
+      (cond ((eq? message 'set) (set))
+            ((eq? message 'add) add)
+            (else (error "Unknown request -- SET" message))))
+    dispatch))
+
+(define my-set (make-set))
+(check-equal? (my-set 'set) '(set))
+(check-equal? ((my-set 'add) 1) '(set 1))
+(check-equal? ((my-set 'add) 2) '(set 2 1))
+(check-equal? ((my-set 'add) 2) '(set 2 1))
+
+(define (make-kv-set)
+  (define (kv-set-init!)
+    (list 'kv-set))
+
+  (define (contains? lst x)
+    (member x lst))
+
+  (define (kv-set-add! kv-set key value)
+    (let ((rest-kv-set (rest kv-set)))
+      (if (null? rest-kv-set)
+          (begin
+            (set-cdr! kv-set (list (list key (list value))))
+            kv-set)
+          (let loop ((current rest-kv-set))
+            (cond
+              ((null? current)
+               (set-cdr! (last-pair rest-kv-set)
+                         (list (list key (list value))))
+               kv-set)
+              (else
+               (let* ((key-set (first current))
+                      (k (first key-set))
+                      (values (second key-set)))
+                 (if (eq? k key)
+                     (begin
+                       (if (not (contains? values value))
+                           (set-car! (rest key-set) (cons value values)))
+                       kv-set)
+                     (loop (rest current))))))))))
+
+  (define (last-pair lst)
+    (if (null? (rest lst))
+        lst
+        (last-pair (rest lst))))
+
+  (let ((s (kv-set-init!)))
+    (define (add k v)
+      (kv-set-add! s k v))
+    (define (set)
+      s)
+    (define (dispatch message)
+      (cond ((eq? message 'add) add)
+            ((eq? message 'set) (set))
+            (else (error "Unknown request -- KV-SET" message))))
+    dispatch))
+
+(define my-kv-set (make-kv-set))
+(check-equal? (my-kv-set 'set) '(kv-set))
+(check-equal? ((my-kv-set 'add) 'k1 1) '(kv-set (k1 (1))))
+(check-equal? ((my-kv-set 'add) 'k1 2) '(kv-set (k1 (2 1))))
+(check-equal? ((my-kv-set 'add) 'k1 2) '(kv-set (k1 (2 1))))
+
+;; ===========
+(racket:require "../allcode/ch5-regsim.rkt")
+
+(define (make-new-machine)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '())
+        (instruction-set nil)                  ; 1.
+        (entry-register-set nil)               ; 2.
+        (save-restore-register-set nil)        ; 3.
+        (register-source-kv-set (make-kv-set)) ; 4.
+        )
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              (error "Unknown register:" name))))
+      (define (execute)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                ((instruction-execution-proc (car insts)))
+                (execute)))))
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute))
+              ((eq? message 'install-instruction-sequence)
+               (lambda (seq) (set! the-instruction-sequence seq)))
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+
+              ((eq? message 'instruction-set)           instruction-set)           ; 1.
+              ((eq? message 'entry-register-set)        entry-register-set)        ; 2.
+              ((eq? message 'save-restore-register-set) save-restore-register-set) ; 3.
+              ((eq? message 'register-source-kv-set)    register-source-kv-set)    ; 4.
+              
+              ((eq? message 'install-instruction-set)            ; 1.
+               (lambda (instructions)
+                 (set! instruction-set instructions)))
+              ((eq? message 'install-entry-register-set)         ; 2.
+               (lambda (registers)
+                 (set! entry-register-set registers)))
+              ((eq? message 'install-save-restore-register-set)  ; 3.
+               (lambda (save-restore-registers)
+                 (set! save-restore-register-set save-restore-registers)))
+              ((eq? message 'install-register-source-kv-set)     ; 4.
+               (lambda (register-source-list)
+                 (map (lambda (x)
+                        (let ((k (first x))
+                              (v (second x)))
+                          ((register-source-kv-set 'add) k v)))
+                      register-source-list)
+                 (register-source-kv-set 'set)))
+              
+              
+              ((eq? message 'operations) the-ops)
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+(override-make-new-machine! make-new-machine)
+
+
+(define (contains? lst x)
+  (cond ((null? lst) false)
+        ((equal? x (first lst)) true)
+        (else (contains? (rest lst) x))))
+
+(define (remove-duplicates lst)
+  (define (iter acc lst)
+    (cond ((null? lst)
+           (reverse acc))
+          ((contains? acc (first lst))
+           (iter acc (rest lst)))
+          (else
+           (iter (cons (first lst) acc) (rest lst)))))
+  (iter '() lst))
+
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(define (flatmap proc seq)
+  (accumulate append nil (map proc seq)))
+
+
+(define (get-all-instructions controller-text)
+  (~&gt; controller-text
+      (extract-labels 
+       (lambda (insts labels)
+         (~&gt;&gt; insts
+              (map first)
+              (map (lambda (x) (first x))))))
+      (remove-duplicates)))
+
+(define (get-entry-registers controller-text)
+  (~&gt; controller-text
+      (extract-labels
+       (lambda (insts labels)
+         (~&gt;&gt; insts
+              (map first)
+              (filter (lambda (x)
+                        (eq? 'goto (first x))))
+    
+              (flatmap (lambda (x)
+                         (filter (lambda (xx)
+                                   (register-exp? xx))
+                                 x)))
+              (map second)
+              (remove-duplicates))))))
+
+(define (get-save-restore-registers controller-text)
+  (~&gt;  controller-text
+       (extract-labels
+        (lambda (insts labels)
+          (~&gt;&gt;  insts
+                (map first)
+                (filter (lambda (x)
+                          (or (eq? 'save (first x))
+                              (eq? 'restore (first x)))))
+                (map second ))))
+       (remove-duplicates)))
+(define (get-register-source-list controller-text)
+  (~&gt; controller-text
+      (extract-labels 
+       (lambda (insts labels)
+         (~&gt;&gt; insts
+              (map first)
+              (filter (lambda (x)
+                        (eq? 'assign (first x))))
+              (map rest)
+              )))
+      (~&gt;&gt; 
+       (map (lambda (x)
+              (let ((reg (first x))
+                    (source (rest x)))
+                (list reg source)))))))
+(check-equal?
+ ; 1. all-instructions
+ '(assign test branch save goto restore)
+ 
+ (~&gt; figure-5-11
+     (rest)
+     (get-all-instructions)))
+
+(check-equal?
+ ; 2. entry-register-set
+ '(continue)
+
+ (~&gt; figure-5-11
+     (rest)
+     (get-entry-registers)))
+
+(check-equal?
+ ; 3. save-restore-registers
+ '(continue n)
+ 
+ (~&gt;  figure-5-11
+      (rest)
+      (get-save-restore-registers)))
+
+(check-equal?
+ ; 4. register-source-list
+ '((continue ((label fact-done)))
+   (n ((op -) (reg n) (const 1)))
+   (continue ((label after-fact)))
+   (val ((op *) (reg n) (reg val)))
+   (val ((const 1))))
+
+ (~&gt; figure-5-11
+     (rest)
+     (get-register-source-list)))
+
+
+(define (make-machine register-names ops controller-text)
+  (let ((machine (make-new-machine)))
+    (for-each (lambda (register-name)
+                ((machine 'allocate-register) register-name))
+              register-names)
+    ((machine 'install-operations) ops)    
+    ((machine 'install-instruction-sequence)
+     (assemble controller-text machine))
+    
+    ((machine 'install-instruction-set)           ; 1.
+     (get-all-instructions controller-text))
+    ((machine 'install-entry-register-set)        ; 2.
+     (get-entry-registers controller-text))
+    ((machine 'install-save-restore-register-set) ; 3.
+     (get-save-restore-registers controller-text))
+    ((machine 'install-register-source-kv-set)    ; 4.
+     (get-register-source-list controller-text))
+    
+    machine))
+
+(override-make-machine! make-machine)
+
+(define machine-figure-5-11
+  (make-machine
+   '(n val continue)
+   (list (list '= =)
+         (list '- -)
+         (list '* *))
+   (rest figure-5-11)))
+
+(check-equal? (machine-figure-5-11 'instruction-set)
+              '(assign test branch save goto restore))
+(check-equal? (machine-figure-5-11 'entry-register-set)
+              '(continue))
+(check-equal? (machine-figure-5-11 'save-restore-register-set)
+              '(continue n))
+(check-equal? ((machine-figure-5-11 'register-source-kv-set) 'set)
+              '(kv-set
+                (continue (((label after-fact))
+                           ((label fact-done))))
+                (n        (((op -) (reg n) (const 1))))
+                (val      (((const 1))
+                           ((op *) (reg n) (reg val))))))
+
+(define machine-figure-5-12
+  (make-machine
+   '(n val continue)
+   (list (list '&lt; &lt;)
+         (list '- -)
+         (list '+ +))
+   (rest figure-5-12)))
+
+(check-equal? (machine-figure-5-12 'instruction-set)
+              '(assign test branch save goto restore))
+(check-equal? (machine-figure-5-12 'entry-register-set)
+              '(continue))
+(check-equal? (machine-figure-5-12 'save-restore-register-set)
+              '(continue n val))
+(check-equal? ((machine-figure-5-12 'register-source-kv-set) 'set)
+              '(kv-set
+                (continue (((label afterfib-n-2))
+                           ((label afterfib-n-1))
+                           ((label fib-done))))
+                (n        (((reg val))
+                           ((op -) (reg n) (const 2))
+                           ((op -) (reg n) (const 1))))
+                (val      (((reg n))
+                           ((op +) (reg val) (reg n))))))
 </code></pre>
 <h2 id="5_13"><a class="header" href="#5_13">5_13</a></h2>
 <pre><code class="language-lisp">;; file: 5_13.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+(racket:provide
+ make-machine-5-13)
+
+#|
+레지스터 목록을 make-machine에 인자로 넘기는 대신 컨트롤러 시퀀스를 사용하도록 해라.
+ make-machine에서 레지스터를 미리 할당하는 대신, 명령어 조립 중에 레지스터가 처음 등장할 때 하나씩 할당할 수 있다.
+|#
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+(racket:require "../allcode/ch5-regsim.rkt")
+
+(define (contains? lst x)
+  (cond ((null? lst) false)
+        ((equal? x (first lst)) true)
+        (else (contains? (rest lst) x))))
+
+(define (remove-duplicates lst)
+  (define (iter acc lst)
+    (cond ((null? lst)
+           (reverse acc))
+          ((contains? acc (first lst))
+           (iter acc (rest lst)))
+          (else
+           (iter (cons (first lst) acc) (rest lst)))))
+  (iter '() lst))
+
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(define (flatmap proc seq)
+  (accumulate append nil (map proc seq)))
+
+(define (get-all-registers controller-text)
+  (~&gt; controller-text
+      (extract-labels
+       (lambda (insts labels)
+         (~&gt;&gt; insts
+              (map first)
+              (flatmap (lambda (x)
+                         (filter (lambda (xx)
+                                   (register-exp? xx))
+                                 x)))
+              (map second)
+              (remove-duplicates))))))
+
+
+(define (make-new-machine-5-13)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '()))
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              ;; 5.13
+              ;;
+              ;; before
+              ;; (error "Unknown register:" name)
+              ;;
+              ;; after
+              ;; make-machine에서 레지스터를 미리 할당하는 대신,
+              ;; 명령어 조립 중에 레지스터가 처음 등장할 때 하나씩 할당할 수 있다.
+              (begin
+                (allocate-register name)
+                (lookup-register name)))))
+      (define (execute)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                ((instruction-execution-proc (car insts)))
+                (execute)))))
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute))
+              ((eq? message 'install-instruction-sequence)
+               (lambda (seq) (set! the-instruction-sequence seq)))
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+              ((eq? message 'operations) the-ops)
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+
+(define (make-machine-5-13 ops controller-text)
+  (let ((machine (make-new-machine-5-13)))
+    
+    ;; NOTE(pyoung): 이런 식으로 먼저 구문 분석해서 레지스터를 미리 추가할 수 도 있다.
+    ;; (let ((register-names (get-all-registers controller-text)))
+    ;;   (for-each (lambda (register-name)
+    ;;               ((machine 'allocate-register) register-name))
+    ;;             register-names))
+    
+    ((machine 'install-operations) ops)    
+    ((machine 'install-instruction-sequence)
+     (assemble controller-text machine))
+    machine))
+
+(define machine-figure-5-11
+  (make-machine-5-13
+   (list (list '= =)
+         (list '- -)
+         (list '* *))
+   (rest figure-5-11)))
+
+(~&gt; machine-figure-5-11
+    (set-register-contents! 'n 10)
+    (check-equal? 'done))
+(~&gt; machine-figure-5-11
+    (start)
+    (check-equal? 'done))
+(~&gt; machine-figure-5-11
+    (get-register-contents 'val)
+    (check-equal? 3628800))
+
+(define machine-figure-5-12
+  (make-machine-5-13
+   (list (list '&lt; &lt;)
+         (list '- -)
+         (list '+ +))
+   (rest figure-5-12)))
+
+(~&gt; machine-figure-5-12
+    (set-register-contents! 'n 10)
+    (check-equal? 'done))
+(~&gt; machine-figure-5-12
+    (start)
+    (check-equal? 'done))
+(~&gt; machine-figure-5-12
+    (get-register-contents 'val)
+    (check-equal? 55))
 </code></pre>
 <h2 id="5_14"><a class="header" href="#5_14">5_14</a></h2>
 <pre><code class="language-lisp">;; file: 5_14.rkt
+;; ref:
+;; figure-5-11
+;; figure-5-4
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+
+#|
+
+1. figure-5-11에 대해 다양한 n에 대한 필요한 푸시 횟수와 최대 스택 깊이를 측정하시오.
+
+2. 임의의 n &gt; 1 에 대해, n! 을 계산할 때 사용되는 총 푸시 연산 횟수와 최대 스택 깊이에 대한 n 의 함수로서의 공식을 구하라.
+   - 각각은 n의 선형 함수이며, 따라서 두 개의 상수로 결정된다는 점에 유의하시오.
+   - 통계 정보를 출력하려면, 팩토리얼 기계에 스택을 초기화하고 통계를 출력하는 명령어를 추가해야 합니다.
+ 
+3. 또한, 기계를 수정하여 n 값을 반복적으로 읽고, 팩토리얼을 계산하며, 결과를 출력하도록 할 수 있습니다(그림 5.4의 GCD 기계에서 했던 것처럼).
+   - 이렇게 하면 get-register-contents, set-register-contents!, start를 반복적으로 호출하지 않아도 됩니다.
+|#
+
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+(racket:require "../allcode/ch5-regsim.rkt")
+
+
+
+(override-make-stack! make-stack-5-2-4)
+
+(define (run-machine-figure-5-11 n)
+  
+  (define machine-figure-5-11
+    (make-machine
+     '(n continue val)
+     (list (list '= =)
+           (list '- -)
+           (list '* *))
+     (rest figure-5-11)))
+
+  (~&gt; machine-figure-5-11
+      (set-register-contents! 'n n))
+  (~&gt; machine-figure-5-11
+      (start))
+  ((machine-figure-5-11 'stack) 'print-statistics))
+
+
+(check-output?
+ "\n(total-pushes = 2 maximum-depth = 2)"
+ ;; n 2
+ ;; p 2
+ ;; d 2
+
+ (run-machine-figure-5-11 2))
+
+(check-output?
+ "\n(total-pushes = 8 maximum-depth = 8)"
+ ;; n 5
+ ;; p 8
+ ;; d 8
+
+ (run-machine-figure-5-11 5))
+
+(check-output?
+ "\n(total-pushes = 18 maximum-depth = 18)"
+ ;; n 10
+ ;; p 18
+ ;; d 18
+ 
+ (run-machine-figure-5-11 10))
+
+
+#|
+
+따라서 p = d = 2n - 2
+
+|#
+
+(define figure-5-11-loop
+  ;; factorial
+  '(controller
+    (perform (op initialize-stack))         ; ** 5.14
+    (assign n (op read))                    ; ** 5.14
+    
+    (assign continue (label fact-done))     ; set up final return address
+    
+    fact-loop
+    (test (op =) (reg n) (const 1))
+    (branch (label base-case))
+    ;; Set up for the recursive call by saving n and continue.
+    ;; Set up continue so that the computation will continue
+    ;; at after-fact when the subroutine returns.
+    (save continue)
+    (save n)
+    (assign n (op -) (reg n) (const 1))
+    (assign continue (label after-fact))
+    (goto (label fact-loop))
+    
+    after-fact
+    (restore n)
+    (restore continue)
+    (assign val (op *) (reg n) (reg val))   ; val now contains n(n-1)!
+    (goto (reg continue))                   ; return to caller
+    
+    base-case
+    (assign val (const 1))                  ; base case: 1!=1
+    (goto (reg continue))                   ; return to caller
+
+    fact-done
+    (perform (op print-stack-statistics))   ; ** 5.14
+    (goto (label controller))               ; ** 5.14
+    ))
+
+(define (run-machine-figure-5-11-loop)
+  (define machine-figure-5-11-loop
+    (make-machine
+     '(n continue val)
+     (list (list '= =)
+           (list '- -)
+           (list '* *)
+           (list 'read read)               ; ** 5.14
+           )
+     figure-5-11-loop))
+
+  (~&gt; machine-figure-5-11-loop
+      (start)))
+
+;; 루프 실행
+;; (run-machine-figure-5-11-loop)
 </code></pre>
 <h2 id="5_15"><a class="header" href="#5_15">5_15</a></h2>
 <pre><code class="language-lisp">;; file: 5_15.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+
+#|
+연습문제 5.15: 레지스터 머신 시뮬레이션에 명령어 카운팅 기능을 추가하시오.
+즉, 머신 모델이 실행된 명령어의 수를 추적하도록 하시오.
+머신 모델의 인터페이스를 확장하여 명령어 카운트 값을 출력하고 카운트를 0으로 재설정하는 새로운 메시지를 수락하도록 하시오.
+|#
+
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+(racket:require "../allcode/ch5-regsim.rkt")
+#;(override-make-stack! make-stack-5-2-4)
+
+(define (make-new-machine-5-15)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '())
+        (instruction-count 0))
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))
+
+                 ;; added : 5-15
+                 (list 'initialize-instruction-count
+                       (lambda ()
+                         (set! instruction-count 0)))
+                 (list 'print-instruction-count
+                       (lambda ()
+                         (newline)
+                         (display (list 'print-instruction-count  '= instruction-count))))))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              (error "Unknown register:" name))))
+      (define (execute)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                ((instruction-execution-proc (car insts)))
+                ;; added: 5-15
+                (set! instruction-count (inc instruction-count))
+                (execute)))))
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute))
+              ((eq? message 'install-instruction-sequence)
+               (lambda (seq) (set! the-instruction-sequence seq)))
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+              ((eq? message 'operations) the-ops)
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+
+
+(override-make-new-machine! make-new-machine-5-15)
+
+(define dummy-machine
+  (make-machine
+   '(x y)
+   '()
+   '((assign x (const 1))                          ; 0 -&gt; 1
+     (assign y (const 2))                          ; 1 -&gt; 2
+
+     (perform (op print-instruction-count))        ; 출력(2) -&gt; 3
+     (perform (op print-instruction-count))        ; 출력(3) -&gt; 4
+
+     (perform (op initialize-instruction-count))   ; reset(0) -&gt; 1
+     
+     (perform (op print-instruction-count))        ; 출력(1) -&gt; 2
+     )
+   ))
+
+(check-output?
+ "
+(print-instruction-count = 2)
+(print-instruction-count = 3)
+(print-instruction-count = 1)"
+ 
+ (start dummy-machine))
 </code></pre>
 <h2 id="5_16"><a class="header" href="#5_16">5_16</a></h2>
 <pre><code class="language-lisp">;; file: 5_16.rkt
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+
+#|
+연습문제 5.16: 시뮬레이터를 확장하여 명령어 추적 기능을 제공하시오.
+ 즉, 각 명령어가 실행되기 전에 시뮬레이터가 해당 명령어의 텍스트를 출력하도록 하시오.
+ 머신 모델이 trace-on과 trace-off 메시지를 수락하여 추적 기능을 켜고 끌 수 있도록 하시오.
+|#
+
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+(racket:require "../allcode/ch5-regsim.rkt")
+
+
+(define (make-new-machine-5-16)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '())
+        (is-trace-on false))
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))
+
+                 ;; added : 5-16
+                 (list 'trace-on
+                       (lambda ()
+                         (set! is-trace-on true)))
+                 (list 'trace-off
+                       (lambda ()
+                         (set! is-trace-on false)))))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              (error "Unknown register:" name))))
+      (define (execute)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                (if is-trace-on
+                    (begin
+                      (newline)
+                      (display (first (first insts)))))
+                ((instruction-execution-proc (first insts)))
+                (execute)))))
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute))
+              ((eq? message 'install-instruction-sequence)
+               (lambda (seq) (set! the-instruction-sequence seq)))
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+              ((eq? message 'operations) the-ops)
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+
+
+(override-make-new-machine! make-new-machine-5-16)
+
+(define dummy-machine
+  (make-machine
+   '(x y)
+   '()
+   '((assign x (const 1))
+     (assign y (const 2))
+
+     (perform (op trace-on))
+     (assign x (const 1))
+     (assign y (const 2))
+     
+     (perform (op trace-off))
+     (assign x (const 1))
+     (assign y (const 2))
+     )
+   ))
+
+(check-output?
+ "
+(assign x (const 1))
+(assign y (const 2))
+(perform (op trace-off))"
+ 
+ (start dummy-machine))
 </code></pre>
 <h2 id="5_17"><a class="header" href="#5_17">5_17</a></h2>
 <pre><code class="language-lisp">;; file: 5_17.rkt
