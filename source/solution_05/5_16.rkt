@@ -1,5 +1,6 @@
 #lang sicp
 ;; file: 5_16.rkt
+;; 5_15 / 5_16 / 5_17 / 5_19
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -25,7 +26,8 @@
         (flag (make-register 'flag))
         (stack (make-stack))
         (the-instruction-sequence '())
-        (is-trace-on false))
+        (is-trace-on false) ; added : 5-16
+        )
     (let ((the-ops
            (list (list 'initialize-stack
                        (lambda () (stack 'initialize)))
@@ -60,6 +62,7 @@
           (if (null? insts)
               'done
               (begin
+                 ;; added : 5-16
                 (if is-trace-on
                     (begin
                       (newline)

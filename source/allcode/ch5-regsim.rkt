@@ -31,7 +31,7 @@
      (assemble controller-text machine))
     machine))
 
-(define (make-register name)
+(overridable-define (make-register name)
   (let ((contents '*unassigned*))
     (define (dispatch message)
       (cond ((eq? message 'get) contents)
@@ -429,6 +429,7 @@
   (override-make-machine! _make-machine)
   (override-make-new-machine! _make-new-machine)
   (override-assemble! _assemble)
+  (override-make-register! _make-register)
   
   )
 
