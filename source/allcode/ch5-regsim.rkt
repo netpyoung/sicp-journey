@@ -181,7 +181,7 @@
 (define (get-register machine reg-name)
   ((machine 'get-register) reg-name))
 
-(define (assemble controller-text machine)
+(overridable-define (assemble controller-text machine)
   (extract-labels controller-text
     (lambda (insts labels)
       (update-insts! insts labels machine)
@@ -428,6 +428,7 @@
   (override-make-restore! _make-restore)
   (override-make-machine! _make-machine)
   (override-make-new-machine! _make-new-machine)
+  (override-assemble! _assemble)
   
   )
 
