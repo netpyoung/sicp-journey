@@ -190,3 +190,6 @@
 (define (compiled-procedure-entry c-proc) (cadr c-proc))
 (define (compiled-procedure-env c-proc) (caddr c-proc))
 
+;; ================
+(define (reset-the-global-environment!)
+  (set! the-global-environment (setup-environment)))

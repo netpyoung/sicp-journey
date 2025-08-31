@@ -1,11 +1,14 @@
 #lang sicp
 
+(#%require "./helper/my-util.rkt")
 (#%require (prefix racket: racket))
 (racket:require "ch5-syntax.rkt")
-(racket:require "ch5-regsim.rkt")
+(racket:require (racket:except-in "ch5-regsim.rkt" reset!))
+(racket:require (racket:prefix-in regsim: "ch5-regsim.rkt"))
 (racket:require "ch5-eceval-support.rkt")
 (racket:provide (racket:all-defined-out))
 
+(override-make-stack! make-stack-5-2-4)
 ;;;;EXPLICIT-CONTROL EVALUATOR FROM SECTION 5.4 OF
 ;;;; STRUCTURE AND INTERPRETATION OF COMPUTER PROGRAMS
 
@@ -88,7 +91,7 @@
    (list 'get-global-environment get-global-environment))
    )
 
-(define eceval
+(overridable-define eceval
   (make-machine
    '(exp env val proc argl continue unev)
    eceval-operations
@@ -302,5 +305,13 @@ ev-definition-1
   (assign val (const ok))
   (goto (reg continue))
    )))
+
+(define (reset!)
+  (regsim:reset!)
+  (override-make-stack! make-stack-5-2-4)
+  (override-eceval! _eceval))
+
+
+(reset!)
 
 '(EXPLICIT CONTROL EVALUATOR LOADED)

@@ -16,7 +16,7 @@
 ;; (racket:provide (racket:all-from-out "../allcode/ch4-4.1.1-mceval.rkt"))
 
 (#%require (prefix racket: racket))
-(racket:require "ch5-regsim.rkt")
+(racket:require (racket:except-in "ch5-regsim.rkt" reset!))
 (racket:require "ch5-eceval-support.rkt")
 (racket:require "ch5-eceval.rkt")
 (racket:provide (racket:all-from-out "ch5-regsim.rkt"))
