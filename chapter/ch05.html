@@ -207,8 +207,16 @@
 </ul>
 </li>
 </ul>
+<p><a href="https://www.youtube.com/watch?v=cIc8ZBMcqAc&amp;list=PLE18841CABEA24090&amp;index=17">Lecture 9A: Register Machines</a></p>
+<ul>
+<li>fact설명</li>
+</ul>
+<p>ch5-regsim
+커스텀 기계 코드를 정의하고, label 과 register를 가진 실행 머신을 만듬</p>
+<p>stack이 레지스터 별로가 아니라 통합이라서 save/restore순서 주의</p>
+<p>슬금 슬금 머신 코드를 보여주다가 인터프리터를 돌 릴 수 있는 머신 코드가 나옴</p>
 <p>instruction
-lable
+label
 pc
 flag
 stack - save / restore</p>
@@ -218,6 +226,7 @@ load-eceval
 파일은 SICP 5.4절에서 정의된 **명시적 제어 평가기(ECEval)**를 로드합니다. ECEval은 Scheme 프로그램을 해석(interpret)하는 인터프리터로, Scheme 코드를 직접 실행할 수 있도록 설계된 가상 머신입니다.</p>
 <p>load-eceval-compiler
 SICP 5.5절에서 다루는 컴파일러와 연동된 ECEval을 로드합니다. 즉, Scheme 코드를 컴파일하여 기계어 수준의 명령어로 변환한 뒤, 이를 ECEval에서 실행할 수 있도록 지원합니다.</p>
+<p>eceval - EXPLICIT-CONTROL EVALUATOR FROM SECTION 5.4</p>
 <hr />
 <h2 id="todo"><a class="header" href="#todo">TODO</a></h2>
 <ul>
@@ -352,14 +361,140 @@ SICP 5.5절에서 다루는 컴파일러와 연동된 ECEval을 로드합니다.
 make-execution-procedure</p>
 <p>연습문제 5.11 c) **</p>
 <p>5.2.4 기계 성능 지켜보기</p>
+<p>연습문제 5.17 ** 명령어 바로 앞에 오는 레이블을 출력하
+연습문제 5.19 ** breakpoint 구현</p>
 <p>5.3 메모리 할당(memory allocation)과 재활용(garbage collection)
 5.3.1 벡터로 나타낸 메모리
-5.3.2 무한히 많은 메모리인 양 보이기</p>
+5.3.2 무한히 많은 메모리인 양 보이기  ?</p>
+<pre><code class="language-lisp">;; 2장에서 enumerate-interval / filter / accumulate
+(define (enumerate-interval low high)
+  (if (&gt; low high)
+      nil
+      (cons low (enumerate-interval (+ low 1) high))))
+
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(accumulate + 0 (filter odd? (enumerate-interval 0 n)))
+
+계산이 끝나면 enumerate-interval랑 filter로 생성된 리스트는 의미가 없음.
+</code></pre>
+<ul>
+<li>stop-and-copy
+<ul>
+<li>memory
+<ul>
+<li>working memory</li>
+<li>free memory</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">- working memory : 현재 작업 메모리
+the-cars[]
+the-cdrs[]
+
+- free memory    : 여유 메모리
+new-cars[]
+new-cdrs[]
+
+
+free               - 그림5.14 / 연습문제5.20 에서 다음에 객체(쌍)를 할당할 위치를 가리키는 포인터(index).
+                     할당할때마다 free증가
+scan               - 새 메모리에서 현재 스캔 중인 쌍의 위치를 가리키는 포인터(index).
+                     gc-loop 루프를 돌며 scan은 free와 같아질때까지 재배치된걸 검색
+root               - 가비지 컬렉션이 시작되면 root가 가리키는 객체를 새 메모리로 재배치하고, 재배치된 새 위치로 root를 업데이트
+                     이 레지스터는 프로그램이 접근할 수 있는 모든 데이터의 진입점 역할
+new                - 재배치된 객체의 새 메모리 위치를 저장하는 레지스터.
+old                - 재배치할 객체의 이전 메모리 위치를 가리키는 포인터
+relocate-continue - lable 저장용
+
+
+메모리 재활용 시점: 
+- working memory를 다 썼을 시(cons연산이 메모리 벡터끝을 넘어서 free 포인터를 증가시키려 할때)
+
+begin-garbage-collection                                                   ; def begin-garbage-collection
+  (assign free (const 0))                                                  ;   free = 0
+  (assign scan (const 0))                                                  ;   scan = 0
+  (assign old (reg root))                                                  ;   old = root
+  (assign relocate-continue (label reassign-root))                         ;   relocate-continue = &lt;reassign-root&gt;
+  (goto (label relocate-old-result-in-new))                                ;   return &lt;relocate-old-result-in-new&gt;
+
+reassign-root                                                              ; def reassign-root
+  (assign root (reg new))                                                  ;   root = new
+  (goto (label gc-loop))                                                   ;   return &lt;gc-loop&gt;
+    
+
+gc-loop                                                                    ; def gc-loop
+  (test (op =) (reg scan) (reg free))                                      ;   if (scan == free)
+  (branch (label gc-flip))                                                 ;        return &lt;gc-flip&gt;
+  (assign old (op vector-ref) (reg new-cars) (reg scan))                   ;   old = new-cars[scan]
+  (assign relocate-continue (label update-car))                            ;   relocate-continue = &lt;update-car&gt;
+  (goto (label relocate-old-result-in-new))                                ;   return &lt;relocate-old-result-in-new&gt;
+    
+
+
+update-car                                                                 ; def update-car
+  (perform (op vector-set!) (reg new-cars) (reg scan) (reg new))           ;   new-cars[scan] = new
+  (assign old (op vector-ref) (reg new-cdrs) (reg scan))                   ;   old = new-cdrs[scan]
+  (assign relocate-continue (label update-cdr))                            ;   relocate-continue = &lt;update-cdr&gt;
+  (goto (label relocate-old-result-in-new))                                ;   return &lt;relocate-old-result-in-new&gt;
+
+update-cdr                                                                 ; def update-cdr
+  (perform (op vector-set!) (reg new-cdrs) (reg scan) (reg new))           ;   new-cdrs[scan] = new
+  (assign scan (op +) (reg scan) (const 1))                                ;   scan = scan + 1
+  (goto (label gc-loop))                                                   ;   return &lt;gc-loop&gt;
+
+relocate-old-result-in-new                                                 ; def relocate-old-result-in-new
+  (test (op pointer-to-pair?) (reg old))                                   ;   if (pointer-to-pair? old)
+  (branch (label pair))                                                    ;      return &lt;pair&gt;
+  (assign new (reg old))                                                   ;   new = old
+  (goto (reg relocate-continue))                                           ;   return (relocate-continue)
+
+pair                                                                       ; def pair
+  (assign oldcr (op vector-ref) (reg the-cars) (reg old))                  ;   oldcr = the-cars[old]
+  (test (op broken-heart?) (reg oldcr))                                    ;   if (broken-heart? oldcr)
+  (branch (label already-moved))                                           ;      return &lt;already-moved&gt;
+  (assign new (reg free)) ;new location for pair                           ;   new = free
+  (assign free (op +) (reg free) (const 1))                                ;   free = free + 1
+  (perform (op vector-set!) (reg new-cars) (reg new) (reg oldcr))          ;   new-cars[new] = oldcr
+  (assign oldcr (op vector-ref) (reg the-cdrs) (reg old))                  ;   oldcr = the-cdrs[old]
+  (perform (op vector-set!) (reg new-cdrs) (reg new) (reg oldcr))          ;   new-cdrs[new] = oldcr
+  (perform (op vector-set!) (reg the-cars) (reg old) (const broken-heart)) ;   the-cars[old] = 'broken-heart
+  (perform (op vector-set!) (reg the-cdrs) (reg old) (reg new))            ;   the-cdrs[old] = new
+  (goto (reg relocate-continue))                                           ;   return (relocate-continue)
+
+already-moved                                                              ; def already-moved
+  (assign new (op vector-ref) (reg the-cdrs) (reg old))                    ;   new = the-cdrs[old]
+  (goto (reg relocate-continue))                                           ;   return (relocate-continue)
+
+
+
+gc-flip                                                                    ; def gc-flip
+  (assign temp (reg the-cdrs))                                             ;   swap(the-cdrs, new-cdrs)
+  (assign the-cdrs (reg new-cdrs))                                         ;   ..
+  (assign new-cdrs (reg temp))                                             ;   ..
+  (assign temp (reg the-cars))                                             ;   swap(the-cars, new-cars)
+  (assign the-cars (reg new-cars))                                         ;   ..
+  (assign new-cars (reg temp))                                             ;   ..
+</code></pre>
 <p>5.4 제어가 다 보이는 실행기
 5.4.1 제어가 다 보이는 실행기의 핵심부
 5.4.2 시퀀스 계산과 꼬리 되돌기(tail recursion)
-5.4.3 조건 식, 덮어쓰기(assignment), 정의
-5.4.4 실행기 돌리기</p>
+5.4.3 조건 식, 덮어쓰기(assignment), 정의</p>
+<p>연습문제 5.24 ** if로 변환하지 않고 cond구현.</p>
+<p>5.4.4 실행기 돌리기</p>
 <p>5.5 번역(compilation)
 5.5.1 번역기의 구조
 5.5.2 프로그램 식의 번역

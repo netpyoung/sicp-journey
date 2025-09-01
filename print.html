@@ -206,6 +206,7 @@
 </li>
 <li><a href="https://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs">wikipedia</a></li>
 </ul>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">I wish I had read SICP when I was in high school!</p>&mdash; John Carmack (@ID_AA_Carmack) <a href="https://twitter.com/ID_AA_Carmack/status/875713239912509440?ref_src=twsrc%5Etfw">June 16, 2017</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <h2 id="간단-느낌"><a class="header" href="#간단-느낌">간단 느낌</a></h2>
 <ul>
 <li>1장: 할만한데 그 놈의 뉴턴</li>
@@ -1990,8 +1991,16 @@ multiple-dwelling
 </ul>
 </li>
 </ul>
+<p><a href="https://www.youtube.com/watch?v=cIc8ZBMcqAc&amp;list=PLE18841CABEA24090&amp;index=17">Lecture 9A: Register Machines</a></p>
+<ul>
+<li>fact설명</li>
+</ul>
+<p>ch5-regsim
+커스텀 기계 코드를 정의하고, label 과 register를 가진 실행 머신을 만듬</p>
+<p>stack이 레지스터 별로가 아니라 통합이라서 save/restore순서 주의</p>
+<p>슬금 슬금 머신 코드를 보여주다가 인터프리터를 돌 릴 수 있는 머신 코드가 나옴</p>
 <p>instruction
-lable
+label
 pc
 flag
 stack - save / restore</p>
@@ -2001,6 +2010,7 @@ load-eceval
 파일은 SICP 5.4절에서 정의된 **명시적 제어 평가기(ECEval)**를 로드합니다. ECEval은 Scheme 프로그램을 해석(interpret)하는 인터프리터로, Scheme 코드를 직접 실행할 수 있도록 설계된 가상 머신입니다.</p>
 <p>load-eceval-compiler
 SICP 5.5절에서 다루는 컴파일러와 연동된 ECEval을 로드합니다. 즉, Scheme 코드를 컴파일하여 기계어 수준의 명령어로 변환한 뒤, 이를 ECEval에서 실행할 수 있도록 지원합니다.</p>
+<p>eceval - EXPLICIT-CONTROL EVALUATOR FROM SECTION 5.4</p>
 <hr />
 <h2 id="todo-4"><a class="header" href="#todo-4">TODO</a></h2>
 <ul>
@@ -2135,14 +2145,140 @@ SICP 5.5절에서 다루는 컴파일러와 연동된 ECEval을 로드합니다.
 make-execution-procedure</p>
 <p>연습문제 5.11 c) **</p>
 <p>5.2.4 기계 성능 지켜보기</p>
+<p>연습문제 5.17 ** 명령어 바로 앞에 오는 레이블을 출력하
+연습문제 5.19 ** breakpoint 구현</p>
 <p>5.3 메모리 할당(memory allocation)과 재활용(garbage collection)
 5.3.1 벡터로 나타낸 메모리
-5.3.2 무한히 많은 메모리인 양 보이기</p>
+5.3.2 무한히 많은 메모리인 양 보이기  ?</p>
+<pre><code class="language-lisp">;; 2장에서 enumerate-interval / filter / accumulate
+(define (enumerate-interval low high)
+  (if (&gt; low high)
+      nil
+      (cons low (enumerate-interval (+ low 1) high))))
+
+(define (filter predicate sequence)
+  (cond ((null? sequence) nil)
+        ((predicate (car sequence))
+         (cons (car sequence)
+               (filter predicate (cdr sequence))))
+        (else (filter predicate (cdr sequence)))))
+
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(accumulate + 0 (filter odd? (enumerate-interval 0 n)))
+
+계산이 끝나면 enumerate-interval랑 filter로 생성된 리스트는 의미가 없음.
+</code></pre>
+<ul>
+<li>stop-and-copy
+<ul>
+<li>memory
+<ul>
+<li>working memory</li>
+<li>free memory</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-lisp">- working memory : 현재 작업 메모리
+the-cars[]
+the-cdrs[]
+
+- free memory    : 여유 메모리
+new-cars[]
+new-cdrs[]
+
+
+free               - 그림5.14 / 연습문제5.20 에서 다음에 객체(쌍)를 할당할 위치를 가리키는 포인터(index).
+                     할당할때마다 free증가
+scan               - 새 메모리에서 현재 스캔 중인 쌍의 위치를 가리키는 포인터(index).
+                     gc-loop 루프를 돌며 scan은 free와 같아질때까지 재배치된걸 검색
+root               - 가비지 컬렉션이 시작되면 root가 가리키는 객체를 새 메모리로 재배치하고, 재배치된 새 위치로 root를 업데이트
+                     이 레지스터는 프로그램이 접근할 수 있는 모든 데이터의 진입점 역할
+new                - 재배치된 객체의 새 메모리 위치를 저장하는 레지스터.
+old                - 재배치할 객체의 이전 메모리 위치를 가리키는 포인터
+relocate-continue - lable 저장용
+
+
+메모리 재활용 시점: 
+- working memory를 다 썼을 시(cons연산이 메모리 벡터끝을 넘어서 free 포인터를 증가시키려 할때)
+
+begin-garbage-collection                                                   ; def begin-garbage-collection
+  (assign free (const 0))                                                  ;   free = 0
+  (assign scan (const 0))                                                  ;   scan = 0
+  (assign old (reg root))                                                  ;   old = root
+  (assign relocate-continue (label reassign-root))                         ;   relocate-continue = &lt;reassign-root&gt;
+  (goto (label relocate-old-result-in-new))                                ;   return &lt;relocate-old-result-in-new&gt;
+
+reassign-root                                                              ; def reassign-root
+  (assign root (reg new))                                                  ;   root = new
+  (goto (label gc-loop))                                                   ;   return &lt;gc-loop&gt;
+    
+
+gc-loop                                                                    ; def gc-loop
+  (test (op =) (reg scan) (reg free))                                      ;   if (scan == free)
+  (branch (label gc-flip))                                                 ;        return &lt;gc-flip&gt;
+  (assign old (op vector-ref) (reg new-cars) (reg scan))                   ;   old = new-cars[scan]
+  (assign relocate-continue (label update-car))                            ;   relocate-continue = &lt;update-car&gt;
+  (goto (label relocate-old-result-in-new))                                ;   return &lt;relocate-old-result-in-new&gt;
+    
+
+
+update-car                                                                 ; def update-car
+  (perform (op vector-set!) (reg new-cars) (reg scan) (reg new))           ;   new-cars[scan] = new
+  (assign old (op vector-ref) (reg new-cdrs) (reg scan))                   ;   old = new-cdrs[scan]
+  (assign relocate-continue (label update-cdr))                            ;   relocate-continue = &lt;update-cdr&gt;
+  (goto (label relocate-old-result-in-new))                                ;   return &lt;relocate-old-result-in-new&gt;
+
+update-cdr                                                                 ; def update-cdr
+  (perform (op vector-set!) (reg new-cdrs) (reg scan) (reg new))           ;   new-cdrs[scan] = new
+  (assign scan (op +) (reg scan) (const 1))                                ;   scan = scan + 1
+  (goto (label gc-loop))                                                   ;   return &lt;gc-loop&gt;
+
+relocate-old-result-in-new                                                 ; def relocate-old-result-in-new
+  (test (op pointer-to-pair?) (reg old))                                   ;   if (pointer-to-pair? old)
+  (branch (label pair))                                                    ;      return &lt;pair&gt;
+  (assign new (reg old))                                                   ;   new = old
+  (goto (reg relocate-continue))                                           ;   return (relocate-continue)
+
+pair                                                                       ; def pair
+  (assign oldcr (op vector-ref) (reg the-cars) (reg old))                  ;   oldcr = the-cars[old]
+  (test (op broken-heart?) (reg oldcr))                                    ;   if (broken-heart? oldcr)
+  (branch (label already-moved))                                           ;      return &lt;already-moved&gt;
+  (assign new (reg free)) ;new location for pair                           ;   new = free
+  (assign free (op +) (reg free) (const 1))                                ;   free = free + 1
+  (perform (op vector-set!) (reg new-cars) (reg new) (reg oldcr))          ;   new-cars[new] = oldcr
+  (assign oldcr (op vector-ref) (reg the-cdrs) (reg old))                  ;   oldcr = the-cdrs[old]
+  (perform (op vector-set!) (reg new-cdrs) (reg new) (reg oldcr))          ;   new-cdrs[new] = oldcr
+  (perform (op vector-set!) (reg the-cars) (reg old) (const broken-heart)) ;   the-cars[old] = 'broken-heart
+  (perform (op vector-set!) (reg the-cdrs) (reg old) (reg new))            ;   the-cdrs[old] = new
+  (goto (reg relocate-continue))                                           ;   return (relocate-continue)
+
+already-moved                                                              ; def already-moved
+  (assign new (op vector-ref) (reg the-cdrs) (reg old))                    ;   new = the-cdrs[old]
+  (goto (reg relocate-continue))                                           ;   return (relocate-continue)
+
+
+
+gc-flip                                                                    ; def gc-flip
+  (assign temp (reg the-cdrs))                                             ;   swap(the-cdrs, new-cdrs)
+  (assign the-cdrs (reg new-cdrs))                                         ;   ..
+  (assign new-cdrs (reg temp))                                             ;   ..
+  (assign temp (reg the-cars))                                             ;   swap(the-cars, new-cars)
+  (assign the-cars (reg new-cars))                                         ;   ..
+  (assign new-cars (reg temp))                                             ;   ..
+</code></pre>
 <p>5.4 제어가 다 보이는 실행기
 5.4.1 제어가 다 보이는 실행기의 핵심부
 5.4.2 시퀀스 계산과 꼬리 되돌기(tail recursion)
-5.4.3 조건 식, 덮어쓰기(assignment), 정의
-5.4.4 실행기 돌리기</p>
+5.4.3 조건 식, 덮어쓰기(assignment), 정의</p>
+<p>연습문제 5.24 ** if로 변환하지 않고 cond구현.</p>
+<p>5.4.4 실행기 돌리기</p>
 <p>5.5 번역(compilation)
 5.5.1 번역기의 구조
 5.5.2 프로그램 식의 번역
@@ -3984,6 +4120,41 @@ q' = 2qp + q^2
 </code></pre>
 <h2 id="3_12"><a class="header" href="#3_12">3_12</a></h2>
 <pre><code class="language-lisp">;; file: 3_12.rkt
+;; 3_12 / 5_22
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+;; TODO
+
+(define (append x y)
+  (if (null? x)
+      y
+      (cons (car x) (append (cdr x) y))))
+
+(define (append! x y)
+  (set-cdr! (last-pair x) y)
+  x)
+
+(define (last-pair x)
+  (if (null? (cdr x))
+      x
+      (last-pair (cdr x))))
+
+(define x1 '(1 2))
+(define y1 '(3 4))
+(check-equal? (append x1 y1)
+              '(1 2 3 4))
+(check-equal? x1 '(1 2))
+(check-equal? y1 '(3 4))
+
+(define x2 '(1 2))
+(define y2 '(3 4))
+(check-equal? (append! x2 y2)
+              '(1 2 3 4))
+(check-equal? x2 '(1 2 3 4))
+(check-equal? y2 '(3 4))
 </code></pre>
 <h2 id="3_13"><a class="header" href="#3_13">3_13</a></h2>
 <pre><code class="language-lisp">;; file: 3_13.rkt
@@ -11477,17 +11648,55 @@ q' = 2qp + q^2
 <h2 id="4_77"><a class="header" href="#4_77">4_77</a></h2>
 <pre><code class="language-lisp">;; file: 4_77.rkt
 
-;; TODO
+#|
+TODO 연습문제 4.77: 4.4.3절에서 우리는 not과 lisp-value가 변수가 바인딩되지 않은 프레임에 적용될 경우 쿼리 언어가 "잘못된" 답변을 줄 수 있다는 점을 살펴보았다.
+이 단점을 해결할 방법을 고안하시오.
+한 가지 아이디어는 필터링을 "지연된" 방식으로 수행하는 것이다.
+즉, 프레임에 필터링을 약속하는 "프로미스"를 추가하여, 해당 연산이 가능해질 만큼 충분한 변수가 바인딩되었을 때만 이 약속을 이행하는 것이다.
+모든 다른 연산이 수행될 때까지 필터링을 기다릴 수 있지만,
+효율성을 위해 가능한 한 빨리 필터링을 수행하여 생성되는 중간 프레임의 수를 줄이고자 한다.
+|#
 </code></pre>
 <h2 id="4_78"><a class="header" href="#4_78">4_78</a></h2>
 <pre><code class="language-lisp">;; file: 4_78.rkt
 
-;; TODO
+#|
+TODO 연습문제 4.78
+쿼리 언어를 스트림 프로세스가 아닌, 4.3절의 평가기를 사용하여 구현되는 비결정적 프로그램으로 재설계하시오.
+이 접근 방식에서는 각 쿼리가 모든 답변의 스트림 대신 단일 답변을 생성하며, 사용자는 try-again을 입력하여 추가 답변을 볼 수 있습니다.
+이 섹션에서 구축한 많은 메커니즘이 비결정적 검색과 백트래킹에 의해 포함된다는 것을 알게 될 것입니다.
+그러나 새로 구현한 쿼리 언어가 여기서 구현한 쿼리 언어와 행동에서 미묘한 차이가 있을 가능성도 있습니다.
+이러한 차이를 보여주는 예를 찾을 수 있습니까?
+|#
 </code></pre>
 <h2 id="4_79"><a class="header" href="#4_79">4_79</a></h2>
 <pre><code class="language-lisp">;; file: 4_79.rkt
 
-;; TODO
+#|
+TODO 연습문제 4.79
+4.1절에서 Lisp 평가기를 구현할 때, 프로시저의 매개변수 간 이름 충돌을 피하기 위해 로컬 환경을 사용하는 방법을 살펴보았다.
+
+ 예를 들어, 다음을 평가할 때:
+
+(define (square x) 
+  (* x x))
+
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))
+
+(sum-of-squares 3 4)
+
+square의 x와 sum-of-squares의 x 사이에 혼동이 없는데, 이는 각 프로시저의 본문이 로컬 변수에 대한 바인딩을 포함하도록 특별히 구성된 환경에서 평가되기 때문이다.
+ 쿼리 시스템에서는 규칙을 적용할 때 이름 충돌을 피하기 위해 다른 전략을 사용했다.
+  규칙을 적용할 때마다 변수를 고유한 새 이름으로 바꾼다.
+   Lisp 평가기에 유사한 전략을 적용한다면, 로컬 환경을 제거하고 프로시저를 적용할 때마다 프로시저 본문의 변수 이름을 바꾸는 방식이 될 것이다.
+
+1. 쿼리 언어에 대해 이름 변경 대신 환경을 사용하는 규칙 적용 방법을 구현하시오.
+2. 환경 구조를 활용하여 쿼리 언어에서 블록 구조 프로시저와 유사한 규칙의 아날로그를 만들어 대규모 시스템을 다룰 수 있는 구조를 만들 수 있는지 확인하시오.
+3. 이를 “만약 내가 $ P $가 참이라고 가정한다면, $ A $와 $ B $를 추론할 수 있을 것이다”와 같은 문맥에서의 추론 문제를 해결하는 방법과 연관 지을 수 있습니까?
+  (이 문제는 개방형입니다. 좋은 답변은 아마도 박사 학위 수준의 가치를 가질 것입니다.)
+
+|#
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="연습문제-풀이-05"><a class="header" href="#연습문제-풀이-05">연습문제 풀이 05</a></h1>
 <ul>
@@ -12564,15 +12773,30 @@ set / 그리고 kv-set
         (let ((y (rest set)))
           (set-cdr! set (cons x (rest set)))
           set)))
-  
+  (define (del! set x)
+    (let loop ((prev set)
+               (current (rest set)))
+      (cond ((null? current) set)
+            ((equal? (car current) x)
+             (set-cdr! prev (cdr current))
+             set)
+            (else
+             (loop current (cdr current))))))
+
   (let ((s (set-init!)))
     (define (add x)
       (add! s x))
+    (define (del x)
+      (del! s x))
     (define (set)
       s)
+    (define (contains x)
+      (contains? s x))
     (define (dispatch message)
       (cond ((eq? message 'set) (set))
             ((eq? message 'add) add)
+            ((eq? message 'del) del)
+            ((eq? message 'contains?) contains)
             (else (error "Unknown request -- SET" message))))
     dispatch))
 
@@ -12581,6 +12805,8 @@ set / 그리고 kv-set
 (check-equal? ((my-set 'add) 1) '(set 1))
 (check-equal? ((my-set 'add) 2) '(set 2 1))
 (check-equal? ((my-set 'add) 2) '(set 2 1))
+(check-equal? ((my-set 'del) 2) '(set 1))
+(check-equal? ((my-set 'del) 2) '(set 1))
 
 (define (make-kv-set)
   (define (kv-set-init!)
@@ -13214,6 +13440,7 @@ set / 그리고 kv-set
 </code></pre>
 <h2 id="5_15"><a class="header" href="#5_15">5_15</a></h2>
 <pre><code class="language-lisp">;; file: 5_15.rkt
+;; 5_15 / 5_16 / 5_17 / 5_19
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -13323,6 +13550,7 @@ set / 그리고 kv-set
 </code></pre>
 <h2 id="5_16"><a class="header" href="#5_16">5_16</a></h2>
 <pre><code class="language-lisp">;; file: 5_16.rkt
+;; 5_15 / 5_16 / 5_17 / 5_19
 
 (#%require rackunit)
 (#%require "../allcode/helper/my-util.rkt")
@@ -13348,7 +13576,8 @@ set / 그리고 kv-set
         (flag (make-register 'flag))
         (stack (make-stack))
         (the-instruction-sequence '())
-        (is-trace-on false))
+        (is-trace-on false) ; added : 5-16
+        )
     (let ((the-ops
            (list (list 'initialize-stack
                        (lambda () (stack 'initialize)))
@@ -13383,6 +13612,7 @@ set / 그리고 kv-set
           (if (null? insts)
               'done
               (begin
+                 ;; added : 5-16
                 (if is-trace-on
                     (begin
                       (newline)
@@ -13434,24 +13664,1382 @@ set / 그리고 kv-set
 </code></pre>
 <h2 id="5_17"><a class="header" href="#5_17">5_17</a></h2>
 <pre><code class="language-lisp">;; file: 5_17.rkt
+;; 5_15 / 5_16 / 5_17 / 5_19
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+
+#|
+연습문제 5.17: 연습문제 5.16의 명령어 추적 기능을 확장하여,
+명령어를 출력하기 전에 시뮬레이터가 컨트롤러 시퀀스에서 해당 명령어 바로 앞에 오는 레이블을 출력하도록 하시오.
+이 작업이 명령어 카운팅(연습문제 5.15)과 간섭하지 않도록 주의해서 구현해야 합니다.
+시뮬레이터가 필요한 레이블 정보를 유지하도록 해야 합니다.
+|#
+
+#|
+extract-labels
+ text를 insts랑 labels로 분리.
+
+insts : ((insruction) ...)
+labels: ((labelA instruction-A1 instruction-A2 ...) (labelB instruction-B1 instruction-B2 ...) ...)
+
+assemble에서
+  insts: ((insruction) ...)
+  update-insts!
+  insts : ((instruction . func) ...)
+  insts가 바뀌면서 메모리를 공유하는 labels도 따라 바뀐다.
+  labels: ((labelA (instruction-A1 . func) (instruction-A2 . func) ...) ...)
+|#
+
+#|
+기존 코드에서 pc가 어셈의 instruction pointer처럼 index기반으로 동작했으면, 수정하기 보다 편했으려나...
+인덱스 기반으로 싹 바꿀 마음도 있었지만, 대대적 수정이 있을꺼라 패스.
+
+assemble / extract-labels / update-insts!에서 instruction안에 label정보를 찡겨 넣을까 생각해 봤지만,
+대신 labels를 머신에 찡겨넣고, labels에서 instruction을 찾는 방식이 좋겠다.
+
+
+- extract-labels에서 나온 labels 구조가 좀 골때림.
+  - 처음에는 각 labels마다 instruction을 담는줄 알아서 find시 첫번째 label만 나오길레 이상해서 보니
+  - labels 아레로 나온 Instruction전부를 포함하는 구조로 됨.
+  - 그래서 미리 reverse를 시켜 줘서 find가 잘 찾도록 수정
+|#
+
+
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+(racket:require "../allcode/ch5-regsim.rkt")
+
+(override-make-stack! make-stack-5-2-4)
+
+(define (assemble controller-text machine)
+  (extract-labels controller-text
+                  (lambda (insts labels)
+                    (update-insts! insts labels machine)
+                    (list insts labels))))
+
+(override-assemble! assemble)
+
+(define (contains? lst x)
+  (cond ((null? lst) false)
+        ((equal? x (first lst)) true)
+        (else (contains? (rest lst) x))))
+
+(define (find-label-name labels instruction)
+  (if (null? labels)
+      '**non-label-name**
+      (let* ((label (first labels))
+             (label-name (first label))
+             (insts (rest label)))
+        (if (contains? insts instruction)
+            label-name
+            (find-label-name (rest labels) instruction)))))
+
+(define (make-new-machine-5-17)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '())
+        (instruction-count 0) ; added : 5-15
+        (is-trace-on false)   ; added : 5-16
+        (the-labels nil)      ; added : 5-17
+        )
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))
+
+                 ;; added : 5-15
+                 (list 'initialize-instruction-count
+                       (lambda ()
+                         (set! instruction-count 0)))
+                 (list 'print-instruction-count
+                       (lambda ()
+                         (newline)
+                         (display (list 'print-instruction-count  '= instruction-count))))
+                 ;; added : 5-16
+                 (list 'trace-on
+                       (lambda ()
+                         (set! is-trace-on true)))
+                 (list 'trace-off
+                       (lambda ()
+                         (set! is-trace-on false)))
+                 ))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              (error "Unknown register:" name))))
+      (define (execute)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                ;; added : 5-17
+                (if is-trace-on
+                    (begin
+                      (newline)
+                      (let ((label-name (find-label-name the-labels (first insts))))
+                        (display (list "==========================" label-name)))))
+                
+                ;; added : 5-16
+                (if is-trace-on
+                    (begin
+                      (newline)
+                      (display (first (first insts)))))
+                
+                ((instruction-execution-proc (car insts)))
+                
+                ;; added: 5-15
+                (set! instruction-count (inc instruction-count))
+                (execute)))))
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute))
+              ((eq? message 'install-instruction-sequence)
+               ;; before: 5-17
+               ;; (lambda (seq)
+               ;;   (set! the-instruction-sequence seq))
+               ;; after: 5-17
+               (lambda (insts-labels)
+                 (let ((seq (first insts-labels))
+                       (labels (second insts-labels)))
+                   (set! the-instruction-sequence seq)
+                   (set! the-labels (reverse labels)) ; // reverse를 한 것에 주의.
+                   ))
+               )
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+              ((eq? message 'operations) the-ops)
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+
+(override-make-new-machine! make-new-machine-5-17)
+
+(define dummy-machine
+  (make-machine
+   '(x y)
+   '()
+   '(label-A
+     (assign x (const 1))
+     (assign y (const 2))
+
+     label-B
+     (perform (op trace-on))
+     (assign x (const 1))
+     label-C
+     (assign y (const 2))
+     (save x)
+     (restore x)
+     
+     label-D
+     (perform (op trace-off))
+     (assign x (const 1))
+     (assign y (const 2))
+     )
+   ))
+
+(check-output?
+   "
+(========================== label-B)
+(assign x (const 1))
+(========================== label-C)
+(assign y (const 2))
+(========================== label-C)
+(save x)
+(========================== label-C)
+(restore x)
+(========================== label-D)
+(perform (op trace-off))
+(total-pushes = 1 maximum-depth = 1)"
+ 
+   (start dummy-machine)
+   ((dummy-machine 'stack) 'print-statistics))
 </code></pre>
 <h2 id="5_18"><a class="header" href="#5_18">5_18</a></h2>
 <pre><code class="language-lisp">;; file: 5_18.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+연습문제 5.18: 5.2.1절의 make-register 프로시저를 수정하여 레지스터를 추적할 수 있도록 하세요.
+
+1. 레지스터는 추적을 켜고 끄는 메시지를 받아들여야 합니다.
+2. 레지스터가 추적 중일 때, 레지스터에 값을 할당하면 레지스터의 이름, 기존 내용, 그리고 새로 할당되는 내용을 출력해야 합니다.
+3. 기계 모델의 인터페이스를 확장하여 지정된 기계 레지스터에 대해 추적을 켜고 끌 수 있도록 하세요.
+
+|#
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+
+(racket:require "../allcode/ch5-regsim.rkt")
+
+
+(define (make-register name)
+  (let ((contents '*unassigned*)
+        (is-tracking false) ; added: 5-18 - 1.
+        )
+    (define (dispatch message)
+      (cond ((eq? message 'get) contents)
+            ((eq? message 'set)
+             (lambda (value)
+               ;; added: 5-18 - 2.
+               (if is-tracking
+                   (begin
+                     (newline)
+                     (display (list 'register "(" name ")" contents '&gt;&gt;&gt;&gt;&gt; value))))
+               (set! contents value)))
+            ;; added: 5-18 - 1.
+            ((eq? message 'set-is-tracking)
+             (lambda (value) (set! is-tracking value)))
+            (else
+             (error "Unknown request -- REGISTER" message))))
+    dispatch))
+
+(override-make-register! make-register)
+
+(define (make-new-machine)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '()))
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              (error "Unknown register:" name))))
+      (define (execute)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                ((instruction-execution-proc (car insts)))
+                (execute)))))
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute))
+              ((eq? message 'install-instruction-sequence)
+               (lambda (seq) (set! the-instruction-sequence seq)))
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+              ((eq? message 'operations) the-ops)
+              ;; added: 5-18 - 3.
+              ((eq? message 'register-track)
+               (lambda (reg-name is-tracking)
+                 (let ((reg (lookup-register reg-name)))
+                   ((reg 'set-is-tracking) is-tracking))))
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+
+(override-make-new-machine! make-new-machine)
+
+(define dummy-machine
+  (make-machine
+   '(x y)
+   '()
+   '((assign x (const 1))
+     (assign y (const 2))
+
+     (assign x (reg y))
+     (assign y (reg x))
+     
+     (assign x (const 3))
+     )
+   ))
+
+(check-output?
+ "
+(register ( x ) *unassigned* &gt;&gt;&gt;&gt;&gt; 1)
+(register ( x ) 1 &gt;&gt;&gt;&gt;&gt; 2)
+(register ( x ) 2 &gt;&gt;&gt;&gt;&gt; 3)"
+
+ ((dummy-machine 'register-track) 'x true)
+ (start dummy-machine))
 </code></pre>
 <h2 id="5_19"><a class="header" href="#5_19">5_19</a></h2>
 <pre><code class="language-lisp">;; file: 5_19.rkt
+;; 5_15 / 5_16 / 5_17 / 5_19
+
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+(set-breakpoint ⟨machine⟩ ⟨label⟩ ⟨n⟩)    : 1. label에서 n만큼 떨어진 곳에 breakpoint 설정
+(proceed-machine ⟨machine⟩)               ; 2. 실행 이어가기
+(cancel-breakpoint ⟨machine⟩ ⟨label⟩ ⟨n⟩) ; 3. breakpoint 제거
+(cancel-all-breakpoints ⟨machine⟩)        ; 4. 모든 breakpoints 제거
+|#
+
+#|
+
+1.
+- n번째 찾는건 5_17 에서처럼 labels를 들고있다가 거기서 인덱스 만큼 떨어진 곳에 instruction을 찾을 수 있을거임.
+- breakpoint table같은걸 만들어서 거기에 해당 instruction을 키로 해서 넣으면 될듯.
+- 머신을 실행을 지속시키는것은 (execute) 루프
+- breakpoint를 만나면 루프를 중지시키면 됨.
+
+
+2.
+- proceed-machine은 단순이 execute를 시켜주면 알아서 진행될꺼임.
+- 단 첫 실행시 breakpoint 우회 방법 필요.
+
+3.
+- 1.에서 처럼 labels에서 instruction을 찾은 후 breakpoint 테이블에서 지우면 될꺼고
+
+4.
+- breakpoint 테이블 자체를 클리어 시키면 됨.
+
+|#
+
+(racket:require (racket:only-in "../allcode/ch5.rkt"
+                                figure-5-11
+                                figure-5-12))
+(racket:require "../allcode/ch5-regsim.rkt")
+(racket:require (racket:only-in "5_12.rkt"
+                                make-set))
+(reset!)
+
+(define (assemble controller-text machine)
+  (extract-labels controller-text
+                  (lambda (insts labels)
+                    (update-insts! insts labels machine)
+                    (list insts labels))))
+(override-assemble! assemble)
+
+(define (set-breakpoint machine label n)
+  ((machine 'set-breakpoint) label n))
+
+(define (proceed-machine machine)
+  (machine 'proceed-machine))
+
+(define (cancel-breakpoint machine label n)
+  ((machine 'cancel-breakpoint) label n))
+
+(define (cancel-all-breakpoints machine)
+  (machine 'cancel-all-breakpoints))
+
+(define (nth lst n)
+  (cond ((null? lst) (error "Index out of bounds"))
+        ((&lt; n 0) (error "Index cannot be negative"))
+        ((= n 0) (car lst))
+        (else (nth (cdr lst) (- n 1)))))
+
+(define (find-inst labels in-label-name in-n)
+  (if (null? labels)
+      nil
+      (let* ((label (first labels))
+             (label-name (first label))
+             (insts (rest label)))
+        (if (eq? in-label-name label-name)
+            (nth insts in-n)
+            (find-inst (rest labels) in-label-name in-n)))))
+
+(define (make-new-machine)
+  (let ((pc (make-register 'pc))
+        (flag (make-register 'flag))
+        (stack (make-stack))
+        (the-instruction-sequence '())
+        (breakpoint-set (make-set)) ; added: 5_19
+        (the-labels nil)            ; added: 5_19
+        )
+    (let ((the-ops
+           (list (list 'initialize-stack
+                       (lambda () (stack 'initialize)))
+                 ;;**next for monitored stack (as in section 5.2.4)
+                 ;;  -- comment out if not wanted
+                 (list 'print-stack-statistics
+                       (lambda () (stack 'print-statistics)))))
+          (register-table
+           (list (list 'pc pc) (list 'flag flag))))
+      (define (allocate-register name)
+        (if (assoc name register-table)
+            (error "Multiply defined register: " name)
+            (set! register-table
+                  (cons (list name (make-register name))
+                        register-table)))
+        'register-allocated)
+      (define (lookup-register name)
+        (let ((val (assoc name register-table)))
+          (if val
+              (cadr val)
+              (error "Unknown register:" name))))
+      ;; before: 5-19
+      ;; (define (execute)
+      ;;   (let ((insts (get-contents pc)))
+      ;;     (if (null? insts)
+      ;;         'done
+      ;;         (begin
+      ;;           ((instruction-execution-proc (car insts)))
+      ;;           (execute)))))
+      ;; after: 5-19
+      (define (execute is-breakable-flag)
+        (let ((insts (get-contents pc)))
+          (if (null? insts)
+              'done
+              (begin
+                (let ((inst (car insts)))
+                  (if (and is-breakable-flag ((breakpoint-set 'contains?) inst))
+                      '**break**
+                      (begin
+                        ((instruction-execution-proc (car insts)))
+                        (execute true))))))))
+      
+      (define (dispatch message)
+        (cond ((eq? message 'start)
+               (set-contents! pc the-instruction-sequence)
+               (execute true))
+              ((eq? message 'install-instruction-sequence)
+               ;; before: 5-19
+               ;; (lambda (seq)
+               ;;   (set! the-instruction-sequence seq))
+               ;; after: 5-19
+               (lambda (insts-labels)
+                 (let ((seq (first insts-labels))
+                       (labels (second insts-labels)))
+                   (set! the-instruction-sequence seq)
+                   (set! the-labels (reverse labels)) ; // reverse를 한 것에 주의.
+                   ))
+               )
+              ((eq? message 'allocate-register) allocate-register)
+              ((eq? message 'get-register) lookup-register)
+              ((eq? message 'install-operations)
+               (lambda (ops) (set! the-ops (append the-ops ops))))
+              ((eq? message 'stack) stack)
+              ((eq? message 'operations) the-ops)
+
+              ;; added: 5-19
+              ((eq? message 'set-breakpoint)
+               (lambda (label-name n)
+                 (let ((inst (find-inst the-labels label-name n)))
+                   (if (not (null? inst))
+                       (begin
+                         ((breakpoint-set 'add) inst)
+                         (list '**break-marked**
+                               'lable: label-name
+                               ':idx   n
+                               'inst:  (first inst)))))))
+              ((eq? message 'proceed-machine)
+               (execute false))
+              ((eq? message 'cancel-breakpoint)
+               (lambda (label-name n)
+                 (let ((inst (find-inst the-labels label-name n)))
+                   (if (null? inst)
+                       (list 'cancel-breakpoint
+                             'fail-to-find-inst
+                             'lable: label-name
+                             ':idx   n)
+                       (if (not ((breakpoint-set 'contains?) inst))
+                           (list 'cancel-breakpoint '**break-already-canceled**
+                                 'lable: label-name
+                                 ':idx   n
+                                 'inst:  (first inst))
+                           (let ((deleted-set ((breakpoint-set 'del) inst)))
+                             (list 'cancel-breakpoint '**break-canceled**
+                                   'lable: label-name
+                                   ':idx   n
+                                   'inst:  (first inst))))))))
+              ((eq? message 'cancel-all-breakpoints)
+               (set! breakpoint-set (make-set))
+               '**cancel-all-breakpoints**)
+              
+              (else (error "Unknown request -- MACHINE" message))))
+      dispatch)))
+
+(override-make-new-machine! make-new-machine)
+
+(define gcd-machine
+  (make-machine
+   '(a b t)
+   (list (list 'rem remainder) (list '= =))
+   '(test-b
+     (test (op =) (reg b) (const 0))
+     (branch (label gcd-done))
+     (assign t (op rem) (reg a) (reg b))
+     (assign a (reg b))
+     (assign b (reg t))
+     (goto (label test-b))
+     
+     gcd-done)))
+
+(~&gt; gcd-machine
+    (set-breakpoint 'test-b 4)
+    (check-equal? '(**break-marked** lable: test-b :idx 4 inst: (assign b (reg t)))))
+
+(~&gt; gcd-machine
+    (set-register-contents! 'a 206)
+    (check-equal? 'done))
+(~&gt; gcd-machine
+    (set-register-contents! 'b 40)
+    (check-equal? 'done))
+
+(~&gt; gcd-machine
+    (start)
+    (check-equal? '**break**))
+
+(~&gt; gcd-machine
+    (get-register-contents 'a)
+    (check-equal? 40))
+(~&gt; gcd-machine
+    (get-register-contents 'b)
+    (check-equal? 40))
+(~&gt; gcd-machine
+    (get-register-contents 't)
+    (check-equal? 6))
+
+(~&gt; gcd-machine
+    (proceed-machine)
+    (check-equal? '**break**))
+
+(~&gt; gcd-machine
+    (get-register-contents 'a)
+    (check-equal? 6))
+(~&gt; gcd-machine
+    (get-register-contents 'b)
+    (check-equal? 6))
+(~&gt; gcd-machine
+    (get-register-contents 't)
+    (check-equal? 4))
+
+(~&gt; gcd-machine
+    (set-register-contents! 'a 40)
+    (check-equal? 'done))
+(~&gt; gcd-machine
+    (set-register-contents! 'b 40)
+    (check-equal? 'done))
+(~&gt; gcd-machine
+    (set-register-contents! 't 6)
+    (check-equal? 'done))
+
+(~&gt; gcd-machine
+    (proceed-machine)
+    (check-equal? '**break**))
+
+(~&gt; gcd-machine
+    (get-register-contents 'a)
+    (check-equal? 6))
+
+(~&gt; gcd-machine
+    (cancel-breakpoint 'test-c 1)
+    (check-equal? '(cancel-breakpoint fail-to-find-inst lable: test-c :idx 1)))
+(~&gt; gcd-machine
+    (cancel-breakpoint 'test-b 4)
+    (check-equal? '(cancel-breakpoint **break-canceled** lable: test-b :idx 4 inst: (assign b (reg t)))))
+(~&gt; gcd-machine
+    (cancel-breakpoint 'test-b 4)
+    (check-equal? '(cancel-breakpoint **break-already-canceled** lable: test-b :idx 4 inst: (assign b (reg t)))))
+#;(~&gt; gcd-machine
+    (cancel-all-breakpoints)
+    (check-equal? '**cancel-all-breakpoints**))
+
+(~&gt; gcd-machine
+    (proceed-machine)
+    (check-equal? 'done))
+
+(~&gt; gcd-machine
+    (get-register-contents 'a)
+    (check-equal? 2))
 </code></pre>
 <h2 id="5_20"><a class="header" href="#5_20">5_20</a></h2>
 <pre><code class="language-lisp">;; file: 5_20.rkt
+
+#|
+연습문제 5.20: 다음 코드로 생성된 리스트 구조의 박스-포인터 다이어그램과 메모리 벡터 표현(그림 5.14와 같은 형식)을 그리시오:
+
+(define x (cons 1 2))
+(define y (list x x))
+
+초기 free 포인터는 p1.
+최종 free 포인터의 값은 무엇인가? 변수 x와 y의 값을 나타내는 포인터는 무엇인가?
+|#
+
+#|
+
+| p | pointer    |
+| n | number     |
+| e | empty list |
+
+
+e0 : 빈리스트 - '()
+
+|#
+
+
+#|
+
+x = (cons 1 2)
+&lt;p1&gt; = (cons 1 2)
++-+-+-+-+
+|   |   |--&gt; n2
++-+-+-+-+
+  |
+  v
+  n1
+
+y = (list x y) = (cons x (cons x '()))
+  | &lt;p2&gt; = (cons x '())  = (cons &lt;p1&gt; &lt;e0&gt;)
+  | &lt;p3&gt; = (cons x &lt;p2&gt;) = (cons &lt;p1&gt; &lt;e2&gt;)
+y = &lt;p3&gt;
+
+&lt;p3&gt;        &lt;p2&gt;
++-+-+-+-+    +-+-+-+-+
+|   |   |--&gt; |   |   |--&gt; e0
++-+-+-+-+    +-+-+-+-+
+  |            |
+  v            v
+  x&lt;p1&gt;       x&lt;p1&gt;
+
+
+| index    | 0   | 1   | 2   | 3   | 4   |
+| -------- | --- | --- | --- | --- | --- |
+| the-cars |     | n1  | p1  | p1  |     |
+| the-cdrs |     | n2  | e0  | p2  |     |
+
+즉,
+
+x    : p1
+y    : p3
+free : p4
+
+|#
 </code></pre>
 <h2 id="5_21"><a class="header" href="#5_21">5_21</a></h2>
 <pre><code class="language-lisp">;; file: 5_21.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+
+연습문제 5.21: 다음 프로시저에 대한 레지스터 머신 구현
+리스트 구조 메모리 연산이 머신 기본 연산(primitive)으로 사용 가능하다고 가정하고, 아래 프로시저에 대한 레지스터 머신을 구현하시오.
+
+1. 재귀적 count-leaves:
+(define (count-leaves tree)
+  (cond ((null? tree) 0)
+        ((not (pair? tree)) 1)
+        (else 
+         (+ (count-leaves (car tree))
+            (count-leaves (cdr tree))))))
+
+2. 명시적 카운터를 사용한 재귀적 count-leaves:
+(define (count-leaves tree)
+  (define (count-iter tree n)
+    (cond ((null? tree) n)
+          ((not (pair? tree)) (+ n 1))
+          (else 
+           (count-iter 
+            (cdr tree)
+            (count-iter (car tree) 
+                        n)))))
+  (count-iter tree 0))
+|#
+
+#|
+1번은 figure 5.12와 닮아 있음.
+
+
+|#
+
+(racket:require "../allcode/ch5-regsim.rkt")
+(override-make-stack! make-stack-5-2-4)
+
+(define (count-leaves-v1 tree)
+  (cond ((null? tree) 0)
+        ((not (pair? tree)) 1)
+        (else 
+         (+ (count-leaves-v1 (car tree))
+            (count-leaves-v1 (cdr tree))))))
+
+(define (count-leaves-v2 tree)
+  (define (count-iter tree n)
+    (cond ((null? tree) n)
+          ((not (pair? tree)) (+ n 1))
+          (else 
+           (count-iter 
+            (cdr tree)
+            (count-iter (car tree) 
+                        n)))))
+  (count-iter tree 0))
+
+(define sample-tree
+  '((1 (2 3 (4 5)) (6 7)) (8 (9 (10 (11) 12)))))
+
+(check-equal? (count-leaves-v1 sample-tree)
+              12)
+(check-equal? (count-leaves-v2 sample-tree)
+              12)
+
+;; v1 =====================================================================
+
+(define controller-count-leaves-v1
+  '(BEGIN
+    
+    (assign continue (label END))
+    
+    LOOP
+    (test (op null?) (reg tree))             ; cond - ((null? tree) 0)
+    (branch
+     (label CASE-0))
+    (assign temp1 (op pair?) (reg tree))     ; cond - ((not (pair? tree)) 1)
+    (test (op not) (reg temp1))
+    (branch
+     (label CASE-1))
+    
+    (save continue)
+    (assign continue (label AFTER-car-tree))
+    (save tree)
+    (assign tree (op car) (reg tree))        ; prepare : (count-leaves (car tree))
+    (goto
+     (label LOOP))                           ; do      : (count-leaves (car tree))
+
+    AFTER-car-tree
+    (restore tree)
+    (restore continue)
+    (assign tree (op cdr) (reg tree))        ; prepare : (count-leaves (cdr tree))
+    (save continue)
+    (assign continue (label AFTER-cdr-tree))
+    (save val)                               ; save    : (count-leaves (car tree))
+    (goto
+     (label LOOP))                           ; do      : (count-leaves (cdr tree))
+
+    AFTER-cdr-tree
+    (assign tree (reg val))                  ; save    : (count-leaves (cdr tree))
+    (restore val)                            ; restore : (count-leaves (car tree))
+    (restore continue)
+    (assign val (op +) (reg val) (reg tree)) ; cond - (+ (count-leaves-v1 (car tree))
+    ;           (count-leaves-v1 (cdr tree)))
+    (goto
+     (reg continue))
+    
+    CASE-0
+    (assign val (const 0))
+    (goto
+     (reg continue))
+
+    CASE-1
+    (assign val (const 1))
+    (goto
+     (reg continue))
+    
+    END))
+
+(define machine-count-leaves-v1
+  (make-machine
+   '(tree temp1 continue val)
+   (list (list 'null? null?)
+         (list 'pair? pair?)
+         (list 'not not)
+         (list '+ +)
+         (list 'car car)
+         (list 'cdr cdr)
+         )
+   controller-count-leaves-v1
+   ))
+
+(~&gt; machine-count-leaves-v1
+    (set-register-contents! 'tree sample-tree)
+    (check-equal? 'done))
+
+(~&gt; machine-count-leaves-v1
+    (start)
+    (check-equal? 'done))
+
+(~&gt; machine-count-leaves-v1
+    (get-register-contents 'val)
+    (check-equal? 12))
+
+(check-output?
+ "
+(total-pushes = 80 maximum-depth = 18)"
+ 
+ ((machine-count-leaves-v1 'stack) 'print-statistics))
+
+;; v2 =====================================================================
+
+(define controller-count-leaves-v2
+  '(BEGIN
+    
+    (assign continue (label END))
+    (assign n (const 0))                   ; (count-iter tree 0)
+    
+    LOOP
+    (test (op null?) (reg tree))           ; cond - ((null? tree) n)
+    (branch
+     (label CASE-n))
+    (assign temp1 (op pair?) (reg tree))   ; cond - ((not (pair? tree)) (+ n 1))
+    (test (op not) (reg temp1))
+    (branch
+     (label CASE-n+1))
+
+    ;; (count-iter (cdr tree)
+    ;;             (count-iter (car tree)  n))))))
+    (save continue)
+    (assign continue (label AFTER-car-tree))
+    (save tree)
+    (assign tree (op car) (reg tree))
+    (goto
+     (label LOOP))
+
+    AFTER-car-tree
+    (restore tree)
+    (restore continue)
+    (assign tree (op cdr) (reg tree))
+    (assign n (reg val))
+    (goto
+     (label LOOP))
+
+    
+    CASE-n
+    (assign val (reg n))
+    (goto
+     (reg continue))
+
+    CASE-n+1
+    (assign val (op +) (reg n) (const 1))
+    (goto
+     (reg continue))
+    
+    END))
+
+
+(define machine-count-leaves-v2
+  (make-machine
+   '(tree n temp1 continue val)
+   (list (list 'null? null?)
+         (list 'pair? pair?)
+         (list 'not not)
+         (list '+ +)
+         (list 'car car)
+         (list 'cdr cdr)
+         )
+   controller-count-leaves-v2
+   ))
+
+(~&gt; machine-count-leaves-v2
+    (set-register-contents! 'tree sample-tree)
+    (check-equal? 'done))
+
+(~&gt; machine-count-leaves-v2
+    (start)
+    (check-equal? 'done))
+
+(~&gt; machine-count-leaves-v2
+    (get-register-contents 'val)
+    (check-equal? 12))
+
+(check-output?
+ "
+(total-pushes = 40 maximum-depth = 10)"
+ 
+ ((machine-count-leaves-v2 'stack) 'print-statistics))
 </code></pre>
 <h2 id="5_22"><a class="header" href="#5_22">5_22</a></h2>
 <pre><code class="language-lisp">;; file: 5_22.rkt
+;; 3_12 / 5_22
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+연습문제 3.12에 나온 append와 append!에 대한 머신 설계.
+|#
+
+
+(racket:require "../allcode/ch5-regsim.rkt")
+
+(define (append x y)
+  (if (null? x)
+      y
+      (cons (car x) (append (cdr x) y))))
+
+(define (append! x y)
+  (set-cdr! (last-pair x) y)
+  x)
+
+(define (last-pair x)
+  (if (null? (cdr x))
+      x
+      (last-pair (cdr x))))
+
+(define x1 '(1 2))
+(define y1 '(3 4))
+(check-equal? (append x1 y1)
+              '(1 2 3 4))
+(check-equal? x1 '(1 2))
+(check-equal? y1 '(3 4))
+
+(define x2 '(1 2))
+(define y2 '(3 4))
+(check-equal? (append! x2 y2)
+              '(1 2 3 4))
+(check-equal? x2 '(1 2 3 4))
+(check-equal? y2 '(3 4))
+
+
+
+;; append =====================================================================
+
+(define controller-append
+  #|
+  (define (append x y)
+  (if (null? x)
+      y
+      (cons (car x) (append (cdr x) y))))
+  |#
+  '(BEGIN
+    
+    (assign continue (label END))
+    
+    LOOP
+    (test (op null?) (reg x))                    ; (if (null? x)
+    (branch
+     (label CASE-y))
+    
+    (save continue)
+    (assign continue (label AFTER-append-cdr))
+    (save x)
+    (assign x (op cdr) (reg x))                  ; prepare : (append (cdr x) y)
+    (goto
+     (label LOOP))                               ; do      : (append (cdr x) y)
+
+    AFTER-append-cdr
+    (restore x)
+    (restore continue)
+    (assign x (op car) (reg x))
+    (assign val (op cons) (reg x) (reg val)) ; do : (cons (car x) (append (cdr x) y))))
+    (goto
+     (reg continue))
+    
+    CASE-y
+    (assign val (reg y))
+    (goto
+     (reg continue))
+    
+    END))
+
+(define machine-append
+  (make-machine
+   '(x y val continue)
+   (list (list 'null? null?)
+         (list 'car car)
+         (list 'cdr cdr)
+         (list 'cons cons)
+         )
+   controller-append
+   ))
+
+(define a1 '(1 2))
+(define b1 '(3 4))
+(~&gt; machine-append
+    (set-register-contents! 'x a1)
+    (check-equal? 'done))
+(~&gt; machine-append
+    (set-register-contents! 'y b1)
+    (check-equal? 'done))
+(~&gt; machine-append
+    (start)
+    (check-equal? 'done))
+(~&gt; machine-append
+    (get-register-contents 'val)
+    (check-equal? '(1 2 3 4)))
+(check-equal? a1 '(1 2))
+(check-equal? b1 '(3 4))
+
+
+
+;; append! =====================================================================
+(define controller-append!
+  '(BEGIN
+    (assign iter-x (reg x))
+    
+    LOOP-last-pair
+    (assign temp1 (op cdr) (reg iter-x))                    ; (if (null? (cdr x))
+    (test (op null?) (reg temp1))
+    (branch
+     (label CASE-x))
+    (assign iter-x (op cdr) (reg iter-x))
+    (goto
+     (label LOOP-last-pair))
+
+    CASE-x
+    (perform (op set-cdr!) (reg iter-x) (reg y))
+    
+    END))
+
+(define machine-append!
+  (make-machine
+   '(x y iter-x temp1)
+   (list (list 'null? null?)
+         (list 'set-cdr! set-cdr!)
+         (list 'cdr cdr)
+         (list 'cons cons)
+         )
+   controller-append!
+   ))
+
+(define a2 '(1 2))
+(define b2 '(3 4))
+(~&gt; machine-append!
+    (set-register-contents! 'x a2)
+    (check-equal? 'done))
+(~&gt; machine-append!
+    (set-register-contents! 'y b2)
+    (check-equal? 'done))
+(~&gt; machine-append!
+    (start)
+    (check-equal? 'done))
+(~&gt; machine-append!
+    (get-register-contents 'x)
+    (check-equal? '(1 2 3 4)))
+(check-equal? a2 '(1 2 3 4))
+(check-equal? b2 '(3 4))
 </code></pre>
 <h2 id="5_23"><a class="header" href="#5_23">5_23</a></h2>
 <pre><code class="language-lisp">;; file: 5_23.rkt
+(#%require rackunit)
+(#%require "../allcode/helper/my-util.rkt")
+(#%require (prefix racket: racket))
+(#%require threading)
+
+#|
+cond와 let을 처리할 수 있도록 확장해라.
+(cond-&gt;if와 같은 변환을 연산으로 쓸 수 있다고 가정)
+|#
+
+(racket:require "../allcode/load-eceval.rkt")
+(racket:require (racket:prefix-in syntax: "../allcode/ch5-syntax.rkt"))
+(reset-the-global-environment!)
+
+;; 4_06 연섭문제
+(define (let? exp) (syntax:tagged-list? exp 'let))
+(define (let-&gt;combination let-clause)
+  (let* ((bindings (second let-clause))
+         (vars (map first bindings))
+         (exps (map second bindings))
+         (body (rest (rest let-clause))))
+    (cons (syntax:make-lambda vars body)
+          exps)))
+
+(define eceval
+  (make-machine
+   '(exp env val proc argl continue unev)
+   (append eceval-operations
+           (list (list 'cond? syntax:cond?)
+                 (list 'cond-&gt;if syntax:cond-&gt;if)
+                 (list 'let? let?)
+                 (list 'let-&gt;combination let-&gt;combination)
+                 ))
+   '(
+     ;;SECTION 5.4.4
+     read-eval-print-loop
+     (perform (op initialize-stack))
+     #| 주석처리
+     (perform
+      (op prompt-for-input) (const ";;; EC-Eval input:"))
+     (assign exp (op read))
+     (assign env (op get-global-environment))
+     (assign continue (label print-result))
+     (goto (label eval-dispatch))
+     print-result
+     ;;**following instruction optional -- if use it, need monitored stack
+     (perform (op print-stack-statistics))
+     (perform
+      (op announce-output) (const ";;; EC-Eval value:"))
+     (perform (op user-print) (reg val))
+     (goto (label read-eval-print-loop))
+     |#
+     ;; 한번만 실행하도록 하고, 바로 END로
+     (assign env (op get-global-environment))
+     (assign continue (label print-result))
+     (goto (label eval-dispatch))
+     print-result
+     (goto (label END))
+
+     unknown-expression-type
+     (assign val (const unknown-expression-type-error))
+     (goto (label signal-error))
+
+     unknown-procedure-type
+     (restore continue)
+     (assign val (const unknown-procedure-type-error))
+     (goto (label signal-error))
+
+     signal-error
+     (perform (op user-print) (reg val))
+     (goto (label read-eval-print-loop))
+
+     ;;SECTION 5.4.1
+     eval-dispatch
+     (test (op self-evaluating?) (reg exp))
+     (branch (label ev-self-eval))
+     (test (op variable?) (reg exp))
+     (branch (label ev-variable))
+     (test (op quoted?) (reg exp))
+     (branch (label ev-quoted))
+     (test (op assignment?) (reg exp))
+     (branch (label ev-assignment))
+     (test (op definition?) (reg exp))
+     (branch (label ev-definition))
+     (test (op if?) (reg exp))
+     (branch (label ev-if))
+
+     ;; added: 5-23
+     (test (op cond?) (reg exp))
+     (branch (label ev-cond))
+     ;; added: 5-23
+     (test (op let?) (reg exp))
+     (branch (label ev-let))
+     
+     (test (op lambda?) (reg exp))
+     (branch (label ev-lambda))
+     (test (op begin?) (reg exp))
+     (branch (label ev-begin))
+     (test (op application?) (reg exp))
+     (branch (label ev-application))
+     (goto (label unknown-expression-type))
+
+     ev-self-eval
+     (assign val (reg exp))
+     (goto (reg continue))
+     ev-variable
+     (assign val (op lookup-variable-value) (reg exp) (reg env))
+     (goto (reg continue))
+     ev-quoted
+     (assign val (op text-of-quotation) (reg exp))
+     (goto (reg continue))
+     ev-lambda
+     (assign unev (op lambda-parameters) (reg exp))
+     (assign exp (op lambda-body) (reg exp))
+     (assign val (op make-procedure)
+             (reg unev) (reg exp) (reg env))
+     (goto (reg continue))
+
+     ev-application
+     (save continue)
+     (save env)
+     (assign unev (op operands) (reg exp))
+     (save unev)
+     (assign exp (op operator) (reg exp))
+     (assign continue (label ev-appl-did-operator))
+     (goto (label eval-dispatch))
+     ev-appl-did-operator
+     (restore unev)
+     (restore env)
+     (assign argl (op empty-arglist))
+     (assign proc (reg val))
+     (test (op no-operands?) (reg unev))
+     (branch (label apply-dispatch))
+     (save proc)
+     ev-appl-operand-loop
+     (save argl)
+     (assign exp (op first-operand) (reg unev))
+     (test (op last-operand?) (reg unev))
+     (branch (label ev-appl-last-arg))
+     (save env)
+     (save unev)
+     (assign continue (label ev-appl-accumulate-arg))
+     (goto (label eval-dispatch))
+     ev-appl-accumulate-arg
+     (restore unev)
+     (restore env)
+     (restore argl)
+     (assign argl (op adjoin-arg) (reg val) (reg argl))
+     (assign unev (op rest-operands) (reg unev))
+     (goto (label ev-appl-operand-loop))
+     ev-appl-last-arg
+     (assign continue (label ev-appl-accum-last-arg))
+     (goto (label eval-dispatch))
+     ev-appl-accum-last-arg
+     (restore argl)
+     (assign argl (op adjoin-arg) (reg val) (reg argl))
+     (restore proc)
+     (goto (label apply-dispatch))
+     apply-dispatch
+     (test (op primitive-procedure?) (reg proc))
+     (branch (label primitive-apply))
+     (test (op compound-procedure?) (reg proc))  
+     (branch (label compound-apply))
+     (goto (label unknown-procedure-type))
+
+     primitive-apply
+     (assign val (op apply-primitive-procedure)
+             (reg proc)
+             (reg argl))
+     (restore continue)
+     (goto (reg continue))
+
+     compound-apply
+     (assign unev (op procedure-parameters) (reg proc))
+     (assign env (op procedure-environment) (reg proc))
+     (assign env (op extend-environment)
+             (reg unev) (reg argl) (reg env))
+     (assign unev (op procedure-body) (reg proc))
+     (goto (label ev-sequence))
+
+     ;;;SECTION 5.4.2
+     ev-begin
+     (assign unev (op begin-actions) (reg exp))
+     (save continue)
+     (goto (label ev-sequence))
+
+     ev-sequence
+     (assign exp (op first-exp) (reg unev))
+     (test (op last-exp?) (reg unev))
+     (branch (label ev-sequence-last-exp))
+     (save unev)
+     (save env)
+     (assign continue (label ev-sequence-continue))
+     (goto (label eval-dispatch))
+     ev-sequence-continue
+     (restore env)
+     (restore unev)
+     (assign unev (op rest-exps) (reg unev))
+     (goto (label ev-sequence))
+     ev-sequence-last-exp
+     (restore continue)
+     (goto (label eval-dispatch))
+
+     ;;;SECTION 5.4.3
+
+     ev-if
+     (save exp)
+     (save env)
+     (save continue)
+     (assign continue (label ev-if-decide))
+     (assign exp (op if-predicate) (reg exp))
+     (goto (label eval-dispatch))
+     ev-if-decide
+     (restore continue)
+     (restore env)
+     (restore exp)
+     (test (op true?) (reg val))
+     (branch (label ev-if-consequent))
+     ev-if-alternative
+     (assign exp (op if-alternative) (reg exp))
+     (goto (label eval-dispatch))
+     ev-if-consequent
+     (assign exp (op if-consequent) (reg exp))
+     (goto (label eval-dispatch))
+
+     ;; added: 5-23
+     ev-cond
+     (assign exp (op cond-&gt;if) (reg exp))
+     (goto (label ev-if))
+     ;; added: 5-23
+     ev-let
+     (assign exp (op let-&gt;combination) (reg exp))
+     (goto (label ev-application))
+     
+     ev-assignment
+     (assign unev (op assignment-variable) (reg exp))
+     (save unev)
+     (assign exp (op assignment-value) (reg exp))
+     (save env)
+     (save continue)
+     (assign continue (label ev-assignment-1))
+     (goto (label eval-dispatch))
+     ev-assignment-1
+     (restore continue)
+     (restore env)
+     (restore unev)
+     (perform
+      (op set-variable-value!) (reg unev) (reg val) (reg env))
+     (assign val (const ok))
+     (goto (reg continue))
+
+     ev-definition
+     (assign unev (op definition-variable) (reg exp))
+     (save unev)
+     (assign exp (op definition-value) (reg exp))
+     (save env)
+     (save continue)
+     (assign continue (label ev-definition-1))
+     (goto (label eval-dispatch))
+     ev-definition-1
+     (restore continue)
+     (restore env)
+     (restore unev)
+     (perform
+      (op define-variable!) (reg unev) (reg val) (reg env))
+     (assign val (const ok))
+     (goto (reg continue))
+
+     END)))
+
+(~&gt; eceval
+    (set-register-contents! 'exp '(cond ((= 1 2) 'a)
+                                        ((= 3 4) 'b)
+                                        (else 'c)))
+    (check-equal? 'done))
+(~&gt; eceval
+    (start)
+    (check-equal? 'done))
+(~&gt; eceval
+    (get-register-contents 'val)
+    (check-equal? 'c))
+
+
+
+(~&gt; eceval
+    (set-register-contents! 'exp '(let ((x 1)
+                                        (y 2))
+                                    (+ x y)))
+    (check-equal? 'done))
+(~&gt; eceval
+    (start)
+    (check-equal? 'done))
+(~&gt; eceval
+    (get-register-contents 'val)
+    (check-equal? 3))
+
 </code></pre>
 <h2 id="5_24"><a class="header" href="#5_24">5_24</a></h2>
 <pre><code class="language-lisp">;; file: 5_24.rkt
