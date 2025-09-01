@@ -4,6 +4,11 @@
 (racket:provide (racket:all-defined-out))
 
 (define figure-5-4
+  ;; (define (gcd a b)
+  ;;   (if (= b 0)
+  ;;       a
+  ;;       (gcd b (remainder a b))))
+  
   '(controller
     
     gcd-loop
@@ -23,7 +28,11 @@
     (goto (label gcd-loop))))
 
 (define figure-5-11
-  ;; factorial
+  ;; (define (factorial n)
+  ;;   (if (= n 1) 
+  ;;       1
+  ;;       (* (factorial (- n 1)) n)))
+
   '(controller
     (assign continue (label fact-done))     ; set up final return address
     
@@ -51,7 +60,11 @@
     fact-done))
 
 (define figure-5-12
-  ;; fib
+  ;; (define (fib n)
+  ;;   (cond ((< n 2) n)
+  ;;         (else (+ (fib (- n 1))
+  ;;                  (fib (- n 2))))))
+
   '(controller
     (assign continue (label fib-done))
     fib-loop

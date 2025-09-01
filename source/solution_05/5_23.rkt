@@ -5,6 +5,11 @@
 (#%require (prefix racket: racket))
 (#%require threading)
 
+#|
+cond와 let을 처리할 수 있도록 확장해라.
+(cond->if와 같은 변환을 연산으로 쓸 수 있다고 가정)
+|#
+
 (racket:require "../allcode/load-eceval.rkt")
 (racket:require (racket:prefix-in syntax: "../allcode/ch5-syntax.rkt"))
 (reset-the-global-environment!)

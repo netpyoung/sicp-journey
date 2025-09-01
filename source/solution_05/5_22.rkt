@@ -7,6 +7,7 @@
 (#%require threading)
 
 #|
+연습문제 3.12에 나온 append와 append!에 대한 머신 설계.
 |#
 
 
