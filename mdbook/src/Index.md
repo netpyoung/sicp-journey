@@ -4,6 +4,8 @@
   - 컴퓨터 프로그램의 구조와 해석은 MIT 대학 교수인 `Harold Abelson`과 `Gerald Jay Sussman`이 `Julie Sussman`과 함께 쓴 컴퓨터 과학 교과서입니다. 해커 문화에서는 "마법사 책"으로 알려져 있습니다.
 - [wikipedia](https://en.wikipedia.org/wiki/Structure_and_Interpretation_of_Computer_Programs)
 
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">I wish I had read SICP when I was in high school!</p>&mdash; John Carmack (@ID_AA_Carmack) <a href="https://twitter.com/ID_AA_Carmack/status/875713239912509440?ref_src=twsrc%5Etfw">June 16, 2017</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 ## 간단 느낌
 
 - 1장: 할만한데 그 놈의 뉴턴
